@@ -9,7 +9,7 @@ Karafka-Core contains toolset of small support modules used throughout the Karaf
 It includes
 
 - `Karafka::Core::Monitoring` - default instrumentation and abstraction that allows to use either itself, `dry-monitor` or `ActiveSupport::Notifications`.
-- `Karafka::Core::Configurable` - configurator inspired by `dry-config` with similar but simplified API.
+- `Karafka::Core::Configurable` - configuration engine inspired by `dry-config` with similar but simplified API.
 - `Karafka::Core::Contractable` - contracts inspired by `dry-validation` but with simplified API.
 
 ## Note on contributions
