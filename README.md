@@ -4,7 +4,7 @@
 
 ## Karafka-Core
 
-Karafka-Core contains toolset of small support modules used throughout the Karafka ecosystem.
+Karafka-Core contains toolset of small support modules used throughout the [Karafka](https://github.com/karafka/karafka/) ecosystem.
 
 It includes
 
