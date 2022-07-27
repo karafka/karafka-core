@@ -3,7 +3,7 @@
 module Karafka
   module Core
     module Monitoring
-      # A simple notifications layer for WaterDrop and Karafka that aims to provide API compatible
+      # A simple notifications layer for Karafka ecosystem that aims to provide API compatible
       # with both `ActiveSupport::Notifications` and `dry-monitor`.
       #
       # We do not use any of them by default as our use-case is fairly simple and we do not want

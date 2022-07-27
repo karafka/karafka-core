@@ -13,6 +13,7 @@
 ].each { |dependency| require dependency }
 
 module Karafka
+  # Namespace for small support modules used throughout the Karafka ecosystem
   module Core
   end
 end
