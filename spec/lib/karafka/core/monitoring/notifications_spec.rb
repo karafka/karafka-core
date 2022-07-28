@@ -68,8 +68,6 @@ RSpec.describe_current do
       let(:tracked) { [] }
 
       before do
-        changed = tracked
-
         notifications.subscribe(event_name) do |event|
           tracked << event
         end

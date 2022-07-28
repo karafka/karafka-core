@@ -33,8 +33,9 @@ module Karafka
           @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
         end
 
+        # Clears all the subscribed listeners
         def clear
-          @listeners.each_value { |sub_listeners| sub_listeners.clear }
+          @listeners.each_value(&:clear)
         end
 
         # Allows for subscription to an event
