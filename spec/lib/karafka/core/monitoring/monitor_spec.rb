@@ -22,7 +22,7 @@ RSpec.describe_current do
     before do
       collected = collected_data
 
-      notifications_bus.subscribe('test') do |event|
+      monitor.subscribe('test') do |event|
         collected << event
       end
 
@@ -40,7 +40,7 @@ RSpec.describe_current do
     before do
       collected = collected_data
 
-      notifications_bus.subscribe('test.namespace') do |event|
+      monitor.subscribe('test.namespace') do |event|
         collected << event
       end
 

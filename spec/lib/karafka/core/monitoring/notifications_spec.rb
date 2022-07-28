@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
 RSpec.describe_current do
-  subject(:monitor) { described_class.new }
+  subject(:notifications) { described_class.new }
 
-  before { monitor.register_event('message.produced_async') }
+  let(:event_name) { 'message.produced_async' }
+
+  before { notifications.register_event(event_name) }
 
   describe '#instrument' do
     let(:result) { rand }
-    let(:event_name) { 'message.produced_async' }
     let(:instrumentation) do
-      monitor.instrument(
+      notifications.instrument(
         event_name,
         call: self,
         error: StandardError
@@ -23,14 +24,12 @@ RSpec.describe_current do
 
   describe '#subscribe' do
     context 'when we have a block based listener' do
-      let(:subscription) { monitor.subscribe(event_name) {} }
+      let(:subscription) {  {} }
 
       context 'when we try to subscribe to an unsupported event' do
-        let(:event_name) { 'unsupported' }
-
         it do
           expected_error = Karafka::Core::Monitoring::Notifications::EventNotRegistered
-          expect { subscription }.to raise_error expected_error
+          expect { notifications.subscribe('na') {} }.to raise_error expected_error
         end
       end
 
@@ -42,7 +41,7 @@ RSpec.describe_current do
     end
 
     context 'when we have an object listener' do
-      let(:subscription) { monitor.subscribe(listener.new) }
+      let(:subscription) { notifications.subscribe(listener.new) }
       let(:listener) do
         Class.new do
           def on_message_produced_async(_event)
@@ -52,6 +51,58 @@ RSpec.describe_current do
       end
 
       it { expect { subscription }.not_to raise_error }
+    end
+  end
+
+  describe '#clear' do
+    before { notifications.subscribe(event_name) { raise } }
+
+    it 'expect not to raise any errors as after clearing subscription should no longer work' do
+      notifications.clear
+      notifications.instrument(event_name)
+    end
+  end
+
+  describe 'subscription and instrumentation flow' do
+    context 'when we subscribe with a proc listener' do
+      let(:tracked) { [] }
+
+      before do
+        changed = tracked
+
+        notifications.subscribe(event_name) do |event|
+          tracked << event
+        end
+
+        notifications.instrument(event_name)
+      end
+
+      it { expect(tracked[0].id).to eq(event_name) }
+    end
+
+    context 'when we subscribe with a class listener' do
+      let(:listener_class) do
+        Class.new do
+          attr_reader :accu
+
+          def initialize
+            @accu = []
+          end
+
+          def on_message_produced_async(event)
+            @accu << event
+          end
+        end
+      end
+
+      let(:listener) { listener_class.new }
+
+      before do
+        notifications.subscribe(listener)
+        notifications.instrument(event_name)
+      end
+
+      it { expect(listener.accu[0].id).to eq(event_name) }
     end
   end
 end

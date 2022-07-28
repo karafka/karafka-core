@@ -33,6 +33,10 @@ module Karafka
           @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
         end
 
+        def clear
+          @listeners.each_value { |sub_listeners| sub_listeners.clear }
+        end
+
         # Allows for subscription to an event
         # There are two ways you can subscribe: via block or via listener.
         #
@@ -108,7 +112,7 @@ module Karafka
 
         # @return [Integer] current monotonic time
         def current_time
-          Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond)
+          ::Process.clock_gettime(::Process::CLOCK_MONOTONIC, :millisecond)
         end
       end
     end
