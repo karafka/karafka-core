@@ -86,7 +86,7 @@ module Karafka
 
             singleton_class.attr_accessor value.name
 
-            return if skippable
+            next if skippable
 
             initialized = if value.is_a?(Leaf)
                             value.constructor ? value.constructor.call(value.default) : value.default
