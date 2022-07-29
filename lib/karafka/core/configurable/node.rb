@@ -82,9 +82,11 @@ module Karafka
           @children.each do |value|
             # Do not redefine something that was already set during compilation
             # This will allow us to reconfigure things and skip override with defaults
-            next if respond_to?(value.name)
+            skippable = respond_to?(value.name)
 
             singleton_class.attr_accessor value.name
+
+            return if skippable
 
             initialized = if value.is_a?(Leaf)
                             value.constructor ? value.constructor.call(value.default) : value.default

@@ -230,5 +230,35 @@ RSpec.describe_current do
       it { expect(config.with_default).to eq(123) }
       it { expect(config_sub.with_default).to eq(0) }
     end
+
+    # https://github.com/karafka/karafka-core/issues/1
+    context 'when configurable class has a method already defined in the object class' do
+      # We add method to the node to simulate this. We do not want to patch the Object class
+      before do
+        mod = Module.new do
+          def testable
+            raise
+          end
+        end
+
+        Karafka::Core::Configurable::Node.include mod
+      end
+
+      let(:configurable_class) do
+        Class.new do
+          include Karafka::Core::Configurable
+
+          setting(:testable, default: 123)
+        end
+      end
+
+      it 'expect to redefine it with the accessors' do
+        instance = configurable_class.new
+
+        instance.configure do |config|
+          config.testable = 1
+        end
+      end
+    end
   end
 end
