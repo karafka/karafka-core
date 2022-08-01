@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.0.2 (Unreleased)
+## 2.0.2 (2022-08-01)
 - Add extracted statistics decorator (#932)
 
 ## 2.0.1 (2022-07-30)
