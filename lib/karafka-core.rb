@@ -11,6 +11,7 @@
   karafka/core/monitoring/event
   karafka/core/monitoring/monitor
   karafka/core/monitoring/notifications
+  karafka/core/monitoring/statistics_decorator
   karafka/core/configurable
   karafka/core/configurable/leaf
   karafka/core/configurable/node
