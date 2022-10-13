@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.0.3 (2022-10-13)
+- Maintenance release. Cert chain update. No code changes.
+
 ## 2.0.2 (2022-08-01)
 - Add extracted statistics decorator (#932)
 

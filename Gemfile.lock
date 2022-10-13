@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    karafka-core (2.0.2)
+    karafka-core (2.0.3)
       concurrent-ruby (>= 1.1)
 
 GEM
