@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+# Unreleased
+- Disallow publishing events that were not registered.
+
 ## 2.0.3 (2022-10-13)
 - Maintenance release. Cert chain update. No code changes.
 

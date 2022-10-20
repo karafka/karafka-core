@@ -27,7 +27,7 @@ module Karafka
 
         # Registers a new event on which we can publish
         #
-        # @param event_id [String, Symbol] event id
+        # @param event_id [String] event id
         def register_event(event_id)
           @listeners[event_id]
           @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
@@ -73,7 +73,7 @@ module Karafka
         # Allows for code instrumentation
         # Runs the provided code and sends the instrumentation details to all registered listeners
         #
-        # @param event_id [String, Symbol] id of the event
+        # @param event_id [String] id of the event
         # @param payload [Hash] payload for the instrumentation
         # @param block [Proc] instrumented code
         # @return [Object] whatever the provided block (if any) returns
@@ -83,6 +83,9 @@ module Karafka
         #     sleep(1)
         #   end
         def instrument(event_id, payload = EMPTY_HASH, &block)
+          # Allow for instrumentation of only events we registered
+          raise EventNotRegistered, event_id unless @listeners.key?(event_id)
+
           result, time = measure_time_taken(&block) if block_given?
 
           event = Event.new(
