@@ -20,6 +20,13 @@ RSpec.describe_current do
     it 'expect to return blocks execution value' do
       expect(instrumentation).to eq result
     end
+
+    context 'when we want to instrument event that was not registered' do
+      it 'expect to raise error' do
+        expected_error = Karafka::Core::Monitoring::Notifications::EventNotRegistered
+        expect { notifications.instrument('na') }.to raise_error(expected_error)
+      end
+    end
   end
 
   describe '#subscribe' do
