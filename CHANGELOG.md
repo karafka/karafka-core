@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-# Unreleased
+# 2.0.4 (2022-11-20)
 - Disallow publishing events that were not registered.
 - Fix a potential race condition when adding listeners concurrently from multiple threads.
 
