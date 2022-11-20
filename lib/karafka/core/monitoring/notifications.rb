@@ -20,7 +20,10 @@ module Karafka
         private_constant :EMPTY_HASH
 
         def initialize
-          @listeners = Concurrent::Map.new { |k, v| k[v] = Concurrent::Array.new }
+          @listeners = Concurrent::Map.new do |k, v|
+            k.compute_if_absent(v) { Concurrent::Array.new }
+          end
+
           # This allows us to optimize the method calling lookups
           @events_methods_map = Concurrent::Map.new
         end
