@@ -2,6 +2,7 @@
 
 # Unreleased
 - Disallow publishing events that were not registered.
+- Fix a potential race condition when subscribing adding listeners concurrently from multiple threads.
 
 ## 2.0.3 (2022-10-13)
 - Maintenance release. Cert chain update. No code changes.
