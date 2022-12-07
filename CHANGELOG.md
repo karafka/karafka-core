@@ -3,6 +3,7 @@
 ## 2.0.5 (Unreleased)
 - Move `librdkafka` generic (producer and consumer) patches from WaterDrop here.
 - Move dependency on `librdkafka` here from both Karafka and WaterDrop to unify management.
+- Move `CallbacksManager` from WaterDrop because it's shared.
 
 ## 2.0.4 (2022-11-20)
 - Disallow publishing events that were not registered.
