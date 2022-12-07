@@ -2,6 +2,7 @@
 
 module Karafka
   module Core
+    # All the instrumentation shared across Karafka ecosystem
     module Instrumentation
       class << self
         # Builds a manager for statistics callbacks
