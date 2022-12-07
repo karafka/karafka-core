@@ -20,7 +20,7 @@ module Karafka
         #   things are going to be added to the manager, we need to extract values into an array and
         #   run it. That way we can add new things the same time.
         def call(*args)
-          @callbacks.each_value { |callback| callback.call(*args) }
+          @callbacks.values.each { |callback| callback.call(*args) }
         end
 
         # Adds a callback to the manager
