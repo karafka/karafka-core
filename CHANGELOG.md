@@ -1,7 +1,7 @@
 # Karafka core changelog
 
 ## 2.0.5 (Unreleased)
-- Move `librdkafka` patches from WaterDrop here.
+- Move `librdkafka` generic (producer and consumer) patches from WaterDrop here.
 - Move dependency on `librdkafka` here from both Karafka and WaterDrop to unify management.
 
 ## 2.0.4 (2022-11-20)
