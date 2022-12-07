@@ -21,7 +21,6 @@ module Karafka
           @name = name
           @children = []
           @nestings = nestings
-          @compiled = false
           instance_eval(&nestings)
         end
 
@@ -44,7 +43,7 @@ module Karafka
         # Compile settings, allow for overrides via yielding
         # @return [Node] returns self after configuration
         def configure
-          compile unless @compiled
+          compile
           yield(self) if block_given?
           self
         end
@@ -98,8 +97,6 @@ module Karafka
 
             public_send("#{value.name}=", initialized)
           end
-
-          @compiled = true
         end
       end
     end
