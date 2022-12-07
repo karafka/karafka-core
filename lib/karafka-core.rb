@@ -2,9 +2,12 @@
 
 %w[
   yaml
+  rdkafka
+
   concurrent/map
   concurrent/hash
   concurrent/array
+
   karafka/core
   karafka/core/version
   karafka/core/monitoring
@@ -18,8 +21,15 @@
   karafka/core/contractable/contract
   karafka/core/contractable/result
   karafka/core/contractable/rule
+
+  karafka/core/patches/rdkafka/bindings
+  karafka/core/patches/rdkafka/producer
 ].each { |dependency| require dependency }
 
 # Karafka framework main namespace
 module Karafka
 end
+
+# Patch rdkafka
+::Rdkafka::Producer.include(::Karafka::Core::Patches::Rdkafka::Producer)
+::Rdkafka::Bindings.include(::Karafka::Core::Patches::Rdkafka::Bindings)
