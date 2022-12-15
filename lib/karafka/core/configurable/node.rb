@@ -74,7 +74,7 @@ module Karafka
 
           dupped.children += children.map do |value|
             if value.is_a?(Leaf)
-              # After inheritance we need to reload the state so the leafes are recompiled again
+              # After inheritance we need to reload the state so the leafs are recompiled again
               value = value.dup
               value.compiled = false
               value
@@ -107,7 +107,6 @@ module Karafka
                             value.compile
                             value
                           end
-
 
             public_send("#{value.name}=", initialized)
           end
