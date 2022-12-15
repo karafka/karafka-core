@@ -35,8 +35,10 @@ module Karafka
           @children << if block
                          Node.new(name, block)
                        else
-                         Leaf.new(name, default, constructor)
+                         Leaf.new(name, default, constructor, false)
                        end
+
+          compile
         end
 
         # Allows for the configuration and setup of the settings
@@ -44,7 +46,7 @@ module Karafka
         # Compile settings, allow for overrides via yielding
         # @return [Node] returns self after configuration
         def configure
-          compile unless @compiled
+          compile if !@compiled || name == :root
           yield(self) if block_given?
           self
         end
@@ -71,7 +73,14 @@ module Karafka
           dupped = Node.new(name, nestings)
 
           dupped.children += children.map do |value|
-            value.is_a?(Leaf) ? value.dup : value.deep_dup
+            if value.is_a?(Leaf)
+              # After inheritance we need to reload the state so the leafs are recompiled again
+              value = value.dup
+              value.compiled = false
+              value
+            else
+              value.deep_dup
+            end
           end
 
           dupped
@@ -90,6 +99,9 @@ module Karafka
             next if skippable
 
             initialized = if value.is_a?(Leaf)
+                            next if value.compiled?
+
+                            value.compiled = true
                             value.constructor ? value.constructor.call(value.default) : value.default
                           else
                             value.compile

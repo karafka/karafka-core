@@ -22,6 +22,12 @@ RSpec.describe_current do
 
     let(:config) { configurable_class.config }
 
+    context 'when we want to inject more settings into it' do
+      before { configurable_class.config.setting(:testme, default: 7) }
+
+      it { expect(configurable_class.config.testme).to eq(7) }
+    end
+
     context 'when we do not override any settings' do
       before { configurable_class.configure }
 
