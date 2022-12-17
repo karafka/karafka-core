@@ -57,7 +57,10 @@ module Karafka
 
           @children.each do |value|
             config[value.name] = if value.is_a?(Leaf)
-                                   public_send(value.name)
+                                   result = public_send(value.name)
+                                   # We need to check if value is not a result node for cases where
+                                   # we merge additional config
+                                   result.is_a?(Node) ? result.to_h : result
                                  else
                                    value.to_h
                                  end

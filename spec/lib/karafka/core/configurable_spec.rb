@@ -123,6 +123,30 @@ RSpec.describe_current do
         )
       end
     end
+
+    context 'when we want to merge extra config as a nested setting' do
+      let(:extra) do
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting(:additional, default: 7)
+        end
+      end
+
+      before do
+        extra_config = extra
+
+        configurable_class.instance_eval do
+          setting(:superscope, default: extra_config.config)
+        end
+      end
+
+      it { expect(configurable_class.config.superscope.additional).to eq(7) }
+
+      it 'expect to build correct hash when casted' do
+        expect(configurable_class.config.to_h[:superscope][:additional]).to eq(7)
+      end
+    end
   end
 
   context 'when we define settings on an instance level' do
