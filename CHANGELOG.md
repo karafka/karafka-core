@@ -3,6 +3,7 @@
 ## Unreleased
 - Allow for recompilation of config upon injecting new config nodes.
 - Compile given config scope automatically after it is defined.
+- Support sub-config merging via their nested definitions.
 
 ## 2.0.6 (2022-12-07)
 - Reverse node compilation state tracking removal.
