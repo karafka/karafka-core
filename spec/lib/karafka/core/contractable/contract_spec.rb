@@ -6,7 +6,7 @@ RSpec.describe_current do
       configure do |config|
         config.error_messages = YAML.safe_load(
           File.read(
-            File.join(Karafka::Core.gem_root, 'config', 'errors.yml')
+            File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
           )
         ).fetch('en').fetch('validations').fetch('config')
       end
@@ -37,7 +37,7 @@ RSpec.describe_current do
         configure do |config|
           config.error_messages = YAML.safe_load(
             File.read(
-              File.join(Karafka::Core.gem_root, 'config', 'errors.yml')
+              File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
             )
           ).fetch('en').fetch('validations').fetch('test')
         end
@@ -102,7 +102,7 @@ RSpec.describe_current do
         configure do |config|
           config.error_messages = YAML.safe_load(
             File.read(
-              File.join(Karafka::Core.gem_root, 'config', 'errors.yml')
+              File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
             )
           ).fetch('en').fetch('validations').fetch('config')
         end
