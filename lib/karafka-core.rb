@@ -11,6 +11,8 @@
   karafka/core
   karafka/core/version
 
+  karafka/core/helpers/time
+
   karafka/core/monitoring
   karafka/core/monitoring/event
   karafka/core/monitoring/monitor
