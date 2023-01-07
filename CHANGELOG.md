@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.0.8 (Unreleased)
+- Add `Karafka::Core::Helpers::Time` utility for time reporting.
+
 ## 2.0.7 (2022-12-18)
 - Allow for recompilation of config upon injecting new config nodes.
 - Compile given config scope automatically after it is defined.

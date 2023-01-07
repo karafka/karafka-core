@@ -9,6 +9,8 @@ module Karafka
       # We do not use any of them by default as our use-case is fairly simple and we do not want
       # to have too many external dependencies.
       class Notifications
+        include Core::Helpers::Time
+
         attr_reader :name
 
         # Raised when someone wants to publish event that was not registered
@@ -112,14 +114,9 @@ module Karafka
         # Measures time taken to execute a given block and returns it together with the result of
         # the block execution
         def measure_time_taken
-          start = current_time
+          start = monotonic_now
           result = yield
-          [result, current_time - start]
-        end
-
-        # @return [Integer] current monotonic time
-        def current_time
-          ::Process.clock_gettime(::Process::CLOCK_MONOTONIC, :millisecond)
+          [result, monotonic_now - start]
         end
       end
     end
