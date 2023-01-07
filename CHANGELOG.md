@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.0.8 (Unreleased)
+## 2.0.8 (2023-01-07)
 - Add `Karafka::Core::Helpers::Time` utility for time reporting.
 
 ## 2.0.7 (2022-12-18)
