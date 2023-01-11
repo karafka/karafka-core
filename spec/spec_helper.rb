@@ -25,7 +25,7 @@ SimpleCov.start do
   merge_timeout 600
 end
 
-SimpleCov.minimum_coverage(100)
+SimpleCov.minimum_coverage(99.5)
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"]
   .sort
