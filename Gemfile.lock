@@ -3,7 +3,7 @@ PATH
   specs:
     karafka-core (2.0.8)
       concurrent-ruby (>= 1.1)
-      rdkafka (>= 0.12)
+      karafka-rdkafka (>= 0.12)
 
 GEM
   remote: https://rubygems.org/
@@ -22,13 +22,13 @@ GEM
     ffi (1.15.5)
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
-    mini_portile2 (2.8.1)
-    minitest (5.17.0)
-    rake (13.0.6)
-    rdkafka (0.12.0)
+    karafka-rdkafka (0.12.0)
       ffi (~> 1.15)
       mini_portile2 (~> 2.6)
       rake (> 12)
+    mini_portile2 (2.8.1)
+    minitest (5.17.0)
+    rake (13.0.6)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
