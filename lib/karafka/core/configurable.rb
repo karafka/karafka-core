@@ -64,8 +64,8 @@ module Karafka
         end
 
         # Pipes the settings setup to the config root node
-        def setting(...)
-          config.setting(...)
+        def setting(*args, &block)
+          config.setting(*args, &block)
         end
       end
     end
