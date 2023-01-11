@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    karafka-core (2.0.8)
+    karafka-core (2.0.9)
       concurrent-ruby (>= 1.1)
       karafka-rdkafka (>= 0.12)
 
