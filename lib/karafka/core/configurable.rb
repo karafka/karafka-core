@@ -64,6 +64,8 @@ module Karafka
         end
 
         # Pipes the settings setup to the config root node
+        # @param args [Object] anything provided to settings
+        # @param block [Proc] block for settings
         def setting(*args, &block)
           config.setting(*args, &block)
         end
