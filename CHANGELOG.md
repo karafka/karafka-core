@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.0.9 (Unreleased)
+## 2.0.9 (2023-01-11)
 - Use `karafka-rdkafka` instead of `rdkafka`. This change is needed to ensure that all consecutive releases are stable and compatible.
 - Relax Ruby requirement to `2.6`. It does not mean we officially support it but it may work. Go to [Versions Lifecycle and EOL](https://karafka.io/docs/Versions-Lifecycle-and-EOL/) for more details.
 
