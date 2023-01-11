@@ -63,11 +63,23 @@ module Karafka
           config.configure(&block)
         end
 
-        # Pipes the settings setup to the config root node
-        # @param args [Object] anything provided to settings
-        # @param block [Proc] block for settings
-        def setting(*args, &block)
-          config.setting(*args, &block)
+        # Two versions are needed to pass arguments in the correct way
+        if RUBY_VERSION >= '2.7'
+          class_eval <<~CODE
+            # Pipes the settings setup to the config root node
+            def setting(...)
+              config.setting(...)
+            end
+          CODE
+        else
+          class_eval <<~CODE
+            # Pipes the settings setup to the config root node
+            # @param args [Object] anything provided to settings
+            # @param block [Proc] block for settings
+            def setting(*args, &block)
+              config.setting(*args, &block)
+            end
+          CODE
         end
       end
     end
