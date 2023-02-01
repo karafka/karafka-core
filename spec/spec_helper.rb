@@ -42,5 +42,5 @@ RSpec.configure do |config|
 end
 
 require 'karafka-core'
-
-RSpec.extend RSpecLocator.new(__FILE__)
+require 'karafka/core/helpers/rspec_locator'
+RSpec.extend Karafka::Core::Helpers::RSpecLocator.new(__FILE__)
