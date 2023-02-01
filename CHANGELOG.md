@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.0.10 (Unreleased)
+## 2.0.10 (2023-02-01)
 - Move `RspecLocator` to core.
 
 ## 2.0.9 (2023-01-11)
