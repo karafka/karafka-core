@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.0.11 (2023-02-12)
+- Set minimum `karafka-rdkafka` on `0.12.1`.
+
 ## 2.0.10 (2023-02-01)
 - Move `RspecLocator` to core.
 
