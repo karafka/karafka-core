@@ -6,11 +6,12 @@
 
 Karafka-Core contains toolset of small support modules used throughout the [Karafka](https://github.com/karafka/karafka/) ecosystem.
 
-It includes
+It includes:
 
 - `Karafka::Core::Monitoring` - default instrumentation and abstraction that allows to use either itself, `dry-monitor` or `ActiveSupport::Notifications`.
 - `Karafka::Core::Configurable` - configuration engine inspired by `dry-config` with similar but simplified API.
 - `Karafka::Core::Contractable` - contracts inspired by `dry-validation` but with simplified API.
+- `Karafka::Core::Taggable` - adds ability to attach `#tags` to objects for extra labeling.
 
 ## Note on contributions
 
