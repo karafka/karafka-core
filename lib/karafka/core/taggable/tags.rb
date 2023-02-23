@@ -34,6 +34,18 @@ module Karafka
         def to_a
           @accu.values.tap(&:uniq!)
         end
+
+        # @param _args [Object] anything that the standard `to_json` accepts
+        # @return [String] json representation of tags
+        def to_json(*_args)
+          to_a.to_json
+        end
+
+        # @param _args [Object] anything that the standard `as_json` accepts
+        # @return [Array<String>] array that can be converted to json
+        def as_json(*_args)
+          to_a
+        end
       end
     end
   end
