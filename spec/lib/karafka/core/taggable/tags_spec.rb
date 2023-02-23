@@ -51,4 +51,16 @@ RSpec.describe_current do
 
     it { expect(tags.to_a).to eq(%w[2]) }
   end
+
+  describe '#to_json' do
+    before { tags.add(:test, 'abc') }
+
+    it { expect(tags.to_json).to eq(%w[abc].to_json) }
+  end
+
+  describe '#as_json' do
+    before { tags.add(:test, 'abc') }
+
+    it { expect(tags.as_json).to eq(%w[abc]) }
+  end
 end
