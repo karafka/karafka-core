@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.0.12 (Unreleased)
+- Introduce ability to tag certain objects by including the `Karafka::Core::Taggable` module.
+
 ## 2.0.11 (2023-02-12)
 - Set minimum `karafka-rdkafka` on `0.12.1`.
 

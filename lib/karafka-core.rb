@@ -30,6 +30,9 @@
   karafka/core/instrumentation
   karafka/core/instrumentation/callbacks_manager
 
+  karafka/core/taggable
+  karafka/core/taggable/tags
+
   karafka/core/patches/rdkafka/bindings
 ].each { |dependency| require dependency }
 
