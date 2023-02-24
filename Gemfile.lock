@@ -52,6 +52,7 @@ GEM
       concurrent-ruby (~> 1.0)
 
 PLATFORMS
+  arm64-darwin-21
   x86_64-linux
 
 DEPENDENCIES
@@ -62,4 +63,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   2.4.6
+   2.4.7
