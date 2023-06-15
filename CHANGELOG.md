@@ -1,5 +1,9 @@
 # Karafka core changelog
 
+## 2.1.0 (Unreleased)
+- [Change] Set `karafka-rdkafka` requirement from `>= 0.13.0.beta1` to `<= 0.14.0`.
+- [Change] Remove no longer needed patch.
+
 ## 2.0.13 (2023-05-26)
 - Set minimum `karafka-rdkafka` on `0.12.3`.
 
