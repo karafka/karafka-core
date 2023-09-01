@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.2.0 (2023-09-01)
+- [Maintenance] Update the signing cert (old expired)
+
 ## 2.1.1 (2023-06-28)
 - [Change] Set minimum `karafka-rdkafka` on `0.13.1`.
 
