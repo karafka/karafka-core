@@ -84,10 +84,15 @@ RSpec.describe_current do
 
     it { expect(decorated['string']).to eq('value3') }
     it { expect(decorated.key?('string_d')).to eq(false) }
+    it { expect(decorated.key?('string_fd')).to eq(false) }
     it { expect(decorated['float_d'].round(10)).to eq(1.0) }
+    it { expect(decorated['float_fd']).to eq(0) }
     it { expect(decorated['int_d']).to eq(-120) }
+    it { expect(decorated['int_fd']).to eq(0) }
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(-151) }
+    it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to eq(0) }
     it { expect(decorated).to be_frozen }
+    it { expect(decorated.key?('float_d_d')).to eq(false) }
   end
 
   context 'when a broker is no longer present' do
@@ -100,10 +105,14 @@ RSpec.describe_current do
 
     it { expect(decorated['string']).to eq('value2') }
     it { expect(decorated.key?('string_d')).to eq(false) }
+    it { expect(decorated.key?('string_fd')).to eq(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
+    it { expect(decorated['float_fd']).to eq(0) }
     it { expect(decorated['int_d']).to eq(18) }
+    it { expect(decorated['int_fd']).to eq(0) }
     it { expect(decorated['nested']).to eq({}) }
     it { expect(decorated).to be_frozen }
+    it { expect(decorated.key?('float_d_d')).to eq(false) }
   end
 
   context 'when broker was introduced later on' do
@@ -117,8 +126,35 @@ RSpec.describe_current do
     it { expect(decorated['string']).to eq('value2') }
     it { expect(decorated.key?('string_d')).to eq(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
+    it { expect(decorated['float_fd']).to eq(0) }
     it { expect(decorated['int_d']).to eq(18) }
+    it { expect(decorated['int_fd']).to eq(0) }
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(0) }
+    it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to eq(0) }
     it { expect(decorated).to be_frozen }
+    it { expect(decorated.key?('float_d_d')).to eq(false) }
+  end
+
+  context 'when value remains unchanged over time' do
+    subject(:decorated) do
+      # First one will set initial state
+      decorator.call(deep_copy.call)
+      # Second one will build first deltas with freeze duration of zero
+      decorator.call(deep_copy.call)
+      sleep(0.01)
+      # Third one will allow for proper freeze duration computation
+      decorator.call(deep_copy.call)
+    end
+
+    let(:deep_copy) { -> { Marshal.load(Marshal.dump(emited_stats1)) } }
+
+    it { expect(decorated.key?('string_d')).to eq(false) }
+    it { expect(decorated.key?('string_fd')).to eq(false) }
+    it { expect(decorated['float_d']).to eq(0) }
+    it { expect(decorated['float_fd']).to be_within(5).of(10) }
+    it { expect(decorated['int_d']).to eq(0) }
+    it { expect(decorated['int_fd']).to be_within(5).of(10) }
+    it { expect(decorated).to be_frozen }
+    it { expect(decorated.key?('float_d_d')).to eq(false) }
   end
 end
