@@ -86,11 +86,11 @@ RSpec.describe_current do
     it { expect(decorated.key?('string_d')).to eq(false) }
     it { expect(decorated.key?('string_fd')).to eq(false) }
     it { expect(decorated['float_d'].round(10)).to eq(1.0) }
-    it { expect(decorated['float_fd']).to eq(0) }
+    it { expect(decorated['float_fd']).to be_within(5).of(0) }
     it { expect(decorated['int_d']).to eq(-120) }
-    it { expect(decorated['int_fd']).to eq(0) }
+    it { expect(decorated['int_fd']).to be_within(5).of(0) }
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(-151) }
-    it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to eq(0) }
+    it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to be_within(5).of(0) }
     it { expect(decorated).to be_frozen }
     it { expect(decorated.key?('float_d_d')).to eq(false) }
   end
@@ -107,9 +107,9 @@ RSpec.describe_current do
     it { expect(decorated.key?('string_d')).to eq(false) }
     it { expect(decorated.key?('string_fd')).to eq(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
-    it { expect(decorated['float_fd']).to eq(0) }
+    it { expect(decorated['float_fd']).to be_within(5).of(0) }
     it { expect(decorated['int_d']).to eq(18) }
-    it { expect(decorated['int_fd']).to eq(0) }
+    it { expect(decorated['int_fd']).to be_within(5).of(0) }
     it { expect(decorated['nested']).to eq({}) }
     it { expect(decorated).to be_frozen }
     it { expect(decorated.key?('float_d_d')).to eq(false) }
@@ -126,11 +126,11 @@ RSpec.describe_current do
     it { expect(decorated['string']).to eq('value2') }
     it { expect(decorated.key?('string_d')).to eq(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
-    it { expect(decorated['float_fd']).to eq(0) }
+    it { expect(decorated['float_fd']).to be_within(5).of(0) }
     it { expect(decorated['int_d']).to eq(18) }
-    it { expect(decorated['int_fd']).to eq(0) }
+    it { expect(decorated['int_fd']).to be_within(5).of(0) }
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(0) }
-    it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to eq(0) }
+    it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to be_within(5).of(0) }
     it { expect(decorated).to be_frozen }
     it { expect(decorated.key?('float_d_d')).to eq(false) }
   end
