@@ -1,5 +1,9 @@
 # Karafka core changelog
 
+## 2.2.1 (Unreleased)
+- Optimize statistics decorator by minimizing number of new objects created.
+- Expand the decoration to include new value `_fd` providing freeze duration in milliseconds. This value informs us for how many consecutive ms the given value did not change. It can be useful for detecting values that should change once in a while but are stale.
+
 ## 2.2.0 (2023-09-01)
 - [Maintenance] Update the signing cert (old expired)
 
