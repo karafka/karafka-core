@@ -1,7 +1,7 @@
 # Karafka core changelog
 
 ### 2.2.2 (2023-09-11)
-- [Fix] Reuse previous fozen duration as a base for incoming computation.
+- [Fix] Reuse previous frozen duration as a base for incoming computation.
 
 ## 2.2.1 (2023-09-10)
 - Optimize statistics decorator by minimizing number of new objects created.
