@@ -61,14 +61,17 @@ module Karafka
         # @return [Object] the diff if the values were numerics or the current scope
         def diff(previous, current)
           if current.is_a?(Hash)
+            filled_previous = previous || EMPTY_HASH
+            filled_current = current || EMPTY_HASH
+
             # @note We cannot use #each_key as we modify the content of the current scope
             #   in place (in case it's a hash)
             current.keys.each do |key|
               append(
-                previous || EMPTY_HASH,
-                current,
+                filled_previous,
+                filled_current,
                 key,
-                diff((previous || EMPTY_HASH)[key], (current || EMPTY_HASH)[key])
+                diff(filled_previous[key], filled_current[key])
               )
             end
           end
