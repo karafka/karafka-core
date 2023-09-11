@@ -61,13 +61,17 @@ module Karafka
         # @return [Object] the diff if the values were numerics or the current scope
         def diff(previous, current)
           if current.is_a?(Hash)
+            filled_previous = previous || EMPTY_HASH
+            filled_current = current || EMPTY_HASH
+
             # @note We cannot use #each_key as we modify the content of the current scope
             #   in place (in case it's a hash)
             current.keys.each do |key|
               append(
-                current,
+                filled_previous,
+                filled_current,
                 key,
-                diff((previous || EMPTY_HASH)[key], (current || EMPTY_HASH)[key])
+                diff(filled_previous[key], filled_current[key])
               )
             end
           end
@@ -84,17 +88,18 @@ module Karafka
 
         # Appends the result of the diff to a given key as long as the result is numeric
         #
+        # @param previous [Hash] previous scope
         # @param current [Hash] current scope
         # @param key [Symbol] key based on which we were diffing
         # @param result [Object] diff result
-        def append(current, key, result)
+        def append(previous, current, key, result)
           return unless result.is_a?(Numeric)
           return if current.frozen?
 
           freeze_duration_key = "#{key}_fd"
 
           if result.zero?
-            current[freeze_duration_key] ||= 0
+            current[freeze_duration_key] = previous[freeze_duration_key] || 0
             current[freeze_duration_key] += @change_d
           else
             current[freeze_duration_key] = 0
