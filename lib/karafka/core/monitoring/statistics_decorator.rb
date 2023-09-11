@@ -65,6 +65,7 @@ module Karafka
             #   in place (in case it's a hash)
             current.keys.each do |key|
               append(
+                previous || EMPTY_HASH,
                 current,
                 key,
                 diff((previous || EMPTY_HASH)[key], (current || EMPTY_HASH)[key])
@@ -84,17 +85,18 @@ module Karafka
 
         # Appends the result of the diff to a given key as long as the result is numeric
         #
+        # @param previous [Hash] previous scope
         # @param current [Hash] current scope
         # @param key [Symbol] key based on which we were diffing
         # @param result [Object] diff result
-        def append(current, key, result)
+        def append(previous, current, key, result)
           return unless result.is_a?(Numeric)
           return if current.frozen?
 
           freeze_duration_key = "#{key}_fd"
 
           if result.zero?
-            current[freeze_duration_key] ||= 0
+            current[freeze_duration_key] = previous[freeze_duration_key] || 0
             current[freeze_duration_key] += @change_d
           else
             current[freeze_duration_key] = 0
