@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.metadata = {
     'funding_uri' => 'https://karafka.io/#become-pro',
     'homepage_uri' => 'https://karafka.io',
-    'changelog_uri' => 'https://github.com/karafka/karafka-core/blob/master/CHANGELOG.md',
+    'changelog_uri' => 'https://karafka.io/docs/Changelog-Karafka-Core',
     'bug_tracker_uri' => 'https://github.com/karafka/karafka-core/issues',
     'source_code_uri' => 'https://github.com/karafka/karafka-core',
     'documentation_uri' => 'https://karafka.io/docs',
