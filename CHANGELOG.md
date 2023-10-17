@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+### 2.2.3 (2023-10-17)
+- [Change] Set minimum `karafka-rdkafka` on `0.13.6`.
+
 ### 2.2.2 (2023-09-11)
 - [Fix] Reuse previous frozen duration as a base for incoming computation.
 

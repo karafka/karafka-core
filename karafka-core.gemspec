@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.licenses    = %w[MIT]
 
   spec.add_dependency 'concurrent-ruby', '>= 1.1'
-  spec.add_dependency 'karafka-rdkafka', '>= 0.13.1', '< 0.14.0'
+  spec.add_dependency 'karafka-rdkafka', '>= 0.13.6', '< 0.14.0'
 
   spec.required_ruby_version = '>= 2.6.0'
 
