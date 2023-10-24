@@ -30,12 +30,13 @@ module Karafka
         # @param name [Symbol] setting or nested node name
         # @param default [Object] default value
         # @param constructor [#call, nil] callable or nil
+        # @param lazy [Boolean] is this a lazy leaf
         # @param block [Proc] block for nested settings
-        def setting(name, default: nil, constructor: nil, &block)
+        def setting(name, default: nil, constructor: nil, lazy: false, &block)
           @children << if block
                          Node.new(name, block)
                        else
-                         Leaf.new(name, default, constructor, false)
+                         Leaf.new(name, default, constructor, false, lazy)
                        end
 
           compile
@@ -96,8 +97,11 @@ module Karafka
             # Do not redefine something that was already set during compilation
             # This will allow us to reconfigure things and skip override with defaults
             skippable = respond_to?(value.name)
+            lazy_leaf = value.is_a?(Leaf) && value.lazy?
 
-            singleton_class.attr_accessor value.name
+            # Do not create accessor for leafs that are lazy as they will get a custom method
+            # created instead
+            singleton_class.attr_accessor(value.name) unless lazy_leaf
 
             next if skippable
 
@@ -111,10 +115,34 @@ module Karafka
                             value
                           end
 
-            public_send("#{value.name}=", initialized)
+            if lazy_leaf && !initialized
+              build_dynamic_accessor(value)
+            else
+              public_send("#{value.name}=", initialized)
+            end
           end
 
           @compiled = true
+        end
+
+        private
+
+        # Defines a lazy evaluated accessor that will re-evaluate in case value constructor
+        # evaluates to `nil` or `false`. This allows us to define dynamic constructors that
+        # can react to external conditions to become expected value once this value is
+        # available
+        #
+        # @param value [Leaf]
+        def build_dynamic_accessor(value)
+          define_singleton_method(value.name) do
+            existing = instance_variable_get("@#{name}")
+
+            return existing if existing
+
+            built = value.constructor.call(value.default)
+
+            instance_variable_set("@#{name}", built)
+          end
         end
       end
     end
