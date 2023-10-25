@@ -147,6 +147,51 @@ RSpec.describe_current do
         expect(configurable_class.config.to_h[:superscope][:additional]).to eq(7)
       end
     end
+
+    context 'when we define a lazy evaluated root setting' do
+      let(:configurable_class) do
+        default1 = default
+        constructor1 = constructor
+
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting(
+            :lazy_setting,
+            default: default1,
+            constructor: constructor1,
+            lazy: true
+          )
+        end
+      end
+
+      let(:config) { configurable_class.config }
+      let(:constructor) { ->(default) { default || 1 } }
+
+      context 'when default is not false nor nil' do
+        let(:default) { 100 }
+
+        it { expect(config.lazy_setting).to eq(100) }
+      end
+
+      context 'when default is false' do
+        let(:default) { false }
+
+        it { expect(config.lazy_setting).to eq(1) }
+      end
+
+      context 'when default is false and value is false for some time' do
+        let(:attempts) { [1, 10, false, false, false, false] }
+        let(:default) { false }
+        let(:constructor) { ->(default) { default || attempts.pop } }
+
+        it 'expect to retry until non-false is present and then cache it' do
+          3.times { expect(config.lazy_setting).to eq(false) }
+          expect(config.lazy_setting).to eq(10)
+          expect(config.lazy_setting).to eq(10)
+        end
+      end
+    end
   end
 
   context 'when we define settings on an instance level' do
@@ -287,6 +332,51 @@ RSpec.describe_current do
 
         instance.configure do |config|
           config.testable = 1
+        end
+      end
+    end
+
+    context 'when we define a lazy evaluated root setting' do
+      let(:configurable_class) do
+        default1 = default
+        constructor1 = constructor
+
+        Class.new do
+          include Karafka::Core::Configurable
+
+          setting(
+            :lazy_setting,
+            default: default1,
+            constructor: constructor1,
+            lazy: true
+          )
+        end
+      end
+
+      let(:config) { configurable_class.new.tap(&:configure).config }
+      let(:constructor) { ->(default) { default || 1 } }
+
+      context 'when default is not false nor nil' do
+        let(:default) { 100 }
+
+        it { expect(config.lazy_setting).to eq(100) }
+      end
+
+      context 'when default is false' do
+        let(:default) { false }
+
+        it { expect(config.lazy_setting).to eq(1) }
+      end
+
+      context 'when default is false and value is false for some time' do
+        let(:attempts) { [1, 10, false, false, false, false, false] }
+        let(:default) { false }
+        let(:constructor) { ->(default) { default || attempts.pop } }
+
+        it 'expect to retry until non-false is present and then cache it' do
+          3.times { expect(config.lazy_setting).to eq(false) }
+          expect(config.lazy_setting).to eq(10)
+          expect(config.lazy_setting).to eq(10)
         end
       end
     end
