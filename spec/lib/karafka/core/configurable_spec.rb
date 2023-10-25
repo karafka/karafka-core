@@ -181,7 +181,7 @@ RSpec.describe_current do
       end
 
       context 'when default is false and value is false for some time' do
-        let(:attempts) { [1, 10, false, false, false, false] }
+        let(:attempts) { [1, 10, false, false, false] }
         let(:default) { false }
         let(:constructor) { ->(default) { default || attempts.pop } }
 
@@ -190,6 +190,19 @@ RSpec.describe_current do
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
         end
+      end
+
+      context 'when we want to overwrite constructed state with a different one during config' do
+        let(:default) { false }
+        let(:constructor) { ->(_) { false } }
+
+        before do
+          configurable_class.configure do |config|
+            config.lazy_setting = 20
+          end
+        end
+
+        it { expect(config.lazy_setting).to eq(20) }
       end
     end
   end
@@ -369,7 +382,7 @@ RSpec.describe_current do
       end
 
       context 'when default is false and value is false for some time' do
-        let(:attempts) { [1, 10, false, false, false, false, false] }
+        let(:attempts) { [1, 10, false, false, false] }
         let(:default) { false }
         let(:constructor) { ->(default) { default || attempts.pop } }
 
