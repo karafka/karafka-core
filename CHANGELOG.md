@@ -2,6 +2,7 @@
 
 ### 2.2.4 (Unreleased)
 - [Enhancement] Allow for `lazy` evaluated constructors.
+- [Enhancement] Allow no-arg constructors.
 
 ### 2.2.3 (2023-10-17)
 - [Change] Set minimum `karafka-rdkafka` on `0.13.6`.
