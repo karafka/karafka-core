@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-### 2.2.4 (Unreleased)
+### 2.2.4 (2023-10-25)
 - [Enhancement] Allow for `lazy` evaluated constructors.
 - [Enhancement] Allow no-arg constructors.
 
