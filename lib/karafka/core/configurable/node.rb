@@ -111,7 +111,7 @@ module Karafka
                             if value.constructor && value.lazy?
                               false
                             elsif value.constructor
-                              value.constructor.call(value.default)
+                              call_constructor(value)
                             else
                               value.default
                             end
@@ -146,9 +146,23 @@ module Karafka
 
             return existing if existing
 
-            built = value.constructor.call(value.default)
+            built = call_constructor(value)
 
             instance_variable_set("@#{value.name}", built)
+          end
+        end
+
+        # Runs the constructor with or without the default depending on its arity and returns the
+        # result
+        #
+        # @param value [Leaf]
+        def call_constructor(value)
+          constructor = value.constructor
+
+          if constructor.arity.zero?
+            constructor.call
+          else
+            constructor.call(value.default)
           end
         end
       end

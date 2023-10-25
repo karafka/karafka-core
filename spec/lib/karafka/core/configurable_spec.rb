@@ -13,6 +13,7 @@ RSpec.describe_current do
             setting(:leaf, default: 6)
             setting(:with_constructor, default: false, constructor: ->(default) { default || 5 })
             setting(:ov_constructor, default: true, constructor: ->(default) { default || 5 })
+            setting(:with_zero_constructor, constructor: -> { 7 })
           end
 
           setting(:nested1, default: 1)
@@ -36,6 +37,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
       it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.with_zero_constructor).to eq(7) }
     end
 
     context 'when we do override some settings' do
@@ -114,13 +116,25 @@ RSpec.describe_current do
     end
 
     describe '#to_h' do
+      let(:expected_hash) do
+        {
+          with_default: 123,
+          nested1: {
+            nested1: 1,
+            nested2: {
+              leaf: 6,
+              ov_constructor: true,
+              with_constructor: 5,
+              with_zero_constructor: 7
+            }
+          }
+        }
+      end
+
       before { config.configure }
 
       it 'expect to map with correct values' do
-        expect(config.to_h).to eq(
-          with_default: 123,
-          nested1: { nested1: 1, nested2: { leaf: 6, ov_constructor: true, with_constructor: 5 } }
-        )
+        expect(config.to_h).to eq(expected_hash)
       end
     end
 
@@ -184,6 +198,31 @@ RSpec.describe_current do
         let(:attempts) { [1, 10, false, false, false] }
         let(:default) { false }
         let(:constructor) { ->(default) { default || attempts.pop } }
+
+        it 'expect to retry until non-false is present and then cache it' do
+          3.times { expect(config.lazy_setting).to eq(false) }
+          expect(config.lazy_setting).to eq(10)
+          expect(config.lazy_setting).to eq(10)
+        end
+      end
+
+      context 'when constructor changes and its zero arity' do
+        let(:configurable_class) do
+          constructor1 = constructor
+
+          Class.new do
+            extend Karafka::Core::Configurable
+
+            setting(
+              :lazy_setting,
+              constructor: constructor1,
+              lazy: true
+            )
+          end
+        end
+
+        let(:attempts) { [1, 10, false, false, false] }
+        let(:constructor) { -> { attempts.pop } }
 
         it 'expect to retry until non-false is present and then cache it' do
           3.times { expect(config.lazy_setting).to eq(false) }
