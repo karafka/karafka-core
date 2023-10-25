@@ -122,9 +122,6 @@ module Karafka
 
             if lazy_leaf && !initialized
               build_dynamic_accessor(value)
-            elsif lazy_leaf && initialized
-              singleton_class.attr_accessor(value.name)
-              public_send("#{value.name}=", initialized)
             else
               public_send("#{value.name}=", initialized)
             end
