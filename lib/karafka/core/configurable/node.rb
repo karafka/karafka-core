@@ -96,7 +96,7 @@ module Karafka
           @children.each do |value|
             # Do not redefine something that was already set during compilation
             # This will allow us to reconfigure things and skip override with defaults
-            skippable = respond_to?(value.name)
+            skippable = respond_to?(value.name) || (value.is_a?(Leaf) && value.compiled?)
             lazy_leaf = value.is_a?(Leaf) && value.lazy?
 
             # Do not create accessor for leafs that are lazy as they will get a custom method
@@ -106,10 +106,15 @@ module Karafka
             next if skippable
 
             initialized = if value.is_a?(Leaf)
-                            next if value.compiled?
-
                             value.compiled = true
-                            value.constructor ? value.constructor.call(value.default) : value.default
+
+                            if value.constructor && value.lazy?
+                              false
+                            elsif value.constructor
+                              value.constructor.call(value.default)
+                            else
+                              value.default
+                            end
                           else
                             value.compile
                             value
@@ -130,21 +135,23 @@ module Karafka
 
         private
 
-        # Defines a lazy evaluated accessor that will re-evaluate in case value constructor
+        # Defines a lazy evaluated read and writer that will re-evaluate in case value constructor
         # evaluates to `nil` or `false`. This allows us to define dynamic constructors that
         # can react to external conditions to become expected value once this value is
         # available
         #
         # @param value [Leaf]
         def build_dynamic_accessor(value)
+          singleton_class.attr_writer(value.name)
+
           define_singleton_method(value.name) do
-            existing = instance_variable_get("@#{name}")
+            existing = instance_variable_get("@#{value.name}")
 
             return existing if existing
 
             built = value.constructor.call(value.default)
 
-            instance_variable_set("@#{name}", built)
+            instance_variable_set("@#{value.name}", built)
           end
         end
       end
