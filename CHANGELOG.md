@@ -1,13 +1,17 @@
 # Karafka core changelog
 
-### 2.2.4 (2023-10-25)
+## 2.2.5 (2023-10-31)
+- [Change] Drop support for Ruby 2.6 due to incompatibilities in usage of `ObjectSpace::WeakMap`
+- [Change] Set minimum `karafka-rdkafka` on `0.13.8` to support consumer `#position`.
+
+## 2.2.4 (2023-10-25)
 - [Enhancement] Allow for `lazy` evaluated constructors.
 - [Enhancement] Allow no-arg constructors.
 
-### 2.2.3 (2023-10-17)
+## 2.2.3 (2023-10-17)
 - [Change] Set minimum `karafka-rdkafka` on `0.13.6`.
 
-### 2.2.2 (2023-09-11)
+## 2.2.2 (2023-09-11)
 - [Fix] Reuse previous frozen duration as a base for incoming computation.
 
 ## 2.2.1 (2023-09-10)

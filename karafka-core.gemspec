@@ -17,9 +17,9 @@ Gem::Specification.new do |spec|
   spec.licenses    = %w[MIT]
 
   spec.add_dependency 'concurrent-ruby', '>= 1.1'
-  spec.add_dependency 'karafka-rdkafka', '>= 0.13.6', '< 0.15.0'
+  spec.add_dependency 'karafka-rdkafka', '>= 0.13.8', '< 0.15.0'
 
-  spec.required_ruby_version = '>= 2.6.0'
+  spec.required_ruby_version = '>= 2.7.0'
 
   if $PROGRAM_NAME.end_with?('gem')
     spec.signing_key = File.expand_path('~/.ssh/gem-private_key.pem')
