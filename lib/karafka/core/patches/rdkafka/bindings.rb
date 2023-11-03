@@ -30,6 +30,7 @@ module Karafka
                 name = ::Rdkafka::Bindings.rd_kafka_name(client_prr)
 
                 error = ::Rdkafka::RdkafkaError.new(err_code, broker_message: reason)
+                error.set_backtrace(caller)
 
                 ::Rdkafka::Config.error_callback.call(name, error)
               end

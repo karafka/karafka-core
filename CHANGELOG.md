@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.2.6 (2023-11-03)
+- [Enhancement] Set backtrace for errors propagated via the errors callbacks.
+
 ## 2.2.5 (2023-10-31)
 - [Change] Drop support for Ruby 2.6 due to incompatibilities in usage of `ObjectSpace::WeakMap`
 - [Change] Set minimum `karafka-rdkafka` on `0.13.8` to support consumer `#position`.
