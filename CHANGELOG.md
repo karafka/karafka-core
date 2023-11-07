@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.2.7 (2023-11-07)
+- [Change] Set minimum `karafka-rdkafka` on `0.13.9` to support alternative consumer builder.
+
 ## 2.2.6 (2023-11-03)
 - [Enhancement] Set backtrace for errors propagated via the errors callbacks.
 
