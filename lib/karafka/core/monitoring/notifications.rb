@@ -32,17 +32,17 @@ module Karafka
         #
         # @param event_id [String] event id
         def register_event(event_id)
-          #@mutex.synchronize do
+          @mutex.synchronize do
             @listeners[event_id]
             @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
-          #end
+          end
         end
 
         # Clears all the subscribed listeners
         def clear
-          #@mutex.synchronize do
+          @mutex.synchronize do
             @listeners.each_value(&:clear)
-          #end
+          end
         end
 
         # Allows for subscription to an event
@@ -60,7 +60,7 @@ module Karafka
         #     puts event
         #   end
         def subscribe(event_id_or_listener, &block)
-       #   @mutex.synchronize do
+          @mutex.synchronize do
             if block
               event_id = event_id_or_listener
 
@@ -76,7 +76,7 @@ module Karafka
                 @listeners[reg_event_id] << listener
               end
             end
-       #   end
+          end
         end
 
         # Allows for code instrumentation
