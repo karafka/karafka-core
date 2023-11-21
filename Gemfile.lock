@@ -31,7 +31,7 @@ GEM
     ffi (1.16.3)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
-    karafka-rdkafka (0.13.9)
+    karafka-rdkafka (0.14.0)
       ffi (~> 1.15)
       mini_portile2 (~> 2.6)
       rake (> 12)
