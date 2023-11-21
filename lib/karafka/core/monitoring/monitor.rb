@@ -20,7 +20,7 @@ module Karafka
         def initialize(notifications_bus, namespace = nil)
           @notifications_bus = notifications_bus
           @namespace = namespace
-          @mapped_events = Concurrent::Map.new
+          @mapped_events = {}
         end
 
         # Passes the instrumentation block (if any) into the notifications bus

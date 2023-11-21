@@ -4,10 +4,6 @@
   yaml
   rdkafka
 
-  concurrent/map
-  concurrent/hash
-  concurrent/array
-
   karafka/core
   karafka/core/version
 
