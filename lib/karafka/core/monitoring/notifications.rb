@@ -22,25 +22,27 @@ module Karafka
         private_constant :EMPTY_HASH
 
         def initialize
-          @listeners = Concurrent::Map.new do |k, v|
-            k.compute_if_absent(v) { Concurrent::Array.new }
-          end
-
+          @listeners = Hash.new { |hash, key| hash[key] = [] }
+          @mutex = Mutex.new
           # This allows us to optimize the method calling lookups
-          @events_methods_map = Concurrent::Map.new
+          @events_methods_map = {}
         end
 
         # Registers a new event on which we can publish
         #
         # @param event_id [String] event id
         def register_event(event_id)
-          @listeners[event_id]
-          @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
+          #@mutex.synchronize do
+            @listeners[event_id]
+            @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
+          #end
         end
 
         # Clears all the subscribed listeners
         def clear
-          @listeners.each_value(&:clear)
+          #@mutex.synchronize do
+            @listeners.each_value(&:clear)
+          #end
         end
 
         # Allows for subscription to an event
@@ -58,21 +60,23 @@ module Karafka
         #     puts event
         #   end
         def subscribe(event_id_or_listener, &block)
-          if block
-            event_id = event_id_or_listener
+       #   @mutex.synchronize do
+            if block
+              event_id = event_id_or_listener
 
-            raise EventNotRegistered, event_id unless @listeners.key?(event_id)
+              raise EventNotRegistered, event_id unless @listeners.key?(event_id)
 
-            @listeners[event_id] << block
-          else
-            listener = event_id_or_listener
+              @listeners[event_id] << block
+            else
+              listener = event_id_or_listener
 
-            @listeners.each_key do |reg_event_id|
-              next unless listener.respond_to?(@events_methods_map[reg_event_id])
+              @listeners.each_key do |reg_event_id|
+                next unless listener.respond_to?(@events_methods_map[reg_event_id])
 
-              @listeners[reg_event_id] << listener
+                @listeners[reg_event_id] << listener
+              end
             end
-          end
+       #   end
         end
 
         # Allows for code instrumentation

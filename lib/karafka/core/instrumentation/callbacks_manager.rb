@@ -9,7 +9,7 @@ module Karafka
       class CallbacksManager
         # @return [::Karafka::Core::Instrumentation::CallbacksManager]
         def initialize
-          @callbacks = Concurrent::Hash.new
+          @callbacks = {}
         end
 
         # Invokes all the callbacks registered one after another
