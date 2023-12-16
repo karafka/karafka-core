@@ -2,9 +2,7 @@
 
 module Karafka
   module Core
-    # Patches to dependencies and components
     module Patches
-      # Patches to rdkafka
       module Rdkafka
         # Extends `Rdkafka::Bindings` with some extra methods and updates callbacks that we intend
         # to work with in a bit different way than rdkafka itself
