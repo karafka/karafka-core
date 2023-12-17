@@ -1,7 +1,6 @@
 # Karafka core changelog
 
 ## 2.2.8 (Unreleased)
-- [Fix] Use explicit file modules declarations to avoid potential loading errors.
 - [Change] Remove concurrent-ruby usage.
 
 ## 2.2.7 (2023-11-07)

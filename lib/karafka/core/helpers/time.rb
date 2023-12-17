@@ -2,6 +2,7 @@
 
 module Karafka
   module Core
+    # Namespace for some small utilities used across the ecosystem
     module Helpers
       # Time related methods used across Karafka
       module Time
