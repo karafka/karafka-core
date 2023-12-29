@@ -1,6 +1,7 @@
 # Karafka core changelog
 
 ## 2.2.8 (Unreleased)
+- [Change] Set minimum `karafka-rdkafka` on `0.14.6` to support new features.
 - [Change] Remove concurrent-ruby usage.
 
 ## 2.2.7 (2023-11-07)
