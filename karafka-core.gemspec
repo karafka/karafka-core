@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.description = 'A toolset of small support modules used throughout the Karafka ecosystem'
   spec.licenses    = %w[MIT]
 
-  spec.add_dependency 'karafka-rdkafka', '>= 0.14.7', '< 0.15.0'
+  spec.add_dependency 'karafka-rdkafka', '>= 0.14.8', '< 0.15.0'
 
   spec.required_ruby_version = '>= 2.7.0'
 
