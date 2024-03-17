@@ -2,6 +2,7 @@
 
 ## 2.4.0 (Unreleased)
 - **[Breaking]** Drop Ruby `2.7` support.
+- [Change] Set minimum `karafka-rdkafka` on `0.15.0` to support new features.
 
 ## 2.3.0 (2024-01-26)
 - [Change] Set minimum `karafka-rdkafka` on `0.14.8` to support new features.
