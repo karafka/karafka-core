@@ -39,8 +39,12 @@ end
 # Patch rdkafka
 ::Rdkafka::Bindings.include(::Karafka::Core::Patches::Rdkafka::Bindings)
 
+instrumentation = ::Karafka::Core::Instrumentation
+rd_config = ::Rdkafka::Config
+
 # Rdkafka uses a single global callback for things. We bypass that by injecting a manager for
 # each callback type. Callback manager allows us to register more than one callback
 # @note Those managers are also used by Karafka for consumer related statistics
-::Rdkafka::Config.statistics_callback = ::Karafka::Core::Instrumentation.statistics_callbacks
-::Rdkafka::Config.error_callback = ::Karafka::Core::Instrumentation.error_callbacks
+rd_config.statistics_callback = instrumentation.statistics_callbacks
+rd_config.error_callback = instrumentation.error_callbacks
+rd_config.oauthbearer_token_refresh_callback = instrumentation.oauthbearer_token_refresh_callbacks

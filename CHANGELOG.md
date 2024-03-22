@@ -2,6 +2,7 @@
 
 ## 2.4.0 (Unreleased)
 - **[Breaking]** Drop Ruby `2.7` support.
+- [Enhancement] Provide necessary alterations for custom oauth token callbacks to operate.
 - [Change] Set minimum `karafka-rdkafka` on `0.15.0` to support new features.
 
 ## 2.3.0 (2024-01-26)

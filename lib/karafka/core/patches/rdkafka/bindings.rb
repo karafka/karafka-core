@@ -24,10 +24,10 @@ module Karafka
             def build_error_callback
               FFI::Function.new(
                 :void, %i[pointer int string pointer]
-              ) do |client_prr, err_code, reason, _opaque|
+              ) do |client_ptr, err_code, reason, _opaque|
                 return nil unless ::Rdkafka::Config.error_callback
 
-                name = ::Rdkafka::Bindings.rd_kafka_name(client_prr)
+                name = ::Rdkafka::Bindings.rd_kafka_name(client_ptr)
 
                 error = ::Rdkafka::RdkafkaError.new(err_code, broker_message: reason)
                 error.set_backtrace(caller)
