@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.4.0 (Unreleased)
+## 2.4.0 (2024-04-26)
 - **[Breaking]** Drop Ruby `2.7` support.
 - [Enhancement] Provide necessary alterations for custom oauth token callbacks to operate.
 - [Change] Set minimum `karafka-rdkafka` on `0.15.0` to support new features.
