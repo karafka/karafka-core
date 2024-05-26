@@ -39,9 +39,13 @@ module Karafka
         end
 
         # Clears all the subscribed listeners
-        def clear
+        def clear(event=nil)
           @mutex.synchronize do
-            @listeners.each_value(&:clear)
+            if event
+              @listeners[event].clear
+            else
+              @listeners.each_value(&:clear)
+            end
           end
         end
 
