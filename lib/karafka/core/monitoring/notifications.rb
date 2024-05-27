@@ -38,10 +38,19 @@ module Karafka
           end
         end
 
-        # Clears all the subscribed listeners
-        def clear
+        # Clears all the subscribed listeners. If given an event, only clear listeners for the given
+        # event type.
+        # @param event_id [String] the key of the event to clear listeners for.
+        def clear(event_id=nil)
           @mutex.synchronize do
-            @listeners.each_value(&:clear)
+            if event_id
+              unless @listeners.key?(event_id)
+                raise "clear: #{event_id} not registered!"
+              end
+              @listeners[event_id].clear
+            else
+              @listeners.each_value(&:clear)
+            end
           end
         end
 

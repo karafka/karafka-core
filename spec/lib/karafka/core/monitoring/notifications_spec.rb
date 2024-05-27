@@ -62,12 +62,39 @@ RSpec.describe_current do
   end
 
   describe '#clear' do
-    before { notifications.subscribe(event_name) { raise } }
 
-    it 'expect not to raise any errors as after clearing subscription should no longer work' do
-      notifications.clear
-      notifications.instrument(event_name)
+    describe 'without an argument' do
+      before { notifications.subscribe(event_name) { raise } }
+
+      it 'expect not to raise any errors as after clearing subscription should no longer work' do
+        notifications.clear
+        notifications.instrument(event_name)
+      end
     end
+
+    describe 'one event given' do
+      let(:instrumented) { [] }
+      before do
+        notifications.register_event("some-other-event")
+        notifications.subscribe(event_name) { instrumented.push(1) } # it's fine
+        notifications.subscribe("some-other-event") { instrumented.push(2) }
+      end
+
+      it 'expect to only get one event' do
+        notifications.clear('some-other-event')
+        notifications.instrument(event_name)
+        notifications.instrument("some-other-event")
+        expect(instrumented).to eq([1])
+      end
+    end
+
+    describe 'clearing non-existing event' do
+      it 'should raise an error' do
+        expect { notifications.clear('some-nonexistent-event')}.
+          to raise_error('clear: some-nonexistent-event not registered!')
+      end
+    end
+
   end
 
   describe 'subscription and instrumentation flow' do
