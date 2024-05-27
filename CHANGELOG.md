@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.4.1 (Unreleased)
+- [Enhancement] Allow clearing one event type (dorner).
+
 ## 2.4.0 (2024-04-26)
 - **[Breaking]** Drop Ruby `2.7` support.
 - [Enhancement] Provide necessary alterations for custom oauth token callbacks to operate.
