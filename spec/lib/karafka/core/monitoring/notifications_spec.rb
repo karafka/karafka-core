@@ -75,6 +75,7 @@ RSpec.describe_current do
 
     describe 'one event given' do
       let(:instrumented) { [] }
+
       before do
         notifications.register_event('some-other-event')
         notifications.subscribe(event_name) { instrumented.push(1) } # it's fine
@@ -90,7 +91,7 @@ RSpec.describe_current do
     end
 
     describe 'clearing non-existing event' do
-      it 'should raise an error' do
+      it 'expect to raise an error' do
         expect { notifications.clear('some-nonexistent-event') }
           .to raise_error(event_not_registered_error)
       end
