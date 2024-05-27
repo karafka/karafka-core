@@ -88,6 +88,13 @@ RSpec.describe_current do
       end
     end
 
+    describe 'clearing non-existing event' do
+      it 'should raise an error' do
+        expect { notifications.clear('some-nonexistent-event')}.
+          to raise_error('clear: some-nonexistent-event not registered!')
+      end
+    end
+
   end
 
   describe 'subscription and instrumentation flow' do
