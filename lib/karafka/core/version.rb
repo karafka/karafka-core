@@ -4,6 +4,6 @@ module Karafka
   module Core
     # Current Karafka::Core version
     # We follow the versioning schema of given Karafka version
-    VERSION = '2.4.0'
+    VERSION = '2.4.1'
   end
 end

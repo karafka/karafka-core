@@ -4,6 +4,7 @@ RSpec.describe_current do
   subject(:notifications) { described_class.new }
 
   let(:event_name) { 'message.produced_async' }
+  let(:event_not_registered_error) { Karafka::Core::Monitoring::Notifications::EventNotRegistered }
 
   before { notifications.register_event(event_name) }
 
@@ -23,7 +24,7 @@ RSpec.describe_current do
 
     context 'when we want to instrument event that was not registered' do
       it 'expect to raise error' do
-        expected_error = Karafka::Core::Monitoring::Notifications::EventNotRegistered
+        expected_error = event_not_registered_error
         expect { notifications.instrument('na') }.to raise_error(expected_error)
       end
     end
@@ -35,7 +36,7 @@ RSpec.describe_current do
 
       context 'when we try to subscribe to an unsupported event' do
         it do
-          expected_error = Karafka::Core::Monitoring::Notifications::EventNotRegistered
+          expected_error = event_not_registered_error
           expect { notifications.subscribe('na') {} }.to raise_error expected_error
         end
       end
@@ -75,26 +76,25 @@ RSpec.describe_current do
     describe 'one event given' do
       let(:instrumented) { [] }
       before do
-        notifications.register_event("some-other-event")
+        notifications.register_event('some-other-event')
         notifications.subscribe(event_name) { instrumented.push(1) } # it's fine
-        notifications.subscribe("some-other-event") { instrumented.push(2) }
+        notifications.subscribe('some-other-event') { instrumented.push(2) }
       end
 
       it 'expect to only get one event' do
         notifications.clear('some-other-event')
         notifications.instrument(event_name)
-        notifications.instrument("some-other-event")
+        notifications.instrument('some-other-event')
         expect(instrumented).to eq([1])
       end
     end
 
     describe 'clearing non-existing event' do
       it 'should raise an error' do
-        expect { notifications.clear('some-nonexistent-event')}.
-          to raise_error('clear: some-nonexistent-event not registered!')
+        expect { notifications.clear('some-nonexistent-event') }
+          .to raise_error(event_not_registered_error)
       end
     end
-
   end
 
   describe 'subscription and instrumentation flow' do
