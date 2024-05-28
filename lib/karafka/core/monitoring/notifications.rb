@@ -89,18 +89,22 @@ module Karafka
         #
         # @param event_id [String] id of the event
         # @param payload [Hash] payload for the instrumentation
-        # @param block [Proc] instrumented code
+        # @yield [Proc] instrumented code
         # @return [Object] whatever the provided block (if any) returns
         #
         # @example Instrument some code
         #   instrument('sleeping') do
         #     sleep(1)
         #   end
-        def instrument(event_id, payload = EMPTY_HASH, &block)
+        def instrument(event_id, payload = EMPTY_HASH)
           # Allow for instrumentation of only events we registered
           raise EventNotRegistered, event_id unless @listeners.key?(event_id)
 
-          result, time = measure_time_taken(&block) if block_given?
+          if block_given?
+            start = monotonic_now
+            result = yield
+            time = monotonic_now - start
+          end
 
           event = Event.new(
             event_id,
@@ -116,16 +120,6 @@ module Karafka
           end
 
           result
-        end
-
-        private
-
-        # Measures time taken to execute a given block and returns it together with the result of
-        # the block execution
-        def measure_time_taken
-          start = monotonic_now
-          result = yield
-          [result, monotonic_now - start]
         end
       end
     end
