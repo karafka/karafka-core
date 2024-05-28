@@ -1,6 +1,8 @@
 # Karafka core changelog
 
 ## 2.4.1 (Unreleased)
+- [Enhancement] Save one allocation per `float_now` + 2-3x performance by using the Posix clock instead of `Time.now.utc.to_f`.
+- [Enhancement] Use direct `float_millisecond` precision in `monotonic_now` not to multiply by 1000 (allocations and CPU savings).
 - [Enhancement] Save one array allocation on one instrumentation.
 - [Enhancement] Allow clearing one event type (dorner).
 
