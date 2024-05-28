@@ -6,14 +6,21 @@ module Karafka
     module Helpers
       # Time related methods used across Karafka
       module Time
-        # @return [Float] current monotonic time in milliseconds
-        def monotonic_now
-          ::Process.clock_gettime(::Process::CLOCK_MONOTONIC) * 1_000
+        if RUBY_VERSION >= '3.2'
+          # @return [Float] current monotonic time in milliseconds
+          def monotonic_now
+            ::Process.clock_gettime(::Process::CLOCK_MONOTONIC, :float_millisecond)
+          end
+        else
+          # @return [Float] current monotonic time in milliseconds
+          def monotonic_now
+            ::Process.clock_gettime(::Process::CLOCK_MONOTONIC) * 1_000
+          end
         end
 
         # @return [Float] current time in float
         def float_now
-          ::Time.now.utc.to_f
+          ::Process.clock_gettime(Process::CLOCK_REALTIME)
         end
       end
     end
