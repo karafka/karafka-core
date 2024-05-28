@@ -1,6 +1,7 @@
 # Karafka core changelog
 
 ## 2.4.1 (Unreleased)
+- [Enhancement] Save one array allocation on one instrumentation.
 - [Enhancement] Allow clearing one event type (dorner).
 
 ## 2.4.0 (2024-04-26)
