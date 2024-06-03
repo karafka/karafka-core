@@ -9,6 +9,13 @@ module Karafka
       class Contract
         extend Core::Configurable
 
+        # Constant representing a miss during dig
+        # We use it as a result value not to return an array with found object and a state to
+        # prevent additional array allocation
+        DIG_MISS = BasicObject.new
+
+        private_constant :DIG_MISS
+
         # Yaml based error messages data
         setting(:error_messages)
 
@@ -75,7 +82,7 @@ module Karafka
         def call(data)
           errors = []
 
-          self.class.rules.map do |rule|
+          self.class.rules.each do |rule|
             case rule.type
             when :required
               validate_required(data, rule, errors)
@@ -113,14 +120,14 @@ module Karafka
         def validate_required(data, rule, errors)
           for_checking = dig(data, rule.path)
 
-          if for_checking.first == :match
-            result = rule.validator.call(for_checking.last, data, errors, self)
+          if for_checking == DIG_MISS
+            errors << [rule.path, :missing]
+          else
+            result = rule.validator.call(for_checking, data, errors, self)
 
             return if result == true
 
             errors << [rule.path, result || :format]
-          else
-            errors << [rule.path, :missing]
           end
         end
 
@@ -133,9 +140,9 @@ module Karafka
         def validate_optional(data, rule, errors)
           for_checking = dig(data, rule.path)
 
-          return unless for_checking.first == :match
+          return if for_checking == DIG_MISS
 
-          result = rule.validator.call(for_checking.last, data, errors, self)
+          result = rule.validator.call(for_checking, data, errors, self)
 
           return if result == true
 
@@ -156,28 +163,23 @@ module Karafka
           errors.push(*result)
         end
 
-        # Tries to dig for a given key in a hash and returns it with indication whether or not it was
-        # possible to find it (dig returns nil and we don't know if it wasn't the digged key value)
+        # Tries to dig for a given key in a hash and returns it with indication whether or not it
+        # was possible to find it (dig returns nil and we don't know if it wasn't the digged key
+        # value)
         #
         # @param data [Hash]
         # @param keys [Array<Symbol>]
-        # @return [Array<Symbol, Object>] array where the first element is `:match` or `:miss` and
-        #   the digged value or nil if not found
+        # @return [DIG_MISS, Object] found element or DIGG_MISS indicating that not found
         def dig(data, keys)
           current = data
-          result = :match
 
           keys.each do |nesting|
-            unless current.key?(nesting)
-              result = :miss
-
-              break
-            end
+            return DIG_MISS unless current.key?(nesting)
 
             current = current[nesting]
           end
 
-          [result, current]
+          current
         end
       end
     end

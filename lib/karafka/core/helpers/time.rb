@@ -20,7 +20,7 @@ module Karafka
 
         # @return [Float] current time in float
         def float_now
-          ::Process.clock_gettime(Process::CLOCK_REALTIME)
+          ::Process.clock_gettime(::Process::CLOCK_REALTIME)
         end
       end
     end
