@@ -22,10 +22,11 @@ module Karafka
         private_constant :EMPTY_HASH
 
         def initialize
-          @listeners = Hash.new { |hash, key| hash[key] = [] }
+          @listeners = {}
           @mutex = Mutex.new
           # This allows us to optimize the method calling lookups
           @events_methods_map = {}
+          @active_events = {}
         end
 
         # Registers a new event on which we can publish
@@ -33,7 +34,7 @@ module Karafka
         # @param event_id [String] event id
         def register_event(event_id)
           @mutex.synchronize do
-            @listeners[event_id]
+            @listeners[event_id] = []
             @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
           end
         end
@@ -97,13 +98,26 @@ module Karafka
         #     sleep(1)
         #   end
         def instrument(event_id, payload = EMPTY_HASH)
-          # Allow for instrumentation of only events we registered
-          raise EventNotRegistered, event_id unless @listeners.key?(event_id)
+          assigned_listeners = @listeners[event_id]
+
+          # Allow for instrumentation of only events we registered. If listeners array does not
+          # exist, it means the event was not registered.
+          raise EventNotRegistered, event_id unless assigned_listeners
 
           if block_given?
+            # No point in instrumentation when no one is listening
+            # Since the outcome will be ignored, we may as well save on allocations
+            # There are many events that happen often like (`message.acknowledged`) that most
+            # users do not subscribe to. Such check prevents us from publishing events that would
+            # not be used at all saving on time measurements and objects allocations
+            return yield if assigned_listeners.empty?
+
             start = monotonic_now
             result = yield
             time = monotonic_now - start
+          else
+            # Skip measuring or doing anything if no one listening
+            return if assigned_listeners.empty?
           end
 
           event = Event.new(
@@ -111,7 +125,7 @@ module Karafka
             time ? payload.merge(time: time) : payload
           )
 
-          @listeners[event_id].each do |listener|
+          assigned_listeners.each do |listener|
             if listener.is_a?(Proc)
               listener.call(event)
             else
