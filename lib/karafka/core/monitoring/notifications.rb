@@ -115,9 +115,9 @@ module Karafka
             start = monotonic_now
             result = yield
             time = monotonic_now - start
-          else
+          elsif assigned_listeners.empty?
             # Skip measuring or doing anything if no one listening
-            return if assigned_listeners.empty?
+            return
           end
 
           event = Event.new(
