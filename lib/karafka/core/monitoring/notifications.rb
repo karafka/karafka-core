@@ -26,7 +26,6 @@ module Karafka
           @mutex = Mutex.new
           # This allows us to optimize the method calling lookups
           @events_methods_map = {}
-          @active_events = {}
         end
 
         # Registers a new event on which we can publish
