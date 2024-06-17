@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.4.1 (Unreleased)
+## 2.4.1 (2024-06-17)
 - [Enhancement] Provide fast-track for events without subscriptions to save on allocations.
 - [Enhancement] Save memory allocation on each contract rule validation execution.
 - [Enhancement] Save one allocation per `float_now` + 2-3x performance by using the Posix clock instead of `Time.now.utc.to_f`.
