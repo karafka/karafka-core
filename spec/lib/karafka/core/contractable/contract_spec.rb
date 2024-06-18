@@ -12,6 +12,8 @@ RSpec.describe_current do
       end
 
       required(:id) { |id| id.is_a?(String) }
+
+      optional(:test) { |test| test == 5 }
     end
   end
 
@@ -26,6 +28,18 @@ RSpec.describe_current do
 
     context 'when data is not valid' do
       let(:data) { { id: 1 } }
+
+      it { expect { validation }.to raise_error(ArgumentError) }
+    end
+
+    context 'when optional data is not valid' do
+      let(:data) { { id: 1, test: Time.now } }
+
+      it { expect { validation }.to raise_error(ArgumentError) }
+    end
+
+    context 'when optional data is valid' do
+      let(:data) { { id: 1, test: nil } }
 
       it { expect { validation }.to raise_error(ArgumentError) }
     end

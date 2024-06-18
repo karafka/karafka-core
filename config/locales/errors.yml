@@ -8,3 +8,4 @@ en:
     config:
       missing: needs to be present
       id_format: needs to be a String
+      test_format: needs to be nil
