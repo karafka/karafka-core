@@ -12,7 +12,7 @@ module Karafka
         # Constant representing a miss during dig
         # We use it as a result value not to return an array with found object and a state to
         # prevent additional array allocation
-        DIG_MISS = BasicObject.new
+        DIG_MISS = Object.new
 
         private_constant :DIG_MISS
 
@@ -120,7 +120,9 @@ module Karafka
         def validate_required(data, rule, errors)
           for_checking = dig(data, rule.path)
 
-          if for_checking == DIG_MISS
+          # We need to compare `DIG_MISS` against stuff because of the ownership of the `#==`
+          # method
+          if DIG_MISS == for_checking
             errors << [rule.path, :missing]
           else
             result = rule.validator.call(for_checking, data, errors, self)
@@ -140,7 +142,7 @@ module Karafka
         def validate_optional(data, rule, errors)
           for_checking = dig(data, rule.path)
 
-          return if for_checking == DIG_MISS
+          return if DIG_MISS == for_checking
 
           result = rule.validator.call(for_checking, data, errors, self)
 

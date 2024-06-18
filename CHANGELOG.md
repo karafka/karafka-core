@@ -1,5 +1,8 @@
 # Karafka core changelog
 
+## 2.4.3 (2024-06-18)
+- [Fix] Use `Object` instead of `BasicObject` for rule result comparison because of Time mismatch with BasicObject.
+
 ## 2.4.2 (2024-06-17)
 - [Enhancement] Allow `karafka-rdkafka` `0.16.x` to be used since API compatible.
 
