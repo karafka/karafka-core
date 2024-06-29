@@ -31,12 +31,12 @@ GEM
     ffi (1.17.0-x86_64-linux-gnu)
     i18n (1.14.5)
       concurrent-ruby (~> 1.0)
-    karafka-rdkafka (0.15.1)
+    karafka-rdkafka (0.16.0)
       ffi (~> 1.15)
       mini_portile2 (~> 2.6)
       rake (> 12)
     mini_portile2 (2.8.7)
-    minitest (5.23.1)
+    minitest (5.24.0)
     mutex_m (0.2.0)
     rake (13.2.1)
     rspec (3.13.0)
@@ -73,4 +73,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   2.5.13
+   2.5.14
