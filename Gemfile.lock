@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    karafka-core (2.4.3)
-      karafka-rdkafka (>= 0.15.0, < 0.17.0)
+    karafka-core (2.4.4)
+      karafka-rdkafka (>= 0.15.0, < 0.18.0)
 
 GEM
   remote: https://rubygems.org/
