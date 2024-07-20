@@ -1,6 +1,6 @@
 # Karafka core changelog
 
-## 2.4.4 (Unreleased)
+## 2.4.4 (2024-07-20)
 - [Change] Set minimum `karafka-rdkafka` on `0.16.0` to support new features and allow for `0.17.0`.
 
 ## 2.4.3 (2024-06-18)
