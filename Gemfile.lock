@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     karafka-core (2.4.4)
-      karafka-rdkafka (>= 0.15.0, < 0.18.0)
+      karafka-rdkafka (>= 0.17.6, < 0.18.0)
 
 GEM
   remote: https://rubygems.org/
@@ -29,10 +29,9 @@ GEM
     factory_bot (6.5.0)
       activesupport (>= 5.0.0)
     ffi (1.17.0)
-    ffi (1.17.0-x86_64-linux-gnu)
     i18n (1.14.5)
       concurrent-ruby (~> 1.0)
-    karafka-rdkafka (0.16.0)
+    karafka-rdkafka (0.17.6)
       ffi (~> 1.15)
       mini_portile2 (~> 2.6)
       rake (> 12)

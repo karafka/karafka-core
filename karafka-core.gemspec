@@ -16,9 +16,9 @@ Gem::Specification.new do |spec|
   spec.description = 'A toolset of small support modules used throughout the Karafka ecosystem'
   spec.licenses    = %w[MIT]
 
-  spec.add_dependency 'karafka-rdkafka', '>= 0.15.0', '< 0.18.0'
+  spec.add_dependency 'karafka-rdkafka', '>= 0.17.6', '< 0.18.0'
 
-  spec.required_ruby_version = '>= 3.0.0'
+  spec.required_ruby_version = '>= 3.1.0'
 
   if $PROGRAM_NAME.end_with?('gem')
     spec.signing_key = File.expand_path('~/.ssh/gem-private_key.pem')

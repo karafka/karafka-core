@@ -1,5 +1,9 @@
 # Karafka Core Changelog
 
+## 2.4.5 (Unreleased)
+- **[Breaking]** Drop Ruby `3.0` support according to the EOL schedule.
+- [Change] Set minimum `karafka-rdkafka` on `0.17.6` to support new features.
+
 ## 2.4.4 (2024-07-20)
 - [Change] Set minimum `karafka-rdkafka` on `0.16.0` to support new features and allow for `0.17.0`.
 
