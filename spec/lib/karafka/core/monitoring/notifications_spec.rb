@@ -62,8 +62,11 @@ RSpec.describe_current do
     end
   end
 
-  describe '#clear' do
+  describe '#available_events' do
+    it { expect(notifications.available_events).to eq([event_name]) }
+  end
 
+  describe '#clear' do
     describe 'without an argument' do
       before { notifications.subscribe(event_name) { raise } }
 
