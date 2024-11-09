@@ -2,6 +2,7 @@
 
 ## 2.4.5 (Unreleased)
 - **[Breaking]** Drop Ruby `3.0` support according to the EOL schedule.
+- [Fix] Restore `#available_events` notifications bus method.
 - [Change] Set minimum `karafka-rdkafka` on `0.17.6` to support new features.
 
 ## 2.4.4 (2024-07-20)

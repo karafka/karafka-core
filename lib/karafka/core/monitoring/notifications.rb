@@ -28,6 +28,11 @@ module Karafka
           @events_methods_map = {}
         end
 
+        # @return [Array<String>] list of available events
+        def available_events
+          @events_methods_map.keys
+        end
+
         # Registers a new event on which we can publish
         #
         # @param event_id [String] event id
