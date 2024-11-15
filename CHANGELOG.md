@@ -2,6 +2,7 @@
 
 ## 2.4.5 (Unreleased)
 - **[Breaking]** Drop Ruby `3.0` support according to the EOL schedule.
+- [Enhancement] Support listeners inspection via `#listeners`.
 - [Fix] Restore `#available_events` notifications bus method.
 - [Change] Set minimum `karafka-rdkafka` on `0.17.6` to support new features.
 
