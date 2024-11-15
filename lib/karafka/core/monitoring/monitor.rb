@@ -41,6 +41,18 @@ module Karafka
         def subscribe(*args, &block)
           @notifications_bus.subscribe(*args, &block)
         end
+
+        # @return [Hash<String, Array>] hash where keys are events and values are arrays with
+        #   listeners subscribed to particular events. Since different events may have different
+        #   listeners, this is returned that way.
+        #
+        # @note Please do not modify this hash. It should be used only for debugging.
+        #
+        # @example If you need to get only classes of listeners, you can run following code:
+        #   monitor.listeners.map(&:class)
+        def listeners
+          @notifications_bus.listeners
+        end
       end
     end
   end

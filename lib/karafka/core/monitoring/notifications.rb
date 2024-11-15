@@ -11,7 +11,7 @@ module Karafka
       class Notifications
         include Core::Helpers::Time
 
-        attr_reader :name
+        attr_reader :name, :listeners
 
         # Raised when someone wants to publish event that was not registered
         EventNotRegistered = Class.new(StandardError)

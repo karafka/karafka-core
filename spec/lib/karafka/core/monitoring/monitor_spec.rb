@@ -31,6 +31,8 @@ RSpec.describe_current do
 
     it { expect(collected_data.size).to eq(1) }
     it { expect(collected_data.first.id).to eq('test') }
+    it { expect(monitor.listeners.keys).to include('test') }
+    it { expect(monitor.listeners['test']).to be_a(Array) }
   end
 
   context 'when we do use a namespace' do
@@ -49,5 +51,6 @@ RSpec.describe_current do
 
     it { expect(collected_data.size).to eq(1) }
     it { expect(collected_data.first.id).to eq('test.namespace') }
+    it { expect(monitor.listeners.keys).to include('test') }
   end
 end
