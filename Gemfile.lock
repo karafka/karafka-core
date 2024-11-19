@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    karafka-core (2.4.4)
+    karafka-core (2.4.5)
       karafka-rdkafka (>= 0.17.6, < 0.18.0)
 
 GEM
