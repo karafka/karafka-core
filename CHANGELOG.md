@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.4.5 (Unreleased)
+## 2.4.5 (2024-11-19)
 - **[Breaking]** Drop Ruby `3.0` support according to the EOL schedule.
 - [Enhancement] Support listeners inspection via `#listeners`.
 - [Fix] Restore `#available_events` notifications bus method.
