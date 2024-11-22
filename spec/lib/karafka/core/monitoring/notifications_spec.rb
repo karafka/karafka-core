@@ -28,6 +28,32 @@ RSpec.describe_current do
         expect { notifications.instrument('na') }.to raise_error(expected_error)
       end
     end
+
+    context 'when the instrumented code errors' do
+      let(:result) { raise ArgumentError, "error message" }
+
+      it 'expect to raise the error' do
+        expect { instrumentation }.to raise_error(ArgumentError, "error message")
+      end
+
+      context 'with a subscriber' do
+        let(:subscriber_block) { double('block') }
+
+        before do
+          allow(subscriber_block).to receive(:call)
+          notifications.subscribe(event_name, &subscriber_block.method(:call))
+        end
+
+        it 'expect to provide exception information in event' do
+          expect(subscriber_block).to receive(:call) do |event|
+            expect(event[:exception]).to be_a(ArgumentError)
+            expect(event[:exception].message).to eq("error message")
+          end
+
+          expect { instrumentation }.to raise_error(ArgumentError)
+        end
+      end
+    end
   end
 
   describe '#subscribe' do

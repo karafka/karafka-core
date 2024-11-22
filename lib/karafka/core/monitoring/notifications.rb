@@ -117,27 +117,30 @@ module Karafka
             return yield if assigned_listeners.empty?
 
             start = monotonic_now
-            result = yield
-            time = monotonic_now - start
-          elsif assigned_listeners.empty?
-            # Skip measuring or doing anything if no one listening
-            return
-          end
-
-          event = Event.new(
-            event_id,
-            time ? payload.merge(time: time) : payload
-          )
-
-          assigned_listeners.each do |listener|
-            if listener.is_a?(Proc)
-              listener.call(event)
-            else
-              listener.send(@events_methods_map[event_id], event)
+            begin
+              yield
+            rescue Exception => e
+              payload[:exception] = e
+              raise e
+            ensure
+              time = monotonic_now - start
             end
           end
+        ensure
+          if assigned_listeners && !assigned_listeners.empty?
+            event = Event.new(
+              event_id,
+              time ? payload.merge(time: time) : payload
+            )
 
-          result
+            assigned_listeners.each do |listener|
+              if listener.is_a?(Proc)
+                listener.call(event)
+              else
+                listener.send(@events_methods_map[event_id], event)
+              end
+            end
+          end
         end
       end
     end
