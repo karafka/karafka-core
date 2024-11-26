@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.4.6 (Unreleased)
+## 2.4.6 (2024-11-26)
 - [Enhancement] Mitigate macos forking issues when librdkafka is not loaded to memory.
 - [Change] Allow `karafka-rdkafka` `0.18.0`.
 
