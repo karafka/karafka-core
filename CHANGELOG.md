@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.4.7 (2024-11-26)
+- [Fix] Make sure that `karafka-core` works with older versions of `karafka-rdkafka` that do not support macos fork mitigation.
+
 ## 2.4.6 (2024-11-26)
 - [Enhancement] Mitigate macos forking issues when librdkafka is not loaded to memory.
 - [Change] Allow `karafka-rdkafka` `0.18.0`.
