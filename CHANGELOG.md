@@ -1,5 +1,9 @@
 # Karafka Core Changelog
 
+## 2.4.6 (Unreleased)
+- [Enhancement] Mitigate macos forking issues when librdkafka is not loaded to memory.
+- [Change] Allow `karafka-rdkafka` `0.18.0`.
+
 ## 2.4.5 (2024-11-19)
 - **[Breaking]** Drop Ruby `3.0` support according to the EOL schedule.
 - [Enhancement] Support listeners inspection via `#listeners`.

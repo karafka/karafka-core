@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    karafka-core (2.4.5)
-      karafka-rdkafka (>= 0.17.6, < 0.18.0)
+    karafka-core (2.4.6)
+      karafka-rdkafka (>= 0.17.6, < 0.19.0)
 
 GEM
   remote: https://rubygems.org/
@@ -31,12 +31,12 @@ GEM
     ffi (1.17.0)
     i18n (1.14.5)
       concurrent-ruby (~> 1.0)
-    karafka-rdkafka (0.17.6)
+    karafka-rdkafka (0.18.0)
       ffi (~> 1.15)
       mini_portile2 (~> 2.6)
       rake (> 12)
     logger (1.6.1)
-    mini_portile2 (2.8.7)
+    mini_portile2 (2.8.8)
     minitest (5.25.1)
     rake (13.2.1)
     rspec (3.13.0)
