@@ -52,4 +52,4 @@ rd_config.oauthbearer_token_refresh_callback = instrumentation.oauthbearer_token
 # This loads librdkafka components into memory prior to initializing the client.
 # This mitigates macos forking issues.
 # @see https://github.com/confluentinc/librdkafka/issues/4590
-::Rdkafka::Bindings.rd_kafka_global_init
+::Rdkafka::Bindings.rd_kafka_global_init if ::Rdkafka::Bindings.respond_to?(:rd_kafka_global_init)
