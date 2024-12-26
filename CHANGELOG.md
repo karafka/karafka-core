@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.4.8 (Unreleased)
+- [Maintenance] Declare `logger` as a dependency.
+
 ## 2.4.7 (2024-11-26)
 - [Fix] Make sure that `karafka-core` works with older versions of `karafka-rdkafka` that do not support macos fork mitigation.
 
