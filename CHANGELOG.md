@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.4.8 (Unreleased)
+## 2.4.8 (2024-12-26)
 - [Maintenance] Declare `logger` as a dependency.
 
 ## 2.4.7 (2024-11-26)
