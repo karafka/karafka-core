@@ -36,7 +36,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.leaf).to eq(6) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
       it { expect(config.nested1.nested2.with_zero_constructor).to eq(7) }
     end
 
@@ -52,7 +52,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.leaf).to eq(8) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
     end
 
     context 'when we inherit and alter settings' do
@@ -75,12 +75,12 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.leaf).to eq(6) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
       it { expect(config_sub.with_default).to eq(123) }
       it { expect(config_sub.nested1.nested2.leaf).to eq(6) }
       it { expect(config_sub.nested1.nested1).to eq(1) }
       it { expect(config_sub.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config_sub.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config_sub.nested1.nested2.ov_constructor).to be(true) }
     end
 
     context 'when we inherit and change values' do
@@ -200,7 +200,7 @@ RSpec.describe_current do
         let(:constructor) { ->(default) { default || attempts.pop } }
 
         it 'expect to retry until non-false is present and then cache it' do
-          3.times { expect(config.lazy_setting).to eq(false) }
+          3.times { expect(config.lazy_setting).to be(false) }
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
         end
@@ -225,7 +225,7 @@ RSpec.describe_current do
         let(:constructor) { -> { attempts.pop } }
 
         it 'expect to retry until non-false is present and then cache it' do
-          3.times { expect(config.lazy_setting).to eq(false) }
+          3.times { expect(config.lazy_setting).to be(false) }
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
         end
@@ -275,7 +275,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.leaf).to eq(6) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
     end
 
     context 'when we have two instances' do
@@ -306,7 +306,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.leaf).to eq(8) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
     end
 
     context 'when we inherit and alter settings' do
@@ -329,12 +329,12 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.leaf).to eq(6) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
       it { expect(config_sub.with_default).to eq(123) }
       it { expect(config_sub.nested1.nested2.leaf).to eq(6) }
       it { expect(config_sub.nested1.nested1).to eq(1) }
       it { expect(config_sub.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config_sub.nested1.nested2.ov_constructor).to eq(true) }
+      it { expect(config_sub.nested1.nested2.ov_constructor).to be(true) }
     end
 
     context 'when we inherit and change values' do
@@ -426,7 +426,7 @@ RSpec.describe_current do
         let(:constructor) { ->(default) { default || attempts.pop } }
 
         it 'expect to retry until non-false is present and then cache it' do
-          3.times { expect(config.lazy_setting).to eq(false) }
+          3.times { expect(config.lazy_setting).to be(false) }
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
         end

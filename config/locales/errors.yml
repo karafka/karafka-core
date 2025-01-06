@@ -4,6 +4,9 @@ en:
       missing: needs to be present
       id_format: needs to be a String
       nested.id2_format: needs to be a String
+      id_format: needs to be a String
+      test_format: needs to be 5
+      details.id_format: needs to be a String
 
     config:
       missing: needs to be present

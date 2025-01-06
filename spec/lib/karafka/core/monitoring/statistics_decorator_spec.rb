@@ -54,7 +54,7 @@ RSpec.describe_current do
     subject(:decorated) { decorator.call(emited_stats1) }
 
     it { expect(decorated['string']).to eq('value1') }
-    it { expect(decorated.key?('string_d')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
     it { expect(decorated['float_d']).to eq(0) }
     it { expect(decorated['int_d']).to eq(0) }
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(0) }
@@ -68,7 +68,7 @@ RSpec.describe_current do
     end
 
     it { expect(decorated['string']).to eq('value2') }
-    it { expect(decorated.key?('string_d')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
     it { expect(decorated['int_d']).to eq(18) }
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(30) }
@@ -83,8 +83,8 @@ RSpec.describe_current do
     end
 
     it { expect(decorated['string']).to eq('value3') }
-    it { expect(decorated.key?('string_d')).to eq(false) }
-    it { expect(decorated.key?('string_fd')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
+    it { expect(decorated.key?('string_fd')).to be(false) }
     it { expect(decorated['float_d'].round(10)).to eq(1.0) }
     it { expect(decorated['float_fd']).to be_within(5).of(0) }
     it { expect(decorated['int_d']).to eq(-120) }
@@ -92,7 +92,7 @@ RSpec.describe_current do
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(-151) }
     it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to be_within(5).of(0) }
     it { expect(decorated).to be_frozen }
-    it { expect(decorated.key?('float_d_d')).to eq(false) }
+    it { expect(decorated.key?('float_d_d')).to be(false) }
   end
 
   context 'when a broker is no longer present' do
@@ -104,15 +104,15 @@ RSpec.describe_current do
     before { emited_stats2['nested'] = {} }
 
     it { expect(decorated['string']).to eq('value2') }
-    it { expect(decorated.key?('string_d')).to eq(false) }
-    it { expect(decorated.key?('string_fd')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
+    it { expect(decorated.key?('string_fd')).to be(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
     it { expect(decorated['float_fd']).to be_within(5).of(0) }
     it { expect(decorated['int_d']).to eq(18) }
     it { expect(decorated['int_fd']).to be_within(5).of(0) }
     it { expect(decorated['nested']).to eq({}) }
     it { expect(decorated).to be_frozen }
-    it { expect(decorated.key?('float_d_d')).to eq(false) }
+    it { expect(decorated.key?('float_d_d')).to be(false) }
   end
 
   context 'when broker was introduced later on' do
@@ -124,7 +124,7 @@ RSpec.describe_current do
     before { emited_stats1['nested'] = {} }
 
     it { expect(decorated['string']).to eq('value2') }
-    it { expect(decorated.key?('string_d')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
     it { expect(decorated['float_d'].round(10)).to eq(0.4) }
     it { expect(decorated['float_fd']).to be_within(5).of(0) }
     it { expect(decorated['int_d']).to eq(18) }
@@ -132,7 +132,7 @@ RSpec.describe_current do
     it { expect(decorated.dig(*broker_scope)['txbytes_d']).to eq(0) }
     it { expect(decorated.dig(*broker_scope)['txbytes_fd']).to be_within(5).of(0) }
     it { expect(decorated).to be_frozen }
-    it { expect(decorated.key?('float_d_d')).to eq(false) }
+    it { expect(decorated.key?('float_d_d')).to be(false) }
   end
 
   context 'when value remains unchanged over time' do
@@ -148,14 +148,14 @@ RSpec.describe_current do
 
     let(:deep_copy) { -> { Marshal.load(Marshal.dump(emited_stats1)) } }
 
-    it { expect(decorated.key?('string_d')).to eq(false) }
-    it { expect(decorated.key?('string_fd')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
+    it { expect(decorated.key?('string_fd')).to be(false) }
     it { expect(decorated['float_d']).to eq(0) }
     it { expect(decorated['float_fd']).to be_within(5).of(10) }
     it { expect(decorated['int_d']).to eq(0) }
     it { expect(decorated['int_fd']).to be_within(5).of(10) }
     it { expect(decorated).to be_frozen }
-    it { expect(decorated.key?('float_d_d')).to eq(false) }
+    it { expect(decorated.key?('float_d_d')).to be(false) }
   end
 
   context 'when value remains unchanged over multiple occurrences and time' do
@@ -173,13 +173,13 @@ RSpec.describe_current do
 
     let(:deep_copy) { -> { Marshal.load(Marshal.dump(emited_stats1)) } }
 
-    it { expect(decorated.key?('string_d')).to eq(false) }
-    it { expect(decorated.key?('string_fd')).to eq(false) }
+    it { expect(decorated.key?('string_d')).to be(false) }
+    it { expect(decorated.key?('string_fd')).to be(false) }
     it { expect(decorated['float_d']).to eq(0) }
     it { expect(decorated['float_fd']).to be_within(5).of(20) }
     it { expect(decorated['int_d']).to eq(0) }
     it { expect(decorated['int_fd']).to be_within(5).of(20) }
     it { expect(decorated).to be_frozen }
-    it { expect(decorated.key?('float_d_d')).to eq(false) }
+    it { expect(decorated.key?('float_d_d')).to be(false) }
   end
 end
