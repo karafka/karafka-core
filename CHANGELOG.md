@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.4.9 (Unreleased)
+## 2.4.9 (2025-03-03)
 - [Enhancement] Remove `RspecLocator` dependency on `activesupport`.
 
 ## 2.4.8 (2024-12-26)
