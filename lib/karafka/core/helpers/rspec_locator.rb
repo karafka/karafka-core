@@ -84,12 +84,11 @@ module Karafka
         def custom_constantize(string)
           names = string.split('::')
           constant = Object
+          regexp = /^[A-Z][a-zA-Z0-9_]*$/
 
           names.each do |name|
             # Make sure we're dealing with a valid constant name
-            unless name.match?(/^[A-Z][a-zA-Z0-9_]*$/)
-              raise NameError, "#{name} is not a valid constant name!"
-            end
+            raise NameError, "#{name} is not a valid constant name!" unless name.match?(regexp)
 
             # Get the constant from its parent
             constant = constant.const_get(name)
