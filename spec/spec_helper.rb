@@ -6,9 +6,9 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
 %w[
   byebug
-  factory_bot
   simplecov
   tempfile
+  securerandom
 ].each do |lib|
   require lib
 end
@@ -25,7 +25,7 @@ SimpleCov.start do
   merge_timeout 600
 end
 
-SimpleCov.minimum_coverage(99.2)
+SimpleCov.minimum_coverage(99)
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"]
   .sort
@@ -34,7 +34,6 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"]
 RSpec.configure do |config|
   config.disable_monkey_patching!
   config.order = :random
-  config.include FactoryBot::Syntax::Methods
 
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true

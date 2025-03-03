@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.4.9 (Unreleased)
+- [Enhancement] Remove `RspecLocator` dependency on `activesupport`.
+
 ## 2.4.8 (2024-12-26)
 - [Maintenance] Declare `logger` as a dependency.
 

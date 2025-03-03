@@ -24,9 +24,7 @@ module Karafka
         # @param rspec [Module] RSpec main module
         def extended(rspec)
           super
-
           this = self
-
           # Allows "auto subject" definitions for the `#describe` method, as it will figure
           # out the proper class that we want to describe
           # @param block [Proc] block with specs
@@ -47,9 +45,9 @@ module Karafka
             .delete_if(&:empty?)
             .itself[1..]
             .join('/')
-            .camelize
+            .then { |path| custom_camelize(path) }
             .then { |string| transform_inflections(string) }
-            .constantize
+            .then { |class_name| custom_constantize(class_name) }
         end
 
         private
@@ -58,10 +56,47 @@ module Karafka
         # @return [String] string after inflections
         def transform_inflections(string)
           string = string.dup
-
           @inflections.each { |from, to| string.gsub!(from, to) }
-
           string
+        end
+
+        # Custom implementation of camelize without ActiveSupport
+        # @param string [String] underscored string to convert to CamelCase
+        # @return [String] camel-case string
+        def custom_camelize(string)
+          # First, replace slashes with :: for proper namespacing
+          string = string.gsub('/', '::')
+
+          # Then camelize each segment
+          string.gsub(/(?:^|_|::)([a-z])/) do |match|
+            # If it's a namespace separator, keep it and uppercase the following letter
+            if match.include?('::')
+              "::#{match[-1].upcase}"
+            else
+              match[-1].upcase
+            end
+          end
+        end
+
+        # Custom implementation of constantize without ActiveSupport
+        # @param string [String] string representing a constant name
+        # @return [Class, Module] the constant
+        def custom_constantize(string)
+          names = string.split('::')
+          constant = Object
+          regexp = /^[A-Z][a-zA-Z0-9_]*$/
+
+          names.each do |name|
+            # Make sure we're dealing with a valid constant name
+            raise NameError, "#{name} is not a valid constant name!" unless name.match?(regexp)
+
+            # Get the constant from its parent
+            constant = constant.const_get(name)
+          end
+
+          constant
+        rescue NameError => e
+          raise NameError, "Uninitialized constant #{string}: #{e.message}"
         end
       end
     end
