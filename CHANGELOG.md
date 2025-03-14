@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.4.10 (2025-03-14)
+- Relax lock on `karafka-rdkafka`
+
 ## 2.4.9 (2025-03-03)
 - [Enhancement] Remove `RspecLocator` dependency on `activesupport`.
 
