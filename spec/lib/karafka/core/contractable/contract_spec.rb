@@ -14,6 +14,7 @@ RSpec.describe_current do
       required(:id) { |id| id.is_a?(String) }
 
       optional(:test) { |test| test == 5 }
+      optional(:name) { |name| name == 'name' }
     end
   end
 
@@ -36,6 +37,18 @@ RSpec.describe_current do
       let(:data) { { id: 1, test: Time.now } }
 
       it { expect { validation }.to raise_error(ArgumentError) }
+    end
+
+    context 'when optional name is not valid' do
+      let(:data) { { id: 1, name: Time.now } }
+
+      it { expect { validation }.to raise_error(ArgumentError) }
+    end
+
+    context 'when optional name is valid' do
+      let(:data) { { id: '1', name: 'name' } }
+
+      it { expect { validation }.not_to raise_error }
     end
 
     context 'when optional data is valid' do
