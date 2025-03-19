@@ -4,7 +4,7 @@ module Karafka
   module Core
     module Configurable
       # Single end config value representation
-      Leaf = Struct.new(:name, :default, :constructor, :compiled, :lazy) do
+      Leaf = Struct.new(:node_name, :default, :constructor, :compiled, :lazy) do
         # @return [Boolean] true if already compiled
         def compiled?
           compiled
