@@ -14,6 +14,7 @@ RSpec.describe_current do
             setting(:with_constructor, default: false, constructor: ->(default) { default || 5 })
             setting(:ov_constructor, default: true, constructor: ->(default) { default || 5 })
             setting(:with_zero_constructor, constructor: -> { 7 })
+            setting(:name, default: 'name')
           end
 
           setting(:nested1, default: 1)
@@ -33,6 +34,7 @@ RSpec.describe_current do
       before { configurable_class.configure }
 
       it { expect(config.with_default).to eq(123) }
+      it { expect(config.nested1.nested2.name).to eq('name') }
       it { expect(config.nested1.nested2.leaf).to eq(6) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
@@ -122,6 +124,7 @@ RSpec.describe_current do
           nested1: {
             nested1: 1,
             nested2: {
+              name: 'name',
               leaf: 6,
               ov_constructor: true,
               with_constructor: 5,
