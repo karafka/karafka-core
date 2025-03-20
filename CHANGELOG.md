@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.4.11 (Unreleased)
+## 2.4.11 (2025-03-20)
 - [Enhancement] Rename internal node `#name` method to `#node_name` so we can use `#name` as the attribute name.
 
 ## 2.4.10 (2025-03-14)
