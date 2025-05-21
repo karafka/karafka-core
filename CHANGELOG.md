@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.0 (Unreleased)
+## 2.5.0 (2025-05-21)
 - [Change] Set minimum `karafka-rdkafka` on `0.19.2` to support new features.
 
 ## 2.4.11 (2025-03-20)
