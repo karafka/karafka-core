@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.0 (Unreleased)
+- [Change] Set minimum `karafka-rdkafka` on `0.19.2` to support new features.
+
 ## 2.4.11 (2025-03-20)
 - [Enhancement] Rename internal node `#name` method to `#node_name` so we can use `#name` as the attribute name.
 
