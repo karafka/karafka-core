@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.1 (2025-05-23)
+- [Change] Move to trusted-publishers and remove signing since no longer needed.
+
 ## 2.5.0 (2025-05-21)
 - [Change] Set minimum `karafka-rdkafka` on `0.19.2` to support new features.
 
