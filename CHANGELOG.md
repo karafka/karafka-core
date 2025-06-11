@@ -3,7 +3,7 @@
 ## 2.5.2 (2025-06-11)
 - [Enhancement] Allow for providing a root scope path for error keys.
 - [Fix] Fix a bug where on no errors the result would be an array instead of a hash.
-- [Fix] Fix spec hanging when Kafak cluster on 9092 is running.
+- [Fix] Fix spec hanging when Kafka cluster on 9092 is running.
 
 ## 2.5.1 (2025-05-23)
 - [Change] Move to trusted-publishers and remove signing since no longer needed.
