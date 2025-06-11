@@ -89,6 +89,21 @@ module Karafka
           end
         end
 
+        # Allows for unsubscription from events
+        # This method will remove the listener/block from all events where it's currently subscribed.
+        #
+        # @param listener_or_block [Object] listener object or block to remove from all events
+        #
+        # @example Unsubscribe using listener (removes from all events where it's subscribed)
+        #   unsubscribe(my_listener)
+        def unsubscribe(listener_or_block)
+          @mutex.synchronize do
+            @listeners.each_value do |event_listeners|
+              event_listeners.delete(listener_or_block)
+            end
+          end
+        end
+
         # Allows for code instrumentation
         # Runs the provided code and sends the instrumentation details to all registered listeners
         #
