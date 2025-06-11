@@ -56,6 +56,92 @@ RSpec.describe_current do
 
       it { expect { validation }.to raise_error(ArgumentError) }
     end
+
+    context 'when validating with extra scope details' do
+      subject(:validation) do
+        validator_class.new.validate!(data, ArgumentError, scope: [rand.to_s, rand.to_s])
+      end
+
+      context 'when data is valid' do
+        let(:data) { { id: '1' } }
+
+        it { expect { validation }.not_to raise_error }
+      end
+
+      context 'when data is not valid' do
+        let(:data) { { id: 1 } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+
+      context 'when optional data is not valid' do
+        let(:data) { { id: 1, test: Time.now } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+
+      context 'when optional name is not valid' do
+        let(:data) { { id: 1, name: Time.now } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+
+      context 'when optional name is valid' do
+        let(:data) { { id: '1', name: 'name' } }
+
+        it { expect { validation }.not_to raise_error }
+      end
+
+      context 'when optional data is valid' do
+        let(:data) { { id: 1, test: nil } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+    end
+
+    context 'when error key is not available on error' do
+      subject(:validator_class) do
+        Class.new(described_class) do
+          configure do |config|
+            config.error_messages = YAML.safe_load(
+              File.read(
+                File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
+              )
+            ).fetch('en').fetch('validations').fetch('config')
+          end
+
+          required(:na_id) { |id| id.is_a?(String) }
+        end
+      end
+
+      let(:data) { { na_id: 1 } }
+
+      it { expect { validation }.to raise_error(KeyError) }
+    end
+  end
+
+  describe '#call' do
+    context 'when interested in the errors and not raising' do
+      subject(:validation) do
+        validator_class.new.call(data, scope: scope)
+      end
+
+      let(:scope) { [rand.to_s, rand.to_s] }
+
+      context 'when data is valid' do
+        let(:data) { { id: '1' } }
+
+        it { expect(validation.errors).to eq({}) }
+      end
+
+      context 'when data is not valid' do
+        let(:data) { { id: 1 } }
+
+        it 'expect to have the path key nested with the scope' do
+          expect(validation.errors.keys).to include(:"#{scope.join('.')}.id")
+        end
+      end
+    end
   end
 
   context 'when there are nested values in a contract' do

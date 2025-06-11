@@ -2,7 +2,7 @@
 
 RSpec.describe_current do
   subject(:producer) do
-    config = { 'bootstrap.servers': 'localhost:9092' }
+    config = { 'bootstrap.servers': 'localhost:10092' }
     Rdkafka::Config.new(config).producer
   end
 
