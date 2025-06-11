@@ -14,7 +14,7 @@ module Karafka
         def initialize(errors, contract)
           # Short track to skip object allocation for the happy path
           if errors.empty?
-            @errors = errors
+            @errors = {}
             return
           end
 
