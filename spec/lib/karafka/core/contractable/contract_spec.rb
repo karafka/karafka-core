@@ -56,6 +56,48 @@ RSpec.describe_current do
 
       it { expect { validation }.to raise_error(ArgumentError) }
     end
+
+    context 'when validating with extra scope details' do
+      subject(:validation) do
+        validator_class.new.validate!(data, ArgumentError, scope: [rand.to_s, rand.to_s])
+      end
+
+      context 'when data is valid' do
+        let(:data) { { id: '1' } }
+
+        it { expect { validation }.not_to raise_error }
+      end
+
+      context 'when data is not valid' do
+        let(:data) { { id: 1 } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+
+      context 'when optional data is not valid' do
+        let(:data) { { id: 1, test: Time.now } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+
+      context 'when optional name is not valid' do
+        let(:data) { { id: 1, name: Time.now } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+
+      context 'when optional name is valid' do
+        let(:data) { { id: '1', name: 'name' } }
+
+        it { expect { validation }.not_to raise_error }
+      end
+
+      context 'when optional data is valid' do
+        let(:data) { { id: 1, test: nil } }
+
+        it { expect { validation }.to raise_error(ArgumentError) }
+      end
+    end
   end
 
   context 'when there are nested values in a contract' do

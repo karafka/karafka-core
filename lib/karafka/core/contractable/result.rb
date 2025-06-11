@@ -41,7 +41,8 @@ module Karafka
 
         private
 
-        # Builds message based on the error messages
+        # Builds message based on the error messages and scope
+        #
         # @param contract [Object] contract for which we build the result
         # @param scope [Symbol] path to the key that has an error
         # @param error_key [Symbol] error key for yaml errors lookup
@@ -49,6 +50,25 @@ module Karafka
         def build_message(contract, scope, error_key)
           messages = contract.class.config.error_messages
 
+          # Split scope into parts for progressive checking
+          scope_parts = scope.to_s.split('.')
+
+          # Try full scope first, then progressively remove from beginning
+          # This allows us to have full path scoped errors but can also be used as a fallback,
+          # when scopes are dynamic. For example 'consumer_group_name.topic_name.name_format'
+          (0..scope_parts.length).each do |i|
+            current_scope_parts = scope_parts[i..]
+
+            key = if current_scope_parts.empty?
+                    error_key.to_s
+                  else
+                    "#{current_scope_parts.join('.')}_#{error_key}"
+                  end
+
+            return messages[key] if messages.key?(key)
+          end
+
+          # If nothing found, raise the original error
           messages.fetch(error_key.to_s) do
             messages.fetch("#{scope}_#{error_key}")
           end

@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.2 (2025-06-11)
+- [Enhancement] Allow for providing a root scope path for error keys.
+
 ## 2.5.1 (2025-05-23)
 - [Change] Move to trusted-publishers and remove signing since no longer needed.
 

@@ -78,18 +78,20 @@ module Karafka
         # Runs the validation
         #
         # @param data [Hash] hash with data we want to validate
+        # @param scope [Array<String>] scope of this contract (if any) or empty array if no parent
+        #   scope is needed if contract starts from root
         # @return [Result] validaton result
-        def call(data)
+        def call(data, scope: [])
           errors = []
 
           self.class.rules.each do |rule|
             case rule.type
             when :required
-              validate_required(data, rule, errors)
+              validate_required(data, rule, errors, scope)
             when :optional
-              validate_optional(data, rule, errors)
+              validate_optional(data, rule, errors, scope)
             when :virtual
-              validate_virtual(data, rule, errors)
+              validate_virtual(data, rule, errors, scope)
             end
           end
 
@@ -98,11 +100,13 @@ module Karafka
 
         # @param data [Hash] data for validation
         # @param error_class [Class] error class that should be used when validation fails
+        # @param scope [Array<String>] scope of this contract (if any) or empty array if no parent
+        #   scope is needed if contract starts from root
         # @return [Boolean] true
         # @raise [StandardError] any error provided in the error_class that inherits from the
         #   standard error
-        def validate!(data, error_class)
-          result = call(data)
+        def validate!(data, error_class, scope: [])
+          result = call(data, scope: scope)
 
           return true if result.success?
 
@@ -117,19 +121,20 @@ module Karafka
         # @param data [Hash] input hash
         # @param rule [Rule] validation rule
         # @param errors [Array] array with errors from previous rules (if any)
-        def validate_required(data, rule, errors)
+        # @param scope [Array<String>]
+        def validate_required(data, rule, errors, scope)
           for_checking = dig(data, rule.path)
 
           # We need to compare `DIG_MISS` against stuff because of the ownership of the `#==`
           # method
           if DIG_MISS == for_checking
-            errors << [rule.path, :missing]
+            errors << [scope + rule.path, :missing]
           else
             result = rule.validator.call(for_checking, data, errors, self)
 
             return if result == true
 
-            errors << [rule.path, result || :format]
+            errors << [scope + rule.path, result || :format]
           end
         end
 
@@ -139,7 +144,8 @@ module Karafka
         # @param data [Hash] input hash
         # @param rule [Rule] validation rule
         # @param errors [Array] array with errors from previous rules (if any)
-        def validate_optional(data, rule, errors)
+        # @param scope [Array<String>]
+        def validate_optional(data, rule, errors, scope)
           for_checking = dig(data, rule.path)
 
           return if DIG_MISS == for_checking
@@ -148,7 +154,7 @@ module Karafka
 
           return if result == true
 
-          errors << [rule.path, result || :format]
+          errors << [scope + rule.path, result || :format]
         end
 
         # Runs validation for rules on virtual fields (aggregates, etc) and adds errors (if any) to
@@ -157,10 +163,17 @@ module Karafka
         # @param data [Hash] input hash
         # @param rule [Rule] validation rule
         # @param errors [Array] array with errors from previous rules (if any)
-        def validate_virtual(data, rule, errors)
+        # @param scope [Array<String>]
+        def validate_virtual(data, rule, errors, scope)
           result = rule.validator.call(data, errors, self)
 
           return if result == true
+
+          if result
+            result.each do |sub_result|
+              sub_result[0] = scope + sub_result[0]
+            end
+          end
 
           errors.push(*result)
         end
