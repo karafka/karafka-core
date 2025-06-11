@@ -98,8 +98,9 @@ module Karafka
         #   unsubscribe(my_listener)
         def unsubscribe(listener_or_block)
           @mutex.synchronize do
-            @listeners.each_value do |event_listeners|
+            @listeners.each do |event_id, event_listeners|
               event_listeners.delete(listener_or_block)
+              @listeners.delete(event_id) if event_listeners.empty?
             end
           end
         end
