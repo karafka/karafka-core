@@ -62,6 +62,131 @@ RSpec.describe_current do
     end
   end
 
+  describe '#unsubscribe' do
+    context 'when we have a block based listener' do
+      let(:tracked) { [] }
+      let(:block_listener) do
+        proc do |event|
+          tracked << event
+        end
+      end
+
+      before do
+        notifications.subscribe(event_name, &block_listener)
+      end
+
+      it 'expect to remove the block from the event' do
+        notifications.unsubscribe(block_listener)
+        notifications.instrument(event_name)
+        expect(tracked).to be_empty
+      end
+
+      context 'when the same block is subscribed to multiple events' do
+        let(:second_event) { 'message.consumed' }
+
+        before do
+          notifications.register_event(second_event)
+          notifications.subscribe(second_event, &block_listener)
+        end
+
+        it 'expect to remove the block from all events' do
+          notifications.unsubscribe(block_listener)
+          notifications.instrument(event_name)
+          notifications.instrument(second_event)
+          expect(tracked).to be_empty
+        end
+      end
+    end
+
+    context 'when we have an object listener' do
+      let(:listener_class) do
+        Class.new do
+          attr_reader :accu
+
+          def initialize
+            @accu = []
+          end
+
+          def on_message_produced_async(event)
+            @accu << event
+          end
+
+          def on_message_consumed(event)
+            @accu << event
+          end
+        end
+      end
+
+      let(:listener) { listener_class.new }
+
+      before do
+        notifications.subscribe(listener)
+      end
+
+      it 'expect to remove the listener from the event' do
+        notifications.unsubscribe(listener)
+        notifications.instrument(event_name)
+        expect(listener.accu).to be_empty
+      end
+
+      context 'when the listener is subscribed to multiple events' do
+        let(:second_event) { 'message.consumed' }
+
+        before do
+          notifications.register_event(second_event)
+          notifications.subscribe(listener)
+        end
+
+        it 'expect to remove the listener from all events' do
+          notifications.unsubscribe(listener)
+          notifications.instrument(event_name)
+          notifications.instrument(second_event)
+          expect(listener.accu).to be_empty
+        end
+      end
+    end
+
+    context 'when trying to unsubscribe a listener that was never subscribed' do
+      let(:unsubscribed_listener) do
+        Class.new do
+          def on_message_produced_async(_event)
+            true
+          end
+        end.new
+      end
+
+      it 'expect not to raise any errors' do
+        expect { notifications.unsubscribe(unsubscribed_listener) }.not_to raise_error
+      end
+    end
+
+    context 'when multiple listeners are subscribed and we unsubscribe one' do
+      let(:tracked_first) { [] }
+      let(:tracked_second) { [] }
+
+      let(:first_listener) do
+        proc { |event| tracked_first << event }
+      end
+
+      let(:second_listener) do
+        proc { |event| tracked_second << event }
+      end
+
+      before do
+        notifications.subscribe(event_name, &first_listener)
+        notifications.subscribe(event_name, &second_listener)
+      end
+
+      it 'expect to only remove the specified listener' do
+        notifications.unsubscribe(first_listener)
+        notifications.instrument(event_name)
+
+        expect(tracked_first).to be_empty
+        expect(tracked_second).not_to be_empty
+      end
+    end
+  end
+
   describe '#available_events' do
     it { expect(notifications.available_events).to eq([event_name]) }
   end

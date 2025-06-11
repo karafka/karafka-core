@@ -42,6 +42,14 @@ module Karafka
           @notifications_bus.subscribe(*args, &block)
         end
 
+        # Allows for removal of whatever was subscribed
+        #
+        # @param listener_or_block [Object] object that is subscribed whether this is a listener
+        #   instance or a block.
+        def unsubscribe(listener_or_block)
+          @notifications_bus.unsubscribe(listener_or_block)
+        end
+
         # @return [Hash<String, Array>] hash where keys are events and values are arrays with
         #   listeners subscribed to particular events. Since different events may have different
         #   listeners, this is returned that way.
