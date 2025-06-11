@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@1a0ff446f5856bdfec298b61a09727c860d9d480 # v1.240.0
+        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # v1.244.0
         with:
           bundler-cache: false
 
@@ -32,5 +32,4 @@ jobs:
         run: |
           bundle install --jobs 4 --retry 3
 
-      # Release
-      - uses: rubygems/release-gem@9e85cb11501bebc2ae661c1500176316d3987059 # v1
+      - uses: rubygems/release-gem@a25424ba2ba8b387abc8ef40807c2c85b96cbe32 # v1.1.1
