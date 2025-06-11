@@ -220,7 +220,7 @@ RSpec.describe_current do
       it 'expect to remove the listener from all events' do
         monitor.unsubscribe(multi_event_listener)
         monitor.instrument('test') { 1 }
-        notifications_bus.instrument('test.namespace') { 1 }
+        monitor.instrument('test.namespace') { 1 }
         expect(multi_event_listener.accu).to be_empty
       end
     end
