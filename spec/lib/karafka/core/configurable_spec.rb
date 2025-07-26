@@ -147,13 +147,15 @@ RSpec.describe_current do
 
             setting(:producer1, constructor: -> { 2 }, lazy: true)
             setting(:producer2, default: 1, lazy: true)
+            setting(:producer3, lazy: true)
           end
         end
 
         let(:expected_hash) do
           {
             producer1: 2,
-            producer2: 1
+            producer2: 1,
+            producer3: nil
           }
         end
 
