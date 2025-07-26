@@ -148,6 +148,7 @@ RSpec.describe_current do
             setting(:producer1, constructor: -> { 2 }, lazy: true)
             setting(:producer2, default: 1, lazy: true)
             setting(:producer3, lazy: true)
+            setting(:producer4, default: 2)
           end
         end
 
@@ -155,7 +156,8 @@ RSpec.describe_current do
           {
             producer1: 2,
             producer2: 1,
-            producer3: nil
+            producer3: nil,
+            producer4: 2
           }
         end
 
