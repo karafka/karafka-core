@@ -59,7 +59,14 @@ module Karafka
 
           @children.each do |value|
             config[value.node_name] = if value.is_a?(Leaf)
-                                        result = @configs_refs.fetch(value.node_name)
+                                        result = if @configs_refs.key?(value.node_name)
+                                                   @configs_refs[value.node_name]
+                                                 elsif value.constructor
+                                                   value.constructor.call
+                                                 elsif value.default
+                                                   value.default
+                                                 end
+
                                         # We need to check if value is not a result node for cases
                                         # where we merge additional config
                                         result.is_a?(Node) ? result.to_h : result

@@ -139,6 +139,29 @@ RSpec.describe_current do
       it 'expect to map with correct values' do
         expect(config.to_h).to eq(expected_hash)
       end
+
+      context 'when casting with a dynamic attribute' do
+        let(:configurable_class) do
+          Class.new do
+            include Karafka::Core::Configurable
+
+            setting(:producer1, constructor: -> { 2 }, lazy: true)
+            setting(:producer2, default: 1, lazy: true)
+          end
+        end
+
+        let(:expected_hash) do
+          {
+            producer1: 2,
+            producer2: 1
+          }
+        end
+
+        let(:configurable) { configurable_class.new }
+        let(:config) { configurable.config }
+
+        it { expect(config.to_h).to eq(expected_hash) }
+      end
     end
 
     context 'when we want to merge extra config as a nested setting' do
