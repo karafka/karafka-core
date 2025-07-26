@@ -22,6 +22,7 @@ module Karafka
           @children = []
           @nestings = nestings
           @compiled = false
+          @configs_refs = {}
           instance_eval(&nestings)
         end
 
@@ -58,7 +59,7 @@ module Karafka
 
           @children.each do |value|
             config[value.node_name] = if value.is_a?(Leaf)
-                                        result = public_send(value.node_name)
+                                        result = @configs_refs.fetch(value.node_name)
                                         # We need to check if value is not a result node for cases
                                         # where we merge additional config
                                         result.is_a?(Node) ? result.to_h : result
@@ -96,12 +97,12 @@ module Karafka
           @children.each do |value|
             # Do not redefine something that was already set during compilation
             # This will allow us to reconfigure things and skip override with defaults
-            skippable = respond_to?(value.node_name) || (value.is_a?(Leaf) && value.compiled?)
+            skippable = @configs_refs.key?(value.node_name) || (value.is_a?(Leaf) && value.compiled?)
             lazy_leaf = value.is_a?(Leaf) && value.lazy?
 
             # Do not create accessor for leafs that are lazy as they will get a custom method
             # created instead
-            singleton_class.attr_accessor(value.node_name) unless lazy_leaf
+            build_accessors(value) unless lazy_leaf
 
             next if skippable
 
@@ -123,7 +124,7 @@ module Karafka
             if lazy_leaf && !initialized
               build_dynamic_accessor(value)
             else
-              public_send("#{value.node_name}=", initialized)
+              @configs_refs[value.node_name] = initialized
             end
           end
 
@@ -139,16 +140,18 @@ module Karafka
         #
         # @param value [Leaf]
         def build_dynamic_accessor(value)
-          singleton_class.attr_writer(value.node_name)
+          define_singleton_method(:"#{value.node_name}=") do |new_value|
+            @configs_refs[value.node_name] = new_value
+          end
 
           define_singleton_method(value.node_name) do
-            existing = instance_variable_get("@#{value.node_name}")
+            existing = @configs_refs.fetch(value.node_name, false)
 
-            return existing if existing
+            return existing unless existing == false
 
             built = call_constructor(value)
 
-            instance_variable_set("@#{value.node_name}", built)
+            @configs_refs[value.node_name] = built
           end
         end
 
@@ -163,6 +166,19 @@ module Karafka
             constructor.call
           else
             constructor.call(value.default)
+          end
+        end
+
+        # Builds regular accessors for value fetching
+        #
+        # @param value [Leaf]
+        def build_accessors(value)
+          define_singleton_method(value.node_name) do
+            @configs_refs[value.node_name]
+          end
+
+          define_singleton_method(:"#{value.node_name}=") do |new_value|
+            @configs_refs[value.node_name] = new_value
           end
         end
       end
