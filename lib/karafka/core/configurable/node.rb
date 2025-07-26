@@ -65,8 +65,6 @@ module Karafka
                                                    value.constructor.call
                                                  elsif value.default
                                                    value.default
-                                                 else
-                                                   nil
                                                  end
 
                                         # We need to check if value is not a result node for cases
