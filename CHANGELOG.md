@@ -2,6 +2,7 @@
 
 ## 2.5.3 (Unreleased)
 - [Enhancement] Optimize code to mitigate the Ruby performance warning from `Karafka::Core::Configurable::Node` (#208)
+- [Change] Remove `funding_uri` from the gemspec to minimize double-funding info.
 
 ## 2.5.2 (2025-06-11)
 - [Enhancement] Support `#unsubscribe`.
