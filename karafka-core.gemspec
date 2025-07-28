@@ -25,7 +25,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = %w[lib]
 
   spec.metadata = {
-    'funding_uri' => 'https://karafka.io/#become-pro',
     'homepage_uri' => 'https://karafka.io',
     'changelog_uri' => 'https://karafka.io/docs/Changelog-Karafka-Core',
     'bug_tracker_uri' => 'https://github.com/karafka/karafka-core/issues',
