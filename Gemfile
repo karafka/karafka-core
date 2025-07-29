@@ -10,4 +10,5 @@ group :test do
   gem 'byebug'
   gem 'rspec'
   gem 'simplecov'
+  gem 'warning'
 end

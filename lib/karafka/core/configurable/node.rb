@@ -180,6 +180,8 @@ module Karafka
         #
         # @param value [Leaf]
         def build_accessors(value)
+          return if respond_to?(:"#{value.node_name}=")
+
           define_singleton_method(value.node_name) do
             @configs_refs[value.node_name]
           end

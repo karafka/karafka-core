@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+Warning[:performance] = true
+Warning[:deprecated] = true
+$VERBOSE = true
+
+require 'warning'
+
+Warning.process do |warning|
+  next unless warning.include?(Dir.pwd)
+
+  raise "Warning in your code: #{warning}"
+end
+
 ENV['KARAFKA_ENV'] = 'test'
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
