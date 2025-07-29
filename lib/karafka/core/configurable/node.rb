@@ -147,10 +147,6 @@ module Karafka
         #
         # @param value [Leaf]
         def build_dynamic_accessor(value)
-          define_singleton_method(:"#{value.node_name}=") do |new_value|
-            @configs_refs[value.node_name] = new_value
-          end
-
           define_singleton_method(value.node_name) do
             existing = @configs_refs.fetch(value.node_name, false)
 
@@ -159,6 +155,10 @@ module Karafka
             built = call_constructor(value)
 
             @configs_refs[value.node_name] = built
+          end
+
+          define_singleton_method(:"#{value.node_name}=") do |new_value|
+            @configs_refs[value.node_name] = new_value
           end
         end
 
@@ -180,9 +180,13 @@ module Karafka
         #
         # @param value [Leaf]
         def build_accessors(value)
-          define_singleton_method(value.node_name) do
-            @configs_refs[value.node_name]
+          unless respond_to?(value.node_name.to_sym)
+            define_singleton_method(value.node_name) do
+              @configs_refs[value.node_name]
+            end
           end
+
+          return if respond_to?(:"#{value.node_name}=")
 
           define_singleton_method(:"#{value.node_name}=") do |new_value|
             @configs_refs[value.node_name] = new_value
