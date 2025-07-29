@@ -2,7 +2,8 @@
 
 ## 2.5.3 (Unreleased)
 - [Enhancement] Optimize code to mitigate the Ruby performance warning from `Karafka::Core::Configurable::Node` (#208)
-- [Enhancement] Raise errors on detected Ruby warnings. 
+- [Enhancement] Raise errors on detected Ruby warnings.
+- [Change] Remove unused Ruby 2.7 code.
 - [Change] Remove `funding_uri` from the gemspec to minimize double-funding info.
 
 ## 2.5.2 (2025-06-11)
