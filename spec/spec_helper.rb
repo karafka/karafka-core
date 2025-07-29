@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Warning[:performance] = true
+Warning[:performance] = true if RUBY_VERSION >= '3.3'
 Warning[:deprecated] = true
 $VERBOSE = true
 
