@@ -1,11 +1,10 @@
 name: Trigger Wiki Refresh
 
-on:
+gon:
   release:
     types: [published]
   push:
     branches: [master]
-  workflow_dispatch:
 
 jobs:
   trigger-wiki-refresh:
