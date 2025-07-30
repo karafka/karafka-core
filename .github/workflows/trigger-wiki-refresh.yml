@@ -1,5 +1,4 @@
 name: Trigger Wiki Refresh
-
 on:
   release:
     types: [published]
@@ -12,30 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     environment: wiki-trigger
     steps:
-      - name: Trigger wiki refresh on release
-        if: github.event_name == 'release'
+      - name: Trigger wiki refresh
         uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
         with:
           token: ${{ secrets.WIKI_REPO_TOKEN }}
           repository: karafka/wiki
-          event-type: gem-release
+          event-type: ${{ github.event_name == 'release' || github.event_name == 'push' && 'master-push' || 'manual-trigger' }}
           client-payload: |
             {
               "repository": "${{ github.repository }}",
-              "release_tag": "${{ github.event.release.tag_name }}",
-              "release_name": "${{ github.event.release.name }}"
-            }
-
-      - name: Trigger wiki refresh on master push
-        if: github.event_name == 'push'
-        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
-        with:
-          token: ${{ secrets.WIKI_REPO_TOKEN }}
-          repository: karafka/wiki
-          event-type: master-push
-          client-payload: |
-            {
-              "repository": "${{ github.repository }}",
+              "event_name": "${{ github.event_name }}",
+              "release_tag": "${{ github.event.release.tag_name || '' }}",
+              "release_name": "${{ github.event.release.name || '' }}",
               "commit_sha": "${{ github.sha }}",
-              "commit_message": "${{ github.event.head_commit.message }}"
+              "commit_message": "${{ github.event.head_commit.message || '' }}",
+              "triggered_by": "${{ github.actor }}"
             }
