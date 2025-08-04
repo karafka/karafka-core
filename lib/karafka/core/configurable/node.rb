@@ -23,7 +23,7 @@ module Karafka
           @nestings = nestings
           @compiled = false
           @configs_refs = {}
-          @local_defs = Set.new
+          @local_defs = []
           instance_eval(&nestings)
         end
 
