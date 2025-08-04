@@ -184,7 +184,7 @@ module Karafka
           reader_name = value.node_name.to_sym
           reader_respond = respond_to?(reader_name)
           # There is a weird edge-case from 2020, where nodes would not redefine methods that
-          # would be defined on Object. Some of users were defining thins like `#logger` on
+          # would be defined on Object. Some of users were defining things like `#logger` on
           # object and then we would not redefine it for nodes. This ensures that we only do not
           # redefine our own definitions but we do redefine any user "accidentally" inherited
           # methods
