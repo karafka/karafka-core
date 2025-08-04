@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.5 (2025-08-04)
+- [Enhancement] Remove reliance on `Set` class.
+
 ## 2.5.4 (2025-08-04)
 - [Fix] Fix old regression on misbehaviour when Object methods are overwritten.
 
