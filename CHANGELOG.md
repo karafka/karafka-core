@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.3 (Unreleased)
+## 2.5.3 (2025-08-04)
 - [Enhancement] Optimize code to mitigate the Ruby performance warning from `Karafka::Core::Configurable::Node` (#208)
 - [Enhancement] Raise errors on detected Ruby warnings.
 - [Change] Remove unused Ruby 2.7 code.
