@@ -180,7 +180,16 @@ module Karafka
         #
         # @param value [Leaf]
         def build_accessors(value)
-          unless respond_to?(value.node_name.to_sym)
+          reader_name = value.node_name.to_sym
+          reader_respond = respond_to?(reader_name)
+          # There is a weird edge-case from 2020, where nodes would not redefine methods that
+          # would be defined on Object. Some of users were defining thins like `#logger` on
+          # object and then we would not redefine it for nodes. This ensures that we only do not
+          # redefine our own definitions but we do redefine any user "accidentally" inherited
+          # methods
+          location = reader_respond ? method(reader_name).source_location.to_s : 'karafka/core'
+
+          if reader_respond ? !location.include?('karafka/core') : true
             define_singleton_method(value.node_name) do
               @configs_refs[value.node_name]
             end

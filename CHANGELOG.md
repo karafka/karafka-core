@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.4 (2025-08-04)
+- [Fix] Fix old regression on misbehaviour when Object methods are overwritten.
+
 ## 2.5.3 (2025-08-04)
 - [Enhancement] Optimize code to mitigate the Ruby performance warning from `Karafka::Core::Configurable::Node` (#208)
 - [Enhancement] Raise errors on detected Ruby warnings.
