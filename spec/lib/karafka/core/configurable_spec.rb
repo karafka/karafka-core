@@ -463,4 +463,42 @@ RSpec.describe_current do
       end
     end
   end
+
+  # @see https://github.com/karafka/karafka-core/issues/1
+  context 'when methods defined on Object' do
+    before do
+      Object.class_eval do
+        def self.logger
+          raise
+        end
+
+        def logger
+          raise
+        end
+      end
+
+      configurable_class.configure
+      config.configure
+    end
+
+    after do
+      Object.remove_method(:logger)
+      Object.singleton_class.remove_method(:logger)
+    end
+
+    let(:configurable_class) do
+      Class.new do
+        include Karafka::Core::Configurable
+
+        setting(:logger, default: 123)
+      end
+    end
+
+    let(:configurable) { configurable_class.new }
+    let(:config) { configurable.config }
+
+    it 'expect not to raise because it should redefine' do
+      expect(config.logger).to eq(123)
+    end
+  end
 end

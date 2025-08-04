@@ -23,6 +23,7 @@ module Karafka
           @nestings = nestings
           @compiled = false
           @configs_refs = {}
+          @local_defs = Set.new
           instance_eval(&nestings)
         end
 
@@ -180,9 +181,18 @@ module Karafka
         #
         # @param value [Leaf]
         def build_accessors(value)
-          unless respond_to?(value.node_name.to_sym)
-            define_singleton_method(value.node_name) do
-              @configs_refs[value.node_name]
+          reader_name = value.node_name.to_sym
+          reader_respond = respond_to?(reader_name)
+          # There is a weird edge-case from 2020, where nodes would not redefine methods that
+          # would be defined on Object. Some of users were defining things like `#logger` on
+          # object and then we would not redefine it for nodes. This ensures that we only do not
+          # redefine our own definitions but we do redefine any user "accidentally" inherited
+          # methods
+          if reader_respond ? !@local_defs.include?(reader_name) : true
+            @local_defs << reader_name
+
+            define_singleton_method(reader_name) do
+              @configs_refs[reader_name]
             end
           end
 
