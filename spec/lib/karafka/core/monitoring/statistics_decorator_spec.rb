@@ -179,7 +179,7 @@ RSpec.describe_current do
     it { expect(decorated['float_fd']).to be_within(5).of(20) }
     it { expect(decorated['int_d']).to eq(0) }
     # On slow CIs this value tends to grow and crash
-    it { expect(decorated['int_fd']).to be_within(5).of(50) }
+    it { expect(decorated['int_fd']).to be_within(15).of(20) }
     it { expect(decorated).to be_frozen }
     it { expect(decorated.key?('float_d_d')).to be(false) }
   end
