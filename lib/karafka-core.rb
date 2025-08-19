@@ -1,37 +1,27 @@
 # frozen_string_literal: true
 
-%w[
-  logger
-  yaml
-  rdkafka
-
-  karafka/core
-  karafka/core/version
-
-  karafka/core/helpers/time
-
-  karafka/core/monitoring
-  karafka/core/monitoring/event
-  karafka/core/monitoring/monitor
-  karafka/core/monitoring/notifications
-  karafka/core/monitoring/statistics_decorator
-
-  karafka/core/configurable
-  karafka/core/configurable/leaf
-  karafka/core/configurable/node
-
-  karafka/core/contractable/contract
-  karafka/core/contractable/result
-  karafka/core/contractable/rule
-
-  karafka/core/instrumentation
-  karafka/core/instrumentation/callbacks_manager
-
-  karafka/core/taggable
-  karafka/core/taggable/tags
-
-  karafka/core/patches/rdkafka/bindings
-].each { |dependency| require dependency }
+require 'logger'
+require 'yaml'
+require 'rdkafka'
+require 'karafka/core'
+require 'karafka/core/version'
+require 'karafka/core/helpers/time'
+require 'karafka/core/monitoring'
+require 'karafka/core/monitoring/event'
+require 'karafka/core/monitoring/monitor'
+require 'karafka/core/monitoring/notifications'
+require 'karafka/core/monitoring/statistics_decorator'
+require 'karafka/core/configurable'
+require 'karafka/core/configurable/leaf'
+require 'karafka/core/configurable/node'
+require 'karafka/core/contractable/contract'
+require 'karafka/core/contractable/result'
+require 'karafka/core/contractable/rule'
+require 'karafka/core/instrumentation'
+require 'karafka/core/instrumentation/callbacks_manager'
+require 'karafka/core/taggable'
+require 'karafka/core/taggable/tags'
+require 'karafka/core/patches/rdkafka/bindings'
 
 # Karafka framework main namespace
 module Karafka
