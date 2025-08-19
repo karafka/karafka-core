@@ -18,7 +18,15 @@ permissions:
 jobs:
   specs:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{
+        (github.event_name == 'push' ||
+         github.event_name == 'schedule' ||
+         (github.event_name == 'pull_request' && github.actor == 'mensfeld'))
+        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        || 'ubuntu-latest'
+      }}
+
     needs: diffend
     strategy:
       fail-fast: false
