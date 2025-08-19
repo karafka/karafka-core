@@ -52,7 +52,6 @@ jobs:
         run: "[ -e $APT_DEPS ] || sudo apt-get install -y --no-install-recommends $APT_DEPS"
 
       - name: Force GitHub-hosted runner detection
-        if: env.RUNNER_ENVIRONMENT == 'self-hosted'
         run: |
           echo "ImageOS=ubuntu22" >> $GITHUB_ENV
 
@@ -101,7 +100,6 @@ jobs:
           fetch-depth: 0
 
       - name: Force GitHub-hosted runner detection
-        if: env.RUNNER_ENVIRONMENT == 'self-hosted'
         run: |
           echo "ImageOS=ubuntu22" >> $GITHUB_ENV
 
