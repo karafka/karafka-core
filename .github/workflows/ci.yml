@@ -18,14 +18,19 @@ permissions:
 jobs:
   specs:
     timeout-minutes: 15
+
     runs-on: >-
       ${{
         (github.event_name == 'push' ||
          github.event_name == 'schedule' ||
-         (github.event_name == 'pull_request' && github.actor == 'mensfeld'))
+         (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository))
         && fromJSON('["self-hosted", "linux", "x64", "docker"]')
         || 'ubuntu-latest'
       }}
+
+    outputs:
+      is-self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted }}
 
     needs: diffend
     strategy:
@@ -53,6 +58,7 @@ jobs:
         with:
           ruby-version: ${{matrix.ruby}}
           bundler: 'latest'
+          self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted == 'true' }}
 
       - name: Install latest bundler
         run: |
@@ -72,14 +78,20 @@ jobs:
 
   diffend:
     timeout-minutes: 5
+
     runs-on: >-
       ${{
         (github.event_name == 'push' ||
          github.event_name == 'schedule' ||
-         (github.event_name == 'pull_request' && github.actor == 'mensfeld'))
+         (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository))
         && fromJSON('["self-hosted", "linux", "x64", "docker"]')
         || 'ubuntu-latest'
       }}
+
+    outputs:
+      is-self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted }}
+
     strategy:
       fail-fast: false
     steps:
@@ -90,6 +102,8 @@ jobs:
         uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # v1.254.0
         with:
           ruby-version: 3.4
+          self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted == 'true' }}
+
       - name: Install latest bundler
         run: gem install bundler --no-document
       - name: Install Diffend plugin
@@ -99,14 +113,20 @@ jobs:
 
   coditsu:
     timeout-minutes: 5
+
     runs-on: >-
       ${{
         (github.event_name == 'push' ||
          github.event_name == 'schedule' ||
-         (github.event_name == 'pull_request' && github.actor == 'mensfeld'))
+         (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository))
         && fromJSON('["self-hosted", "linux", "x64", "docker"]')
         || 'ubuntu-latest'
       }}
+
+    outputs:
+      is-self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted }}
+
     strategy:
       fail-fast: false
     steps:
