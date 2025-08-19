@@ -18,7 +18,18 @@ permissions:
 jobs:
   specs:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+
+    runs-on: >-
+      ${{
+        (github.event_name == 'schedule' ||
+         (github.actor == 'mensfeld' &&
+          (github.event_name == 'push' ||
+           (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository))))
+        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        || 'ubuntu-latest'
+      }}
+
     needs: diffend
     strategy:
       fail-fast: false
@@ -40,11 +51,16 @@ jobs:
       - name: Install package dependencies
         run: "[ -e $APT_DEPS ] || sudo apt-get install -y --no-install-recommends $APT_DEPS"
 
+      - name: Force GitHub-hosted runner detection
+        run: |
+          echo "ImageOS=ubuntu22" >> $GITHUB_ENV
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # v1.254.0
         with:
           ruby-version: ${{matrix.ruby}}
           bundler: 'latest'
+          self-hosted: false
 
       - name: Install latest bundler
         run: |
@@ -64,17 +80,35 @@ jobs:
 
   diffend:
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+
+    runs-on: >-
+      ${{
+        (github.event_name == 'schedule' ||
+         (github.actor == 'mensfeld' &&
+          (github.event_name == 'push' ||
+           (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository))))
+        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        || 'ubuntu-latest'
+      }}
+
     strategy:
       fail-fast: false
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
+
+      - name: Force GitHub-hosted runner detection
+        run: |
+          echo "ImageOS=ubuntu22" >> $GITHUB_ENV
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # v1.254.0
         with:
           ruby-version: 3.4
+          self-hosted: false
+
       - name: Install latest bundler
         run: gem install bundler --no-document
       - name: Install Diffend plugin
@@ -84,7 +118,18 @@ jobs:
 
   coditsu:
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+
+    runs-on: >-
+      ${{
+        (github.event_name == 'schedule' ||
+         (github.actor == 'mensfeld' &&
+          (github.event_name == 'push' ||
+           (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository))))
+        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        || 'ubuntu-latest'
+      }}
+
     strategy:
       fail-fast: false
     steps:
