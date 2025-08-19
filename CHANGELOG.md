@@ -1,7 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.5.6 (Unreleased)
-- [Change] Normalize how libs and deps are required (no functional change for the end user)
+- [Change] Normalize how libs and dependencies are required (no functional change for the end user)
 
 ## 2.5.5 (2025-08-04)
 - [Enhancement] Remove reliance on `Set` class.
