@@ -30,9 +30,6 @@ jobs:
         || 'ubuntu-latest'
       }}
 
-    outputs:
-      is-self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted }}
-
     needs: diffend
     strategy:
       fail-fast: false
@@ -59,7 +56,7 @@ jobs:
         with:
           ruby-version: ${{matrix.ruby}}
           bundler: 'latest'
-          self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted == 'true' }}
+          self-hosted: false
 
       - name: Install latest bundler
         run: |
@@ -91,9 +88,6 @@ jobs:
         || 'ubuntu-latest'
       }}
 
-    outputs:
-      is-self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted }}
-
     strategy:
       fail-fast: false
     steps:
@@ -104,7 +98,7 @@ jobs:
         uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # v1.254.0
         with:
           ruby-version: 3.4
-          self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted == 'true' }}
+          self-hosted: false
 
       - name: Install latest bundler
         run: gem install bundler --no-document
@@ -126,9 +120,6 @@ jobs:
         && fromJSON('["self-hosted", "linux", "x64", "docker"]')
         || 'ubuntu-latest'
       }}
-
-    outputs:
-      is-self-hosted: ${{ steps.detect-runner.outputs.is-self-hosted }}
 
     strategy:
       fail-fast: false
