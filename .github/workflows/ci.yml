@@ -51,10 +51,6 @@ jobs:
       - name: Install package dependencies
         run: "[ -e $APT_DEPS ] || sudo apt-get install -y --no-install-recommends $APT_DEPS"
 
-      - name: Force GitHub-hosted runner detection
-        run: |
-          echo "ImageOS=ubuntu22" >> $GITHUB_ENV
-
       - name: Set up Ruby
         uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # v1.254.0
         with:
@@ -98,11 +94,6 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
-
-      - name: Force GitHub-hosted runner detection
-        run: |
-          echo "ImageOS=ubuntu22" >> $GITHUB_ENV
-
       - name: Set up Ruby
         uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # v1.254.0
         with:
