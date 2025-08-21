@@ -21,12 +21,9 @@ jobs:
 
     runs-on: >-
       ${{
-        (github.event_name == 'schedule' ||
-         (contains(fromJSON(vars.SELF_HOSTED_RUNNER_USERS || '[]'), github.actor) &&
-          (github.event_name == 'push' ||
-           (github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository))))
-        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        (github.event_name != 'pull_request' ||
+         github.event.pull_request.head.repo.full_name == github.repository)
+        && fromJSON('["self-hosted", "linux", "x64", "qemu"]')
         || 'ubuntu-latest'
       }}
 
@@ -79,12 +76,9 @@ jobs:
 
     runs-on: >-
       ${{
-        (github.event_name == 'schedule' ||
-         (contains(fromJSON(vars.SELF_HOSTED_RUNNER_USERS || '[]'), github.actor) &&
-          (github.event_name == 'push' ||
-           (github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository))))
-        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        (github.event_name != 'pull_request' ||
+         github.event.pull_request.head.repo.full_name == github.repository)
+        && fromJSON('["self-hosted", "linux", "x64", "qemu"]')
         || 'ubuntu-latest'
       }}
 
@@ -112,12 +106,9 @@ jobs:
 
     runs-on: >-
       ${{
-        (github.event_name == 'schedule' ||
-         (contains(fromJSON(vars.SELF_HOSTED_RUNNER_USERS || '[]'), github.actor) &&
-          (github.event_name == 'push' ||
-           (github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository))))
-        && fromJSON('["self-hosted", "linux", "x64", "docker"]')
+        (github.event_name != 'pull_request' ||
+         github.event.pull_request.head.repo.full_name == github.repository)
+        && fromJSON('["self-hosted", "linux", "x64", "qemu"]')
         || 'ubuntu-latest'
       }}
 
