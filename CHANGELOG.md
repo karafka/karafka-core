@@ -2,6 +2,7 @@
 
 ## 2.5.6 (Unreleased)
 - [Change] Normalize how libs and dependencies are required (no functional change for the end user)
+- [Change] Set minimum `karafka-rdkafka` on `0.20.0` to support new features and allow for open range as both `waterdrop` and `karafka` manage this.
 
 ## 2.5.5 (2025-08-04)
 - [Enhancement] Remove reliance on `Set` class.
