@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     karafka-core (2.5.6)
-      karafka-rdkafka (>= 0.19.2, < 0.21.0)
+      karafka-rdkafka (>= 0.20.0)
       logger (>= 1.6.0)
 
 GEM
@@ -22,8 +22,35 @@ GEM
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     ffi (1.17.2-x86_64-linux-musl)
-    karafka-rdkafka (0.19.5)
+    json (2.13.2)
+    karafka-rdkafka (0.21.0)
       ffi (~> 1.15)
+      json (> 2.0)
+      logger
+      mini_portile2 (~> 2.6)
+      rake (> 12)
+    karafka-rdkafka (0.21.0-aarch64-linux-gnu)
+      ffi (~> 1.15)
+      json (> 2.0)
+      logger
+      mini_portile2 (~> 2.6)
+      rake (> 12)
+    karafka-rdkafka (0.21.0-arm64-darwin)
+      ffi (~> 1.15)
+      json (> 2.0)
+      logger
+      mini_portile2 (~> 2.6)
+      rake (> 12)
+    karafka-rdkafka (0.21.0-x86_64-linux-gnu)
+      ffi (~> 1.15)
+      json (> 2.0)
+      logger
+      mini_portile2 (~> 2.6)
+      rake (> 12)
+    karafka-rdkafka (0.21.0-x86_64-linux-musl)
+      ffi (~> 1.15)
+      json (> 2.0)
+      logger
       mini_portile2 (~> 2.6)
       rake (> 12)
     logger (1.7.0)
