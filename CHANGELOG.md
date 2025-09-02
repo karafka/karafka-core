@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.6 (Unreleased)
+## 2.5.6 (2025-09-02)
 - [Change] Normalize how libs and dependencies are required (no functional change for the end user)
 - [Change] Set minimum `karafka-rdkafka` on `0.20.0` to support new features and allow for open range as both `waterdrop` and `karafka` manage this.
 
