@@ -139,10 +139,17 @@ module Karafka
             return
           end
 
-          event = Event.new(
-            event_id,
-            time ? payload.merge(time: time) : payload
-          )
+          final_payload = if time
+                            if payload.empty?
+                              { time: time }
+                            else
+                              payload.merge(time: time)
+                            end
+                          else
+                            payload
+                          end
+
+          event = Event.new(event_id, final_payload)
 
           assigned_listeners.each do |listener|
             if listener.is_a?(Proc)

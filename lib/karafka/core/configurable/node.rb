@@ -85,15 +85,16 @@ module Karafka
         def deep_dup
           dupped = Node.new(node_name, nestings)
 
-          dupped.children += children.map do |value|
-            if value.is_a?(Leaf)
-              # After inheritance we need to reload the state so the leafs are recompiled again
-              value = value.dup
-              value.compiled = false
-              value
-            else
-              value.deep_dup
-            end
+          children.each do |value|
+            dupped.children << if value.is_a?(Leaf)
+                                 # After inheritance we need to reload the state so the leafs are
+                                 # recompiled again
+                                 value = value.dup
+                                 value.compiled = false
+                                 value
+                               else
+                                 value.deep_dup
+                               end
           end
 
           dupped

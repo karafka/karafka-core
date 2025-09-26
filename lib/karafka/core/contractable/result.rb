@@ -7,6 +7,11 @@ module Karafka
       class Result
         attr_reader :errors
 
+        # Empty hash that we use when no errors to save on allocations
+        EMPTY_HASH = {}.freeze
+
+        private_constant :EMPTY_HASH
+
         # Builds a result object and remaps (if needed) error keys to proper error messages
         #
         # @param errors [Array<Array>] array with sub-arrays with paths and error keys
@@ -14,7 +19,7 @@ module Karafka
         def initialize(errors, contract)
           # Short track to skip object allocation for the happy path
           if errors.empty?
-            @errors = {}
+            @errors = EMPTY_HASH
             return
           end
 

@@ -96,7 +96,9 @@ module Karafka
           return unless result.is_a?(Numeric)
           return if current.frozen?
 
-          freeze_duration_key = "#{key}_fd"
+          key_str = key.to_s
+          freeze_duration_key = "#{key_str}_fd"
+          delta_key = "#{key_str}_d"
 
           if result.zero?
             current[freeze_duration_key] = previous[freeze_duration_key] || 0
@@ -105,7 +107,7 @@ module Karafka
             current[freeze_duration_key] = 0
           end
 
-          current["#{key}_d"] = result
+          current[delta_key] = result
         end
       end
     end
