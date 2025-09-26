@@ -1,5 +1,11 @@
 # Karafka Core Changelog
 
+## 2.5.8 (Unreleased)
+- [Enhancement] Optimize `Node#deep_dup` to reduce array allocations during configuration deep copying.
+- [Enhancement] Optimize `Result#initialize` to use shared `EMPTY_HASH` constant for successful validations.
+- [Enhancement] Optimize `StatisticsDecorator#append` string concatenation to reduce allocations.
+- [Enhancement] Optimize `Notifications#instrument` payload handling to avoid unnecessary hash merges for empty payloads.
+
 ## 2.5.7 (Unreleased)
 - [Change] Remove Ruby 3.1 support due to EOL.
 
