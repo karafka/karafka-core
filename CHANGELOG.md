@@ -6,8 +6,8 @@
 - [Enhancement] Optimize `StatisticsDecorator#append` string concatenation to reduce allocations.
 - [Enhancement] Optimize `Notifications#instrument` payload handling to avoid unnecessary hash merges for empty payloads.
 
-## 2.5.7 (2025-09-26)
-- [Change] Remove Ruby 3.1 specs due to EOL.
+## 2.5.7 (Unreleased)
+- [Change] Remove Ruby 3.1 support due to EOL.
 
 ## 2.5.6 (2025-09-02)
 - [Change] Normalize how libs and dependencies are required (no functional change for the end user)
