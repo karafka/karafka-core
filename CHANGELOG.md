@@ -1,7 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.5.7 (Unreleased)
-- [Change] Remove Ruby 3.1 specs due to EOL.
+- [Change] Remove Ruby 3.1 support due to EOL.
 
 ## 2.5.6 (2025-09-02)
 - [Change] Normalize how libs and dependencies are required (no functional change for the end user)
