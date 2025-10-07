@@ -27,16 +27,15 @@ module Karafka
           # Allows for definition of a scope/namespace for nested validations
           #
           # @param path [Symbol] path in the hash for nesting
-          # @param block [Proc] nested rule code or more nestings inside
           #
           # @example
           #   nested(:key) do
           #     required(:inside) { |inside| inside.is_a?(String) }
           #   end
-          def nested(path, &block)
+          def nested(path, &)
             init_accu
             @nested << path
-            instance_eval(&block)
+            instance_eval(&)
             @nested.pop
           end
 
@@ -169,10 +168,8 @@ module Karafka
 
           return if result == true
 
-          if result
-            result.each do |sub_result|
-              sub_result[0] = scope + sub_result[0]
-            end
+          result&.each do |sub_result|
+            sub_result[0] = scope + sub_result[0]
           end
 
           errors.push(*result)

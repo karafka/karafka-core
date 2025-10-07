@@ -16,9 +16,9 @@ RSpec.describe_current do
       let(:start) { [rand, rand, rand] }
 
       before do
-        manager.add('1', ->(val1, _, _) { changed << val1 + 1 })
-        manager.add('2', ->(_, val2, _) { changed << val2 + 2 })
-        manager.add('3', ->(_, _, val3) { changed << val3 + 3 })
+        manager.add('1', ->(val1, _, _) { changed << (val1 + 1) })
+        manager.add('2', ->(_, val2, _) { changed << (val2 + 2) })
+        manager.add('3', ->(_, _, val3) { changed << (val3 + 3) })
       end
 
       it 'expect to run each of them and pass the args' do

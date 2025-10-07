@@ -7,7 +7,7 @@ require 'karafka/core/version'
 
 Gem::Specification.new do |spec|
   spec.name        = 'karafka-core'
-  spec.version     = ::Karafka::Core::VERSION
+  spec.version     = Karafka::Core::VERSION
   spec.platform    = Gem::Platform::RUBY
   spec.authors     = ['Maciej Mensfeld']
   spec.email       = %w[contact@karafka.io]

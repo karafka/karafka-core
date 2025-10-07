@@ -27,19 +27,15 @@ module Karafka
         #
         # @param event_id [String, Symbol] event id
         # @param payload [Hash]
-        # @param block [Proc] block we want to instrument (if any)
-        def instrument(event_id, payload = EMPTY_HASH, &block)
+        def instrument(event_id, payload = EMPTY_HASH, &)
           full_event_name = @mapped_events[event_id] ||= [event_id, @namespace].compact.join('.')
 
-          @notifications_bus.instrument(full_event_name, payload, &block)
+          @notifications_bus.instrument(full_event_name, payload, &)
         end
 
         # Allows us to subscribe to the notification bus
-        #
-        # @param args [Array] any arguments that the notification bus subscription layer accepts
-        # @param block [Proc] optional block for subscription
-        def subscribe(*args, &block)
-          @notifications_bus.subscribe(*args, &block)
+        def subscribe(*, &)
+          @notifications_bus.subscribe(*, &)
         end
 
         # Allows for removal of whatever was subscribed

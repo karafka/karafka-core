@@ -37,9 +37,8 @@ module Karafka
         end
 
         # Allows for a per instance configuration (if needed)
-        # @param block [Proc] block for configuration
-        def configure(&block)
-          config.configure(&block)
+        def configure(&)
+          config.configure(&)
         end
       end
 
@@ -58,9 +57,8 @@ module Karafka
         end
 
         # Allows for a per class configuration (if needed)
-        # @param block [Proc] block for configuration
-        def configure(&block)
-          config.configure(&block)
+        def configure(&)
+          config.configure(&)
         end
 
         # Pipes the settings setup to the config root node

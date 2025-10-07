@@ -10,9 +10,9 @@ RSpec.describe_current do
     let(:errors) { [] }
     let(:callback) { ->(*args) { errors << args } }
 
-    before { ::Rdkafka::Config.error_callback.add('test', callback) }
+    before { Rdkafka::Config.error_callback.add('test', callback) }
 
-    after { ::Rdkafka::Config.error_callback.delete('test') }
+    after { Rdkafka::Config.error_callback.delete('test') }
 
     it 'expect to inject instance name to the error callback' do
       producer.produce(topic: 'test', payload: '1')

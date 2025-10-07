@@ -4,10 +4,8 @@ RSpec.describe_current do
   subject(:contract_class) do
     Class.new(Karafka::Core::Contractable::Contract) do
       configure do |config|
-        config.error_messages = YAML.safe_load(
-          File.read(
-            File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
-          )
+        config.error_messages = YAML.safe_load_file(
+          File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
         ).fetch('en').fetch('validations').fetch('test')
       end
 
@@ -52,10 +50,8 @@ RSpec.describe_current do
     subject(:contract_class) do
       Class.new(Karafka::Core::Contractable::Contract) do
         configure do |config|
-          config.error_messages = YAML.safe_load(
-            File.read(
-              File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
-            )
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
           ).fetch('en').fetch('validations').fetch('test')
         end
 
@@ -83,10 +79,8 @@ RSpec.describe_current do
     subject(:contract_class) do
       Class.new(Karafka::Core::Contractable::Contract) do
         configure do |config|
-          config.error_messages = YAML.safe_load(
-            File.read(
-              File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
-            )
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, 'config', 'locales', 'errors.yml')
           ).fetch('en').fetch('validations').fetch('test')
         end
 

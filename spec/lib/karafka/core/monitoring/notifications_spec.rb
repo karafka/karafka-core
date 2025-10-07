@@ -32,12 +32,12 @@ RSpec.describe_current do
 
   describe '#subscribe' do
     context 'when we have a block based listener' do
-      let(:subscription) {  {} }
+      let(:subscription) { notifications.subscribe(event_name) { |_event| nil } }
 
       context 'when we try to subscribe to an unsupported event' do
-        it do
+        it 'expect to raise error' do
           expected_error = event_not_registered_error
-          expect { notifications.subscribe('na') {} }.to raise_error expected_error
+          expect { notifications.subscribe('na') { |_event| nil } }.to raise_error expected_error
         end
       end
 

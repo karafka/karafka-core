@@ -28,10 +28,10 @@ module Karafka
 end
 
 # Patch rdkafka
-::Rdkafka::Bindings.include(::Karafka::Core::Patches::Rdkafka::Bindings)
+Rdkafka::Bindings.include(Karafka::Core::Patches::Rdkafka::Bindings)
 
-instrumentation = ::Karafka::Core::Instrumentation
-rd_config = ::Rdkafka::Config
+instrumentation = Karafka::Core::Instrumentation
+rd_config = Rdkafka::Config
 
 # Rdkafka uses a single global callback for things. We bypass that by injecting a manager for
 # each callback type. Callback manager allows us to register more than one callback
@@ -43,4 +43,4 @@ rd_config.oauthbearer_token_refresh_callback = instrumentation.oauthbearer_token
 # This loads librdkafka components into memory prior to initializing the client.
 # This mitigates macos forking issues.
 # @see https://github.com/confluentinc/librdkafka/issues/4590
-::Rdkafka::Bindings.rd_kafka_global_init if ::Rdkafka::Bindings.respond_to?(:rd_kafka_global_init)
+Rdkafka::Bindings.rd_kafka_global_init if Rdkafka::Bindings.respond_to?(:rd_kafka_global_init)
