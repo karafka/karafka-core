@@ -139,18 +139,31 @@ module Karafka
             return
           end
 
-          final_payload = if time
-                            if payload.empty?
-                              { time: time }
-                            else
-                              payload.merge(time: time)
-                            end
-                          else
-                            payload
-                          end
-
+          final_payload = build_payload(payload, time)
           event = Event.new(event_id, final_payload)
 
+          notify_listeners(event_id, event, assigned_listeners)
+
+          result
+        end
+
+        private
+
+        # Builds the final payload with time information if available
+        # @param payload [Hash] original payload
+        # @param time [Float, nil] execution time if block was given
+        # @return [Hash] final payload
+        def build_payload(payload, time)
+          return payload unless time
+
+          payload.empty? ? { time: time } : payload.merge(time: time)
+        end
+
+        # Notifies all assigned listeners about the event
+        # @param event_id [String] id of the event
+        # @param event [Event] event object
+        # @param assigned_listeners [Array] list of listeners to notify
+        def notify_listeners(event_id, event, assigned_listeners)
           assigned_listeners.each do |listener|
             if listener.is_a?(Proc)
               listener.call(event)
@@ -158,8 +171,6 @@ module Karafka
               listener.send(@events_methods_map[event_id], event)
             end
           end
-
-          result
         end
       end
     end

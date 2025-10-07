@@ -7,7 +7,7 @@ RSpec.describe_current do
     let(:other_tagged) { tagged_class.new }
     let(:tagged_class) do
       Class.new do
-        include ::Karafka::Core::Taggable
+        include Karafka::Core::Taggable
       end
     end
 
@@ -21,12 +21,12 @@ RSpec.describe_current do
     let(:other_tagged) { other_tagged_class }
     let(:tagged_class) do
       Class.new do
-        extend ::Karafka::Core::Taggable
+        extend Karafka::Core::Taggable
       end
     end
     let(:other_tagged_class) do
       Class.new do
-        extend ::Karafka::Core::Taggable
+        extend Karafka::Core::Taggable
       end
     end
 

@@ -18,13 +18,17 @@ RSpec.describe_current do
     end
   end
 
-  it 'expect to have separate manager for each type of callbacks' do
+  it 'expect statistics_callbacks to differ from error_callbacks' do
     expect(instrumentation.statistics_callbacks)
       .not_to eq(instrumentation.error_callbacks)
+  end
 
+  it 'expect error_callbacks to differ from oauthbearer_token_refresh_callbacks' do
     expect(instrumentation.error_callbacks)
       .not_to eq(instrumentation.oauthbearer_token_refresh_callbacks)
+  end
 
+  it 'expect statistics_callbacks to differ from oauthbearer_token_refresh_callbacks' do
     expect(instrumentation.statistics_callbacks)
       .not_to eq(instrumentation.oauthbearer_token_refresh_callbacks)
   end
