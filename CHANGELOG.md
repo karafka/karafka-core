@@ -5,7 +5,7 @@
 - [Enhancement] Optimize `Result#initialize` to use shared `EMPTY_HASH` constant for successful validations.
 - [Enhancement] Optimize `StatisticsDecorator#append` string concatenation to reduce allocations.
 - [Enhancement] Optimize `Notifications#instrument` payload handling to avoid unnecessary hash merges for empty payloads.
-- [Change] Remove Ruby 3.1 support due to EOL.
+- **[EOL]** Remove Ruby 3.1 support due to EOL.
 
 ## 2.5.6 (2025-09-02)
 - [Change] Normalize how libs and dependencies are required (no functional change for the end user)
@@ -55,7 +55,7 @@
 - [Change] Allow `karafka-rdkafka` `0.18.0`.
 
 ## 2.4.5 (2024-11-19)
-- **[Breaking]** Drop Ruby `3.0` support according to the EOL schedule.
+- **[EOL]** Drop Ruby `3.0` support according to the EOL schedule.
 - [Enhancement] Support listeners inspection via `#listeners`.
 - [Fix] Restore `#available_events` notifications bus method.
 - [Change] Set minimum `karafka-rdkafka` on `0.17.6` to support new features.
@@ -78,7 +78,7 @@
 - [Enhancement] Allow clearing one event type (dorner).
 
 ## 2.4.0 (2024-04-26)
-- **[Breaking]** Drop Ruby `2.7` support.
+- **[EOL]** Drop Ruby `2.7` support.
 - [Enhancement] Provide necessary alterations for custom oauth token callbacks to operate.
 - [Change] Set minimum `karafka-rdkafka` on `0.15.0` to support new features.
 
@@ -93,7 +93,7 @@
 - [Enhancement] Set backtrace for errors propagated via the errors callbacks.
 
 ## 2.2.5 (2023-10-31)
-- [Change] Drop support for Ruby 2.6 due to incompatibilities in usage of `ObjectSpace::WeakMap`
+- **[EOL]** Drop support for Ruby 2.6 due to incompatibilities in usage of `ObjectSpace::WeakMap`
 - [Change] Set minimum `karafka-rdkafka` on `0.13.8` to support consumer `#position`.
 
 ## 2.2.4 (2023-10-25)
