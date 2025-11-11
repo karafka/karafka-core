@@ -13,7 +13,7 @@ module Karafka
       #   RSpec.extend SupportEngine::RSpecLocator.new(__FILE__)
       class RSpecLocator < Module
         # @param  spec_helper_file_path [String] path to the spec_helper.rb file
-        # @param inflections [Hash<String, String>] optional inflections map
+        # @param inflections [Hash{String => String}] optional inflections map
         def initialize(spec_helper_file_path, inflections = {})
           super()
           @inflections = inflections
