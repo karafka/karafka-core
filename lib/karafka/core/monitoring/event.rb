@@ -16,7 +16,7 @@ module Karafka
 
         # Hash access to the payload data (if present)
         #
-        # @param [String, Symbol] name
+        # @param name [String, Symbol]
         def [](name)
           @payload.fetch(name)
         end
