@@ -28,6 +28,8 @@ module Karafka
           # Operate on ms precision only
           @previous_at = monotonic_now.round
           @current_at = @previous_at
+          # Cache for memoized suffix keys to avoid repeated string allocations
+          @suffix_keys_cache = {}
         end
 
         # @param emited_stats [Hash] original emited statistics
@@ -62,16 +64,15 @@ module Karafka
         def diff(previous, current)
           if current.is_a?(Hash)
             filled_previous = previous || EMPTY_HASH
-            filled_current = current || EMPTY_HASH
 
             # @note We cannot use #each_key as we modify the content of the current scope
             #   in place (in case it's a hash)
             current.keys.each do |key|
               append(
                 filled_previous,
-                filled_current,
+                current,
                 key,
-                diff(filled_previous[key], filled_current[key])
+                diff(filled_previous[key], current[key])
               )
             end
           end
@@ -96,9 +97,7 @@ module Karafka
           return unless result.is_a?(Numeric)
           return if current.frozen?
 
-          key_str = key.to_s
-          freeze_duration_key = "#{key_str}_fd"
-          delta_key = "#{key_str}_d"
+          freeze_duration_key, delta_key = suffix_keys_for(key)
 
           if result.zero?
             current[freeze_duration_key] = previous[freeze_duration_key] || 0
@@ -108,6 +107,17 @@ module Karafka
           end
 
           current[delta_key] = result
+        end
+
+        # Returns memoized suffix keys for a given key to avoid repeated string allocations
+        #
+        # @param key [Object] the original key
+        # @return [Array<String>] frozen freeze_duration_key and delta_key
+        def suffix_keys_for(key)
+          @suffix_keys_cache[key] ||= [
+            "#{key}_fd".freeze,
+            "#{key}_d".freeze
+          ].freeze
         end
       end
     end

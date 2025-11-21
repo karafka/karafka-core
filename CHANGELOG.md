@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.8 (Unreleased)
+- [Enhancement] Memoize `StatisticsDecorator` suffix keys to reduce string allocations (#268).
+
 ## 2.5.7 (2025-09-28)
 - [Enhancement] Optimize `Node#deep_dup` to reduce array allocations during configuration deep copying.
 - [Enhancement] Optimize `Result#initialize` to use shared `EMPTY_HASH` constant for successful validations.
