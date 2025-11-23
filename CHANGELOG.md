@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.8 (Unreleased)
+## 2.5.8 (2025-11-23)
 - [Enhancement] Memoize `StatisticsDecorator` suffix keys to reduce string allocations (#268).
 
 ## 2.5.7 (2025-09-28)
