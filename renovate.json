@@ -12,6 +12,9 @@
       "matchManagers": [
         "github-actions"
       ],
+      "pinDigests": true
+    },
+    {
       "minimumReleaseAge": "7 days"
     }
   ]
