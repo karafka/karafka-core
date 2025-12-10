@@ -161,7 +161,7 @@ module Karafka
 
         # Notifies all assigned listeners about the event
         # @param event_id [String]
-        # @param event [Event] event object
+        # @param event [Event] event with payload to broadcast to listeners
         # @param assigned_listeners [Array] list of listeners to notify
         def notify_listeners(event_id, event, assigned_listeners)
           assigned_listeners.each do |listener|
