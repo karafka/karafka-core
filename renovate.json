@@ -3,10 +3,6 @@
   "extends": [
     "config:recommended"
   ],
-  "github-actions": {
-    "enabled": true,
-    "pinDigests": true
-  },
   "packageRules": [
     {
       "matchManagers": [
