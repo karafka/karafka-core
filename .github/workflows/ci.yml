@@ -96,9 +96,7 @@ jobs:
           ruby-version: '4.0.1'
           bundler: 'latest'
       - name: Bundle install
-        run: |
-          bundle config set force_ruby_platform true
-          bundle install --jobs 4 --retry 3
+        run: bundle install --jobs 4 --retry 3
       - name: Run yard-lint
         run: bundle exec yard-lint lib/
 
