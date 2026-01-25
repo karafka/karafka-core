@@ -28,7 +28,7 @@ module Karafka
         # @param event_id [String, Symbol] event id
         # @param payload [Hash]
         def instrument(event_id, payload = EMPTY_HASH, &)
-          full_event_name = @mapped_events[event_id] ||= [event_id, @namespace].compact.join('.')
+          full_event_name = @mapped_events[event_id] ||= [event_id, @namespace].compact.join(".")
 
           @notifications_bus.instrument(full_event_name, payload, &)
         end

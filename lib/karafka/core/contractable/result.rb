@@ -26,14 +26,14 @@ module Karafka
           hashed = {}
 
           errors.each do |error|
-            scope = error.first.map(&:to_s).join('.').to_sym
+            scope = error.first.map(&:to_s).join(".").to_sym
 
             # This will allow for usage of custom messages instead of yaml keys if needed
             hashed[scope] = if error.last.is_a?(String)
-                              error.last
-                            else
-                              build_message(contract, scope, error.last)
-                            end
+              error.last
+            else
+              build_message(contract, scope, error.last)
+            end
           end
 
           @errors = hashed
@@ -56,7 +56,7 @@ module Karafka
           messages = contract.class.config.error_messages
 
           # Split scope into parts for progressive checking
-          scope_parts = scope.to_s.split('.')
+          scope_parts = scope.to_s.split(".")
 
           # Try full scope first, then progressively remove from beginning
           # This allows us to have full path scoped errors but can also be used as a fallback,
@@ -65,10 +65,10 @@ module Karafka
             current_scope_parts = scope_parts[i..]
 
             key = if current_scope_parts.empty?
-                    error_key.to_s
-                  else
-                    "#{current_scope_parts.join('.')}_#{error_key}"
-                  end
+              error_key.to_s
+            else
+              "#{current_scope_parts.join(".")}_#{error_key}"
+            end
 
             return messages[key] if messages.key?(key)
           end

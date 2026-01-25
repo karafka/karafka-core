@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'fileutils'
+require "fileutils"
 
 module Karafka
   module Core
@@ -37,14 +37,14 @@ module Karafka
         def inherited
           caller(2..2)
             .first
-            .split(':')
+            .split(":")
             .first
-            .gsub(@specs_root_dir, '')
-            .gsub('_spec.rb', '')
-            .split('/')
+            .gsub(@specs_root_dir, "")
+            .gsub("_spec.rb", "")
+            .split("/")
             .delete_if(&:empty?)
             .itself[1..]
-            .join('/')
+            .join("/")
             .then { |path| custom_camelize(path) }
             .then { |string| transform_inflections(string) }
             .then { |class_name| custom_constantize(class_name) }
@@ -65,12 +65,12 @@ module Karafka
         # @return [String] camel-case string
         def custom_camelize(string)
           # First, replace slashes with :: for proper namespacing
-          string = string.gsub('/', '::')
+          string = string.gsub("/", "::")
 
           # Then camelize each segment
           string.gsub(/(?:^|_|::)([a-z])/) do |match|
             # If it's a namespace separator, keep it and uppercase the following letter
-            if match.include?('::')
+            if match.include?("::")
               "::#{match[-1].upcase}"
             else
               match[-1].upcase
@@ -82,7 +82,7 @@ module Karafka
         # @param string [String] string representing a constant name
         # @return [Class, Module] the constant
         def custom_constantize(string)
-          names = string.split('::')
+          names = string.split("::")
           constant = Object
           regexp = /^[A-Z][a-zA-Z0-9_]*$/
 

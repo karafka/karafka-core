@@ -36,10 +36,10 @@ module Karafka
         # @param block [Proc] block for nested settings
         def setting(node_name, default: nil, constructor: nil, lazy: false, &block)
           @children << if block
-                         Node.new(node_name, block)
-                       else
-                         Leaf.new(node_name, default, constructor, false, lazy)
-                       end
+            Node.new(node_name, block)
+          else
+            Leaf.new(node_name, default, constructor, false, lazy)
+          end
 
           compile
         end
@@ -60,20 +60,20 @@ module Karafka
 
           @children.each do |value|
             config[value.node_name] = if value.is_a?(Leaf)
-                                        result = if @configs_refs.key?(value.node_name)
-                                                   @configs_refs[value.node_name]
-                                                 elsif value.constructor
-                                                   value.constructor.call
-                                                 elsif value.default
-                                                   value.default
-                                                 end
+              result = if @configs_refs.key?(value.node_name)
+                @configs_refs[value.node_name]
+              elsif value.constructor
+                value.constructor.call
+              elsif value.default
+                value.default
+              end
 
-                                        # We need to check if value is not a result node for cases
-                                        # where we merge additional config
-                                        result.is_a?(Node) ? result.to_h : result
-                                      else
-                                        value.to_h
-                                      end
+              # We need to check if value is not a result node for cases
+              # where we merge additional config
+              result.is_a?(Node) ? result.to_h : result
+            else
+              value.to_h
+            end
           end
 
           config.freeze
@@ -87,14 +87,14 @@ module Karafka
 
           children.each do |value|
             dupped.children << if value.is_a?(Leaf)
-                                 # After inheritance we need to reload the state so the leafs are
-                                 # recompiled again
-                                 value = value.dup
-                                 value.compiled = false
-                                 value
-                               else
-                                 value.deep_dup
-                               end
+              # After inheritance we need to reload the state so the leafs are
+              # recompiled again
+              value = value.dup
+              value.compiled = false
+              value
+            else
+              value.deep_dup
+            end
           end
 
           dupped
@@ -116,19 +116,19 @@ module Karafka
             next if skippable
 
             initialized = if value.is_a?(Leaf)
-                            value.compiled = true
+              value.compiled = true
 
-                            if value.constructor && value.lazy?
-                              false
-                            elsif value.constructor
-                              call_constructor(value)
-                            else
-                              value.default
-                            end
-                          else
-                            value.compile
-                            value
-                          end
+              if value.constructor && value.lazy?
+                false
+              elsif value.constructor
+                call_constructor(value)
+              else
+                value.default
+              end
+            else
+              value.compile
+              value
+            end
 
             if lazy_leaf && !initialized
               build_dynamic_accessor(value)

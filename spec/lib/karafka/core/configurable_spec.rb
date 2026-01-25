@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe_current do
-  context 'when we define settings on a class level' do
+  context "when we define settings on a class level" do
     subject(:configurable_class) do
       Class.new do
         extend Karafka::Core::Configurable
@@ -14,7 +14,7 @@ RSpec.describe_current do
             setting(:with_constructor, default: false, constructor: ->(default) { default || 5 })
             setting(:ov_constructor, default: true, constructor: ->(default) { default || 5 })
             setting(:with_zero_constructor, constructor: -> { 7 })
-            setting(:name, default: 'name')
+            setting(:name, default: "name")
           end
 
           setting(:nested1, default: 1)
@@ -24,17 +24,17 @@ RSpec.describe_current do
 
     let(:config) { configurable_class.config }
 
-    context 'when we want to inject more settings into it' do
+    context "when we want to inject more settings into it" do
       before { configurable_class.config.setting(:testme, default: 7) }
 
       it { expect(configurable_class.config.testme).to eq(7) }
     end
 
-    context 'when we do not override any settings' do
+    context "when we do not override any settings" do
       before { configurable_class.configure }
 
       it { expect(config.with_default).to eq(123) }
-      it { expect(config.nested1.nested2.name).to eq('name') }
+      it { expect(config.nested1.nested2.name).to eq("name") }
       it { expect(config.nested1.nested2.leaf).to eq(6) }
       it { expect(config.nested1.nested1).to eq(1) }
       it { expect(config.nested1.nested2.with_constructor).to eq(5) }
@@ -42,7 +42,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.with_zero_constructor).to eq(7) }
     end
 
-    context 'when we do override some settings' do
+    context "when we do override some settings" do
       before do
         configurable_class.configure do |config|
           config.with_default = 7
@@ -57,7 +57,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.ov_constructor).to be(true) }
     end
 
-    context 'when we inherit and alter settings' do
+    context "when we inherit and alter settings" do
       let(:config_sub) { configurable_sub.config }
 
       let(:configurable_sub) do
@@ -85,7 +85,7 @@ RSpec.describe_current do
       it { expect(config_sub.nested1.nested2.ov_constructor).to be(true) }
     end
 
-    context 'when we inherit and change values' do
+    context "when we inherit and change values" do
       let(:config_sub) { configurable_sub.config }
 
       let(:configurable_sub) do
@@ -106,25 +106,25 @@ RSpec.describe_current do
       it { expect(config_sub.with_default).to eq(0) }
     end
 
-    context 'when we run configuration once again' do
+    context "when we run configuration once again" do
       before do
         config.configure { |node| node.with_default = 555 }
         config.configure { |node| node.nested1.nested1 = 123 }
       end
 
-      it 'expect not to update values that are set' do
+      it "expect not to update values that are set" do
         expect(config.with_default).to eq(555)
       end
     end
 
-    describe '#to_h' do
+    describe "#to_h" do
       let(:expected_hash) do
         {
           with_default: 123,
           nested1: {
             nested1: 1,
             nested2: {
-              name: 'name',
+              name: "name",
               leaf: 6,
               ov_constructor: true,
               with_constructor: 5,
@@ -136,11 +136,11 @@ RSpec.describe_current do
 
       before { config.configure }
 
-      it 'expect to map with correct values' do
+      it "expect to map with correct values" do
         expect(config.to_h).to eq(expected_hash)
       end
 
-      context 'when casting with a dynamic attribute' do
+      context "when casting with a dynamic attribute" do
         let(:configurable_class) do
           Class.new do
             include Karafka::Core::Configurable
@@ -168,7 +168,7 @@ RSpec.describe_current do
       end
     end
 
-    context 'when we want to merge extra config as a nested setting' do
+    context "when we want to merge extra config as a nested setting" do
       let(:extra) do
         Class.new do
           extend Karafka::Core::Configurable
@@ -187,12 +187,12 @@ RSpec.describe_current do
 
       it { expect(configurable_class.config.superscope.additional).to eq(7) }
 
-      it 'expect to build correct hash when casted' do
+      it "expect to build correct hash when casted" do
         expect(configurable_class.config.to_h[:superscope][:additional]).to eq(7)
       end
     end
 
-    context 'when we define a lazy evaluated root setting' do
+    context "when we define a lazy evaluated root setting" do
       let(:configurable_class) do
         default1 = default
         constructor1 = constructor
@@ -212,31 +212,31 @@ RSpec.describe_current do
       let(:config) { configurable_class.config }
       let(:constructor) { ->(default) { default || 1 } }
 
-      context 'when default is not false nor nil' do
+      context "when default is not false nor nil" do
         let(:default) { 100 }
 
         it { expect(config.lazy_setting).to eq(100) }
       end
 
-      context 'when default is false' do
+      context "when default is false" do
         let(:default) { false }
 
         it { expect(config.lazy_setting).to eq(1) }
       end
 
-      context 'when default is false and value is false for some time' do
+      context "when default is false and value is false for some time" do
         let(:attempts) { [1, 10, false, false, false] }
         let(:default) { false }
         let(:constructor) { ->(default) { default || attempts.pop } }
 
-        it 'expect to retry until non-false is present and then cache it' do
+        it "expect to retry until non-false is present and then cache it" do
           3.times { expect(config.lazy_setting).to be(false) }
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
         end
       end
 
-      context 'when constructor changes and its zero arity' do
+      context "when constructor changes and its zero arity" do
         let(:configurable_class) do
           constructor1 = constructor
 
@@ -254,14 +254,14 @@ RSpec.describe_current do
         let(:attempts) { [1, 10, false, false, false] }
         let(:constructor) { -> { attempts.pop } }
 
-        it 'expect to retry until non-false is present and then cache it' do
+        it "expect to retry until non-false is present and then cache it" do
           3.times { expect(config.lazy_setting).to be(false) }
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
         end
       end
 
-      context 'when we want to overwrite constructed state with a different one during config' do
+      context "when we want to overwrite constructed state with a different one during config" do
         let(:default) { false }
         let(:constructor) { ->(_) { false } }
 
@@ -276,7 +276,7 @@ RSpec.describe_current do
     end
   end
 
-  context 'when we define settings on an instance level' do
+  context "when we define settings on an instance level" do
     let(:configurable_class) do
       Class.new do
         include Karafka::Core::Configurable
@@ -298,7 +298,7 @@ RSpec.describe_current do
     let(:configurable) { configurable_class.new }
     let(:config) { configurable.config }
 
-    context 'when we do not override any settings' do
+    context "when we do not override any settings" do
       before { configurable.configure }
 
       it { expect(config.with_default).to eq(123) }
@@ -308,7 +308,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.ov_constructor).to be(true) }
     end
 
-    context 'when we have two instances' do
+    context "when we have two instances" do
       let(:configurable2) { configurable_class.new }
       let(:config2) { configurable2.config }
 
@@ -324,7 +324,7 @@ RSpec.describe_current do
       it { expect(config2.nested1.nested2.leaf).to eq(100) }
     end
 
-    context 'when we do override some settings' do
+    context "when we do override some settings" do
       before do
         configurable.configure do |config|
           config.with_default = 7
@@ -339,7 +339,7 @@ RSpec.describe_current do
       it { expect(config.nested1.nested2.ov_constructor).to be(true) }
     end
 
-    context 'when we inherit and alter settings' do
+    context "when we inherit and alter settings" do
       let(:config_sub) { configurable_sub.config }
 
       let(:configurable_sub) do
@@ -367,7 +367,7 @@ RSpec.describe_current do
       it { expect(config_sub.nested1.nested2.ov_constructor).to be(true) }
     end
 
-    context 'when we inherit and change values' do
+    context "when we inherit and change values" do
       let(:config_sub) { configurable_sub.config }
 
       let(:configurable_sub) do
@@ -389,7 +389,7 @@ RSpec.describe_current do
     end
 
     # https://github.com/karafka/karafka-core/issues/1
-    context 'when configurable class has a method already defined in the object class' do
+    context "when configurable class has a method already defined in the object class" do
       # We add method to the node to simulate this. We do not want to patch the Object class
       before do
         mod = Module.new do
@@ -409,7 +409,7 @@ RSpec.describe_current do
         end
       end
 
-      it 'expect to redefine it with the accessors' do
+      it "expect to redefine it with the accessors" do
         instance = configurable_class.new
 
         instance.configure do |config|
@@ -418,7 +418,7 @@ RSpec.describe_current do
       end
     end
 
-    context 'when we define a lazy evaluated root setting' do
+    context "when we define a lazy evaluated root setting" do
       let(:configurable_class) do
         default1 = default
         constructor1 = constructor
@@ -438,24 +438,24 @@ RSpec.describe_current do
       let(:config) { configurable_class.new.tap(&:configure).config }
       let(:constructor) { ->(default) { default || 1 } }
 
-      context 'when default is not false nor nil' do
+      context "when default is not false nor nil" do
         let(:default) { 100 }
 
         it { expect(config.lazy_setting).to eq(100) }
       end
 
-      context 'when default is false' do
+      context "when default is false" do
         let(:default) { false }
 
         it { expect(config.lazy_setting).to eq(1) }
       end
 
-      context 'when default is false and value is false for some time' do
+      context "when default is false and value is false for some time" do
         let(:attempts) { [1, 10, false, false, false] }
         let(:default) { false }
         let(:constructor) { ->(default) { default || attempts.pop } }
 
-        it 'expect to retry until non-false is present and then cache it' do
+        it "expect to retry until non-false is present and then cache it" do
           3.times { expect(config.lazy_setting).to be(false) }
           expect(config.lazy_setting).to eq(10)
           expect(config.lazy_setting).to eq(10)
@@ -465,7 +465,7 @@ RSpec.describe_current do
   end
 
   # @see https://github.com/karafka/karafka-core/issues/1
-  context 'when methods defined on Object' do
+  context "when methods defined on Object" do
     before do
       Object.class_eval do
         def self.logger
@@ -497,7 +497,7 @@ RSpec.describe_current do
     let(:configurable) { configurable_class.new }
     let(:config) { configurable.config }
 
-    it 'expect not to raise because it should redefine' do
+    it "expect not to raise because it should redefine" do
       expect(config.logger).to eq(123)
     end
   end

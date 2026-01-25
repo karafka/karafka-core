@@ -126,7 +126,7 @@ module Karafka
 
           # We need to compare `DIG_MISS` against stuff because of the ownership of the `#==`
           # method
-          if DIG_MISS == for_checking
+          if for_checking == DIG_MISS
             errors << [scope + rule.path, :missing]
           else
             result = rule.validator.call(for_checking, data, errors, self)
@@ -147,7 +147,7 @@ module Karafka
         def validate_optional(data, rule, errors, scope)
           for_checking = dig(data, rule.path)
 
-          return if DIG_MISS == for_checking
+          return if for_checking == DIG_MISS
 
           result = rule.validator.call(for_checking, data, errors, self)
 

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
 gemspec
 
 group :test do
-  gem 'byebug'
-  gem 'rspec'
-  gem 'simplecov'
-  gem 'warning'
+  gem "byebug"
+  gem "rspec"
+  gem "simplecov"
+  gem "warning"
 end
