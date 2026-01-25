@@ -6,7 +6,7 @@ module Karafka
     class << self
       # @return [String] root path of this gem
       def gem_root
-        Pathname.new(File.expand_path('../..', __dir__))
+        Pathname.new(File.expand_path("../..", __dir__))
       end
     end
   end

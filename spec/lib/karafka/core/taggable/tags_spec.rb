@@ -5,14 +5,14 @@ RSpec.describe_current do
 
   it { expect(tags.to_a).to be_empty }
 
-  describe '#add' do
-    context 'when few under same name' do
+  describe "#add" do
+    context "when few under same name" do
       before { 3.times { |value| tags.add(:name, value) } }
 
       it { expect(tags.to_a).to eq(%w[2]) }
     end
 
-    context 'when with different names' do
+    context "when with different names" do
       before do
         tags.add(:name1, 1)
         tags.add(:name2, 2)
@@ -22,7 +22,7 @@ RSpec.describe_current do
       it { expect(tags.to_a).to eq(%w[1 2 3]) }
     end
 
-    context 'when with different names but same value' do
+    context "when with different names but same value" do
       before do
         tags.add(:name1, 1)
         tags.add(:name2, 1)
@@ -33,7 +33,7 @@ RSpec.describe_current do
     end
   end
 
-  describe '#clear' do
+  describe "#clear" do
     before do
       tags.add(:name, 1)
       tags.clear
@@ -42,7 +42,7 @@ RSpec.describe_current do
     it { expect(tags.to_a).to be_empty }
   end
 
-  describe '#delete' do
+  describe "#delete" do
     before do
       tags.add(:name1, 1)
       tags.delete(:name1)
@@ -52,14 +52,14 @@ RSpec.describe_current do
     it { expect(tags.to_a).to eq(%w[2]) }
   end
 
-  describe '#to_json' do
-    before { tags.add(:test, 'abc') }
+  describe "#to_json" do
+    before { tags.add(:test, "abc") }
 
     it { expect(tags.to_json).to eq(%w[abc].to_json) }
   end
 
-  describe '#as_json' do
-    before { tags.add(:test, 'abc') }
+  describe "#as_json" do
+    before { tags.add(:test, "abc") }
 
     it { expect(tags.as_json).to eq(%w[abc]) }
   end

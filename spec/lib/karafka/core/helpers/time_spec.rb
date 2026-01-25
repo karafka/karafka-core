@@ -9,16 +9,16 @@ RSpec.describe_current do
     end
   end
 
-  describe '#monotonic_now' do
-    it 'expect to return monotonic in ms' do
+  describe "#monotonic_now" do
+    it "expect to return monotonic in ms" do
       pre = timed.monotonic_now
       sleep(0.5)
       expect(timed.monotonic_now - pre).to be_within(500).of(500)
     end
   end
 
-  describe '#float_now' do
-    it 'expect to return float time in ms' do
+  describe "#float_now" do
+    it "expect to return float time in ms" do
       pre = timed.float_now
       sleep(0.5)
       expect(timed.float_now - pre).to be_within(500).of(500)

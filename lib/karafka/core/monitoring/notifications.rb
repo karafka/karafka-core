@@ -39,7 +39,7 @@ module Karafka
         def register_event(event_id)
           @mutex.synchronize do
             @listeners[event_id] = []
-            @events_methods_map[event_id] = :"on_#{event_id.to_s.tr('.', '_')}"
+            @events_methods_map[event_id] = :"on_#{event_id.to_s.tr(".", "_")}"
           end
         end
 

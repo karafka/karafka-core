@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-Warning[:performance] = true if RUBY_VERSION >= '3.3'
+Warning[:performance] = true if RUBY_VERSION >= "3.3"
 Warning[:deprecated] = true
 $VERBOSE = true
 
-require 'warning'
+require "warning"
 
 Warning.process do |warning|
   next unless warning.include?(Dir.pwd)
@@ -12,9 +12,9 @@ Warning.process do |warning|
   raise "Warning in your code: #{warning}"
 end
 
-ENV['KARAFKA_ENV'] = 'test'
+ENV["KARAFKA_ENV"] = "test"
 $LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 %w[
   byebug
@@ -27,13 +27,13 @@ end
 
 # Don't include unnecessary stuff into rcov
 SimpleCov.start do
-  add_filter '/vendor/'
-  add_filter '/gems/'
-  add_filter '/.bundle/'
-  add_filter '/doc/'
-  add_filter '/spec/'
-  add_filter '/config/'
-  add_filter '/patches/'
+  add_filter "/vendor/"
+  add_filter "/gems/"
+  add_filter "/.bundle/"
+  add_filter "/doc/"
+  add_filter "/spec/"
+  add_filter "/config/"
+  add_filter "/patches/"
   merge_timeout 600
 end
 
@@ -51,6 +51,6 @@ RSpec.configure do |config|
   end
 end
 
-require 'karafka-core'
-require 'karafka/core/helpers/rspec_locator'
+require "karafka-core"
+require "karafka/core/helpers/rspec_locator"
 RSpec.extend Karafka::Core::Helpers::RSpecLocator.new(__FILE__)

@@ -50,10 +50,10 @@ module Karafka
 
           # This will handle inheritance
           @config = if superclass.respond_to?(:config)
-                      superclass.config.deep_dup
-                    else
-                      Node.new(:root)
-                    end
+            superclass.config.deep_dup
+          else
+            Node.new(:root)
+          end
         end
 
         # Allows for a per class configuration (if needed)
