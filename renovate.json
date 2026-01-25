@@ -3,6 +3,11 @@
   "extends": [
     "config:recommended"
   ],
+  "includePaths": [
+    "Gemfile",
+    "Gemfile.lint",
+    ".github/workflows/**"
+  ],
   "packageRules": [
     {
       "minimumReleaseAge": "7 days",
