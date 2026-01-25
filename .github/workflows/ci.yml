@@ -86,6 +86,8 @@ jobs:
   yard-lint:
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: Gemfile.lint
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -94,9 +96,7 @@ jobs:
         uses: ruby/setup-ruby@90be1154f987f4dc0fe0dd0feedac9e473aa4ba8 # v1.286.0
         with:
           ruby-version: '4.0.1'
-          bundler: 'latest'
-      - name: Bundle install
-        run: bundle install --jobs 4 --retry 3
+          bundler-cache: true
       - name: Run yard-lint
         run: bundle exec yard-lint lib/
 
