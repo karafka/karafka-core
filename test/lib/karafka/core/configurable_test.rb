@@ -286,6 +286,7 @@ class ConfigurableClassLevelMergeExtraTest < Minitest::Test
 
     extra = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:additional, default: 7)
     end
 
@@ -302,6 +303,7 @@ class ConfigurableClassLevelMergeExtraTest < Minitest::Test
 
     extra = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:additional, default: 7)
     end
 
@@ -318,6 +320,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
   def test_lazy_with_non_false_default
     configurable_class = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:lazy_setting, default: 100, constructor: ->(default) { default || 1 }, lazy: true)
     end
 
@@ -327,6 +330,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
   def test_lazy_with_false_default
     configurable_class = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:lazy_setting, default: false, constructor: ->(default) { default || 1 }, lazy: true)
     end
 
@@ -339,6 +343,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
 
     configurable_class = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:lazy_setting, default: false, constructor: constructor, lazy: true)
     end
 
@@ -354,6 +359,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
 
     configurable_class = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:lazy_setting, constructor: constructor, lazy: true)
     end
 
@@ -366,6 +372,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
   def test_lazy_overwrite_during_config
     configurable_class = Class.new do
       extend Karafka::Core::Configurable
+
       setting(:lazy_setting, default: false, constructor: ->(_) { false }, lazy: true)
     end
 
@@ -576,6 +583,7 @@ class ConfigurableInstanceLevelExistingMethodTest < Minitest::Test
 
     configurable_class = Class.new do
       include Karafka::Core::Configurable
+
       setting(:testable, default: 123)
     end
 
@@ -590,6 +598,7 @@ class ConfigurableInstanceLevelLazySettingTest < Minitest::Test
   def test_lazy_with_non_false_default
     configurable_class = Class.new do
       include Karafka::Core::Configurable
+
       setting(:lazy_setting, default: 100, constructor: ->(default) { default || 1 }, lazy: true)
     end
 
@@ -600,6 +609,7 @@ class ConfigurableInstanceLevelLazySettingTest < Minitest::Test
   def test_lazy_with_false_default
     configurable_class = Class.new do
       include Karafka::Core::Configurable
+
       setting(:lazy_setting, default: false, constructor: ->(default) { default || 1 }, lazy: true)
     end
 
@@ -613,6 +623,7 @@ class ConfigurableInstanceLevelLazySettingTest < Minitest::Test
 
     configurable_class = Class.new do
       include Karafka::Core::Configurable
+
       setting(:lazy_setting, default: false, constructor: constructor, lazy: true)
     end
 
@@ -637,6 +648,7 @@ class ConfigurableObjectMethodTest < Minitest::Test
 
     configurable_class = Class.new do
       include Karafka::Core::Configurable
+
       setting(:logger, default: 123)
     end
 
