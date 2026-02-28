@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.9 (Unreleased)
+- [Change] Migrate test framework from RSpec to Minitest.
+
 ## 2.5.8 (2025-11-23)
 - [Enhancement] Memoize `StatisticsDecorator` suffix keys to reduce string allocations (#268).
 

@@ -10,7 +10,7 @@ AllValidators:
   - .git/**/*
   - vendor/**/*
   - node_modules/**/*
-  - spec/**/*
+  - test/**/*
   FailOnSeverity: convention
   MinCoverage: 98.0
   DiffMode:
