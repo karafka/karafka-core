@@ -18,12 +18,14 @@ class KarafkaCoreCallbacksManagerTest < Minitest::Test
     @manager.add("3", ->(_, _, val3) { @changed << (val3 + 3) })
 
     @manager.call(*start)
+
     assert_equal [start[0] + 1, start[1] + 2, start[2] + 3], @changed
   end
 
   def test_add_makes_callback_available
     @manager.add(@id, -> { @changed << true })
     @manager.call
+
     assert_equal [true], @changed
   end
 
@@ -64,6 +66,7 @@ class KarafkaCoreCallbacksManagerTest < Minitest::Test
     @manager.add(@id, -> { @changed << true })
     @manager.delete(@id)
     @manager.call
+
     assert_empty @changed
   end
 end

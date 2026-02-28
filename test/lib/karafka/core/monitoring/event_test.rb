@@ -17,6 +17,7 @@ class KarafkaCoreMonitoringEventTest < Minitest::Test
 
   def test_bracket_returns_value_when_key_present
     event = Karafka::Core::Monitoring::Event.new(@id, { test: 1 })
+
     assert_equal 1, event[:test]
   end
 

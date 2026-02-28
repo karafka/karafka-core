@@ -23,31 +23,37 @@ class KarafkaCoreStatisticsDecoratorFirstEmitTest < Minitest::Test
 
   def test_string_value
     decorated = @decorator.call(emited_stats1)
+
     assert_equal "value1", decorated["string"]
   end
 
   def test_no_string_delta
     decorated = @decorator.call(emited_stats1)
+
     assert_same false, decorated.key?("string_d")
   end
 
   def test_float_delta_is_zero
     decorated = @decorator.call(emited_stats1)
+
     assert_equal 0, decorated["float_d"]
   end
 
   def test_int_delta_is_zero
     decorated = @decorator.call(emited_stats1)
+
     assert_equal 0, decorated["int_d"]
   end
 
   def test_nested_delta_is_zero
     decorated = @decorator.call(emited_stats1)
+
     assert_equal 0, decorated.dig(*@broker_scope)["txbytes_d"]
   end
 
   def test_frozen
     decorated = @decorator.call(emited_stats1)
+
     assert_predicate decorated, :frozen?
   end
 end
@@ -86,7 +92,7 @@ class KarafkaCoreStatisticsDecoratorSecondEmitTest < Minitest::Test
   end
 
   def test_float_delta
-    assert_equal 0.4, decorated["float_d"].round(10)
+    assert_in_delta(0.4, decorated["float_d"].round(10))
   end
 
   def test_int_delta
@@ -148,7 +154,7 @@ class KarafkaCoreStatisticsDecoratorThirdEmitTest < Minitest::Test
   end
 
   def test_float_delta
-    assert_equal 1.0, decorated["float_d"].round(10)
+    assert_in_delta(1.0, decorated["float_d"].round(10))
   end
 
   def test_float_freeze_duration
@@ -218,7 +224,7 @@ class KarafkaCoreStatisticsDecoratorBrokerNoLongerPresentTest < Minitest::Test
   end
 
   def test_float_delta
-    assert_equal 0.4, decorated["float_d"].round(10)
+    assert_in_delta(0.4, decorated["float_d"].round(10))
   end
 
   def test_float_freeze_duration
@@ -280,7 +286,7 @@ class KarafkaCoreStatisticsDecoratorBrokerIntroducedLaterTest < Minitest::Test
   end
 
   def test_float_delta
-    assert_equal 0.4, decorated["float_d"].round(10)
+    assert_in_delta(0.4, decorated["float_d"].round(10))
   end
 
   def test_float_freeze_duration
