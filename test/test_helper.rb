@@ -38,7 +38,7 @@ SimpleCov.start do
   merge_timeout 600
 end
 
-SimpleCov.minimum_coverage(98.8)
+SimpleCov.minimum_coverage(99)
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"]
   .each { |f| require f }
