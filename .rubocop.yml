@@ -27,6 +27,10 @@ Layout/LineLength:
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: space
 
+# Minitest
+Minitest/MultipleAssertions:
+  Enabled: false
+
 # ThreadSafety
 ThreadSafety/ClassAndModuleAttributes:
   Enabled: false

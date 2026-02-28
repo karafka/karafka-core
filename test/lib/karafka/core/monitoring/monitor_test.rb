@@ -76,12 +76,14 @@ class KarafkaCoreMonitoringMonitorUnsubscribeNoNamespaceTest < Minitest::Test
   def test_unsubscribe_removes_listener_from_event
     @monitor.unsubscribe(@block_listener)
     @monitor.instrument("test") { 1 }
+
     assert_empty @collected_data
   end
 
   def test_unsubscribe_removes_listener_from_listeners_hash
     assert_includes @monitor.listeners["test"], @block_listener
     @monitor.unsubscribe(@block_listener)
+
     refute_includes @monitor.listeners["test"], @block_listener
   end
 end
@@ -100,12 +102,14 @@ class KarafkaCoreMonitoringMonitorUnsubscribeWithNamespaceTest < Minitest::Test
   def test_unsubscribe_removes_listener_from_namespaced_event
     @monitor.unsubscribe(@block_listener)
     @monitor.instrument("test") { 1 }
+
     assert_empty @collected_data
   end
 
   def test_unsubscribe_removes_listener_from_listeners_hash
     assert_includes @monitor.listeners["test.namespace"], @block_listener
     @monitor.unsubscribe(@block_listener)
+
     refute_includes @monitor.listeners["test.namespace"], @block_listener
   end
 end
@@ -136,12 +140,14 @@ class KarafkaCoreMonitoringMonitorUnsubscribeObjectListenerTest < Minitest::Test
   def test_unsubscribe_removes_object_listener
     @monitor.unsubscribe(@listener)
     @monitor.instrument("test") { 1 }
+
     assert_empty @listener.accu
   end
 
   def test_unsubscribe_removes_from_listeners_hash
     assert_includes @monitor.listeners["test"], @listener
     @monitor.unsubscribe(@listener)
+
     refute_includes @monitor.listeners["test"], @listener
   end
 end
@@ -190,6 +196,7 @@ class KarafkaCoreMonitoringMonitorUnsubscribeMultipleListenersTest < Minitest::T
     assert_includes @monitor.listeners["test"], @first_listener
     assert_includes @monitor.listeners["test"], @second_listener
     @monitor.unsubscribe(@first_listener_added)
+
     assert_same false, @monitor.listeners["test"].include?(@first_listener_added)
     assert_includes @monitor.listeners["test"], @second_listener
   end
@@ -226,6 +233,7 @@ class KarafkaCoreMonitoringMonitorUnsubscribeMultiEventListenerTest < Minitest::
     @monitor.unsubscribe(@multi_event_listener)
     @monitor.instrument("test") { 1 }
     @monitor.instrument("test.namespace") { 1 }
+
     assert_empty @multi_event_listener.accu
   end
 end

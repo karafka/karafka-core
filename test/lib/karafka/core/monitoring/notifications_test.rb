@@ -10,6 +10,7 @@ class KarafkaCoreMonitoringNotificationsInstrumentTest < Minitest::Test
   def test_instrument_returns_block_value
     result = rand
     instrumentation = @notifications.instrument(@event_name, call: self, error: StandardError) { result }
+
     assert_equal result, instrumentation
   end
 
@@ -61,6 +62,7 @@ class KarafkaCoreMonitoringNotificationsUnsubscribeBlockTest < Minitest::Test
   def test_unsubscribe_removes_block_from_event
     @notifications.unsubscribe(@block_listener)
     @notifications.instrument(@event_name)
+
     assert_empty @tracked
   end
 
@@ -72,6 +74,7 @@ class KarafkaCoreMonitoringNotificationsUnsubscribeBlockTest < Minitest::Test
     @notifications.unsubscribe(@block_listener)
     @notifications.instrument(@event_name)
     @notifications.instrument(second_event)
+
     assert_empty @tracked
   end
 end
@@ -105,6 +108,7 @@ class KarafkaCoreMonitoringNotificationsUnsubscribeObjectTest < Minitest::Test
   def test_unsubscribe_removes_object_listener
     @notifications.unsubscribe(@listener)
     @notifications.instrument(@event_name)
+
     assert_empty @listener.accu
   end
 
@@ -116,6 +120,7 @@ class KarafkaCoreMonitoringNotificationsUnsubscribeObjectTest < Minitest::Test
     @notifications.unsubscribe(@listener)
     @notifications.instrument(@event_name)
     @notifications.instrument(second_event)
+
     assert_empty @listener.accu
   end
 end
@@ -194,6 +199,7 @@ class KarafkaCoreMonitoringNotificationsClearTest < Minitest::Test
     @notifications.clear("some-other-event")
     @notifications.instrument(@event_name)
     @notifications.instrument("some-other-event")
+
     assert_equal [1], instrumented
   end
 
@@ -215,6 +221,7 @@ class KarafkaCoreMonitoringNotificationsFlowTest < Minitest::Test
     tracked = []
     @notifications.subscribe(@event_name) { |event| tracked << event }
     @notifications.instrument(@event_name)
+
     assert_equal @event_name, tracked[0].id
   end
 
@@ -234,6 +241,7 @@ class KarafkaCoreMonitoringNotificationsFlowTest < Minitest::Test
     listener = listener_class.new
     @notifications.subscribe(listener)
     @notifications.instrument(@event_name)
+
     assert_equal @event_name, listener.accu[0].id
   end
 end

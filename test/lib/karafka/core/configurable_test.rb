@@ -49,6 +49,7 @@ class ConfigurableClassLevelInjectSettingsTest < Minitest::Test
   def test_inject_more_settings
     configurable_class = build_class_level_configurable
     configurable_class.config.setting(:testme, default: 7)
+
     assert_equal 7, configurable_class.config.testme
   end
 end
@@ -224,6 +225,7 @@ class ConfigurableClassLevelReconfigureTest < Minitest::Test
     config = configurable_class.config
     config.configure { |node| node.with_default = 555 }
     config.configure { |node| node.nested1.nested1 = 123 }
+
     assert_equal 555, config.with_default
   end
 end
@@ -348,6 +350,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
     end
 
     config = configurable_class.config
+
     3.times { assert_same false, config.lazy_setting }
     assert_equal 10, config.lazy_setting
     assert_equal 10, config.lazy_setting
@@ -364,6 +367,7 @@ class ConfigurableClassLevelLazySettingTest < Minitest::Test
     end
 
     config = configurable_class.config
+
     3.times { assert_same false, config.lazy_setting }
     assert_equal 10, config.lazy_setting
     assert_equal 10, config.lazy_setting
@@ -603,6 +607,7 @@ class ConfigurableInstanceLevelLazySettingTest < Minitest::Test
     end
 
     config = configurable_class.new.tap(&:configure).config
+
     assert_equal 100, config.lazy_setting
   end
 
@@ -614,6 +619,7 @@ class ConfigurableInstanceLevelLazySettingTest < Minitest::Test
     end
 
     config = configurable_class.new.tap(&:configure).config
+
     assert_equal 1, config.lazy_setting
   end
 
@@ -628,6 +634,7 @@ class ConfigurableInstanceLevelLazySettingTest < Minitest::Test
     end
 
     config = configurable_class.new.tap(&:configure).config
+
     3.times { assert_same false, config.lazy_setting }
     assert_equal 10, config.lazy_setting
     assert_equal 10, config.lazy_setting

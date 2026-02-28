@@ -136,12 +136,14 @@ class KarafkaCoreContractableContractCallTest < Minitest::Test
   def test_call_valid_data_has_no_errors
     scope = [rand.to_s, rand.to_s]
     result = validator_class.new.call({ id: "1" }, scope: scope)
+
     assert_equal({}, result.errors)
   end
 
   def test_call_invalid_data_has_scoped_error_key
     scope = [rand.to_s, rand.to_s]
     result = validator_class.new.call({ id: 1 }, scope: scope)
+
     assert_includes result.errors.keys, :"#{scope.join(".")}.id"
   end
 end
