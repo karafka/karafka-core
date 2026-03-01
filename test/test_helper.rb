@@ -44,4 +44,8 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"]
   .each { |f| require f }
 
 require "karafka-core"
+require "karafka/core/helpers/minitest_locator"
 require "minitest/autorun"
+require "minitest/spec"
+
+Kernel.extend Karafka::Core::Helpers::MinitestLocator.new(__FILE__, "Version" => "VERSION")

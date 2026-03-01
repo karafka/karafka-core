@@ -1,27 +1,33 @@
 # frozen_string_literal: true
 
-class KarafkaCoreMonitoringEventTest < Minitest::Test
-  def setup
+describe_current do
+  before do
     @id = rand.to_s
     @payload = { rand => rand }
     @event = Karafka::Core::Monitoring::Event.new(@id, @payload)
   end
 
-  def test_id
+  it "expect to expose id" do
     assert_equal @id, @event.id
   end
 
-  def test_payload
+  it "expect to expose payload" do
     assert_equal @payload, @event.payload
   end
 
-  def test_bracket_returns_value_when_key_present
-    event = Karafka::Core::Monitoring::Event.new(@id, { test: 1 })
+  describe "#[]" do
+    describe "when key is present" do
+      it "expect to return it" do
+        event = Karafka::Core::Monitoring::Event.new(@id, { test: 1 })
 
-    assert_equal 1, event[:test]
-  end
+        assert_equal 1, event[:test]
+      end
+    end
 
-  def test_bracket_raises_key_error_when_key_missing
-    assert_raises(KeyError) { @event[:test] }
+    describe "when key is missing" do
+      it "expect to raise KeyError" do
+        assert_raises(KeyError) { @event[:test] }
+      end
+    end
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class KarafkaCoreVersionTest < Minitest::Test
-  def test_version_constant_exists
+describe_current do
+  it "expect to exist" do
     Karafka::Core::VERSION
   end
 end
