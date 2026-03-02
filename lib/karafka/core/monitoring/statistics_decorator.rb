@@ -23,12 +23,19 @@ module Karafka
 
         private_constant :EMPTY_HASH
 
-        def initialize
+        # @param excluded_keys [Array<String>] list of key names to skip entirely during
+        #   decoration. Excluded keys are not recursed into and not decorated with delta/freeze
+        #   duration suffixes. This is useful for skipping large subtrees of the librdkafka
+        #   statistics that are not consumed by the application (e.g. broker toppars, window
+        #   stats like int_latency, outbuf_latency, throttle, batchsize, batchcnt, req).
+        def initialize(excluded_keys: [])
           @previous = EMPTY_HASH
           # Operate on ms precision only
           @previous_at = monotonic_now.round
           # Cache for memoized suffix keys to avoid repeated string allocations
           @suffix_keys_cache = {}
+          # Frozen hash for O(1) key exclusion lookup
+          @excluded_keys = excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
         end
 
         # @param emited_stats [Hash] original emited statistics
@@ -76,9 +83,12 @@ module Karafka
 
           filled_previous = previous || EMPTY_HASH
           cache = @suffix_keys_cache
+          excluded = @excluded_keys
           pw_size = pw_start
 
           current.each_pair do |key, value|
+            next if excluded.key?(key)
+
             if value.is_a?(Hash)
               diff(filled_previous[key], value, pw, pw_size, change_d)
               next

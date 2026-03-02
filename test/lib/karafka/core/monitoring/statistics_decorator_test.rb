@@ -202,6 +202,68 @@ describe_current do
     it { assert_predicate decorated, :frozen? }
   end
 
+  context "when excluded_keys are configured" do
+    subject(:decorator) { described_class.new(excluded_keys: %w[nested]) }
+
+    context "when it is a first stats emit" do
+      subject(:decorated) { decorator.call(emited_stats1) }
+
+      it { assert_equal 0, decorated["float_d"] }
+      it { assert_equal 0, decorated["int_d"] }
+      it { assert_predicate decorated, :frozen? }
+
+      it "does not decorate excluded subtrees" do
+        expected = { "brokers" => { "localhost:9092/2" => { "txbytes" => 123 } } }
+
+        assert_equal(expected, decorated["nested"])
+        refute decorated["nested"]["brokers"]["localhost:9092/2"].key?("txbytes_d")
+      end
+    end
+
+    context "when it is a second stats emit" do
+      subject(:decorated) do
+        decorator.call(emited_stats1)
+        decorator.call(emited_stats2)
+      end
+
+      it { assert_in_delta(0.4, decorated["float_d"].round(10)) }
+      it { assert_equal 18, decorated["int_d"] }
+      it { assert_predicate decorated, :frozen? }
+
+      it "does not decorate excluded subtrees" do
+        refute decorated["nested"]["brokers"]["localhost:9092/2"].key?("txbytes_d")
+        refute decorated["nested"]["brokers"]["localhost:9092/2"].key?("txbytes_fd")
+      end
+    end
+  end
+
+  context "when excluded_keys target a numeric key" do
+    let(:decorator) { described_class.new(excluded_keys: %w[int]) }
+
+    subject(:decorated) do
+      decorator.call(emited_stats1)
+      decorator.call(emited_stats2)
+    end
+
+    it { assert_in_delta(0.4, decorated["float_d"].round(10)) }
+    it { assert_equal 130, decorated["int"] }
+    it { refute decorated.key?("int_d") }
+    it { refute decorated.key?("int_fd") }
+    it { assert_predicate decorated, :frozen? }
+  end
+
+  context "when no excluded_keys are configured" do
+    let(:decorator) { described_class.new }
+
+    subject(:decorated) do
+      decorator.call(emited_stats1)
+      decorator.call(emited_stats2)
+    end
+
+    it { assert_equal 18, decorated["int_d"] }
+    it { assert_equal 30, decorated.dig(*broker_scope)["txbytes_d"] }
+  end
+
   context "when a value type changed from numeric to non-numeric between emissions" do
     subject(:decorated) do
       decorator.call(emited_stats1)
