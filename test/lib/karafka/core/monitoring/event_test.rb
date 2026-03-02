@@ -35,6 +35,7 @@ describe_current do
 
       it "expect to return time directly via #[] without triggering payload construction" do
         assert_equal execution_time, timed_event[:time]
+        assert_nil timed_event.instance_variable_get(:@payload)
       end
 
       it "expect to still access raw payload keys" do
