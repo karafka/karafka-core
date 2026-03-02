@@ -10,6 +10,7 @@
 - [Enhancement] Cache `CallbacksManager#call` values snapshot and invalidate on `add`/`delete` to avoid allocating a new Array on every invocation while preserving thread-safety snapshot semantics, saving 1 Array allocation per call.
 - [Enhancement] Store execution time separately in `Event` and build the merged payload hash lazily on `#payload` access, eliminating 1 Hash allocation per `Notifications#instrument` call when listeners use `#[]` access (the common pattern), yielding ~1.7x faster event dispatch.
 
+
 ## 2.5.10 (2026-03-02)
 - [Enhancement] Introduce `MinitestLocator` helper for minitest/spec subject class auto-discovery from test file paths.
 
