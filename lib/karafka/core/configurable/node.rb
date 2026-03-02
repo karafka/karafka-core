@@ -23,7 +23,7 @@ module Karafka
           @nestings = nestings
           @compiled = false
           @configs_refs = {}
-          @local_defs = []
+          @local_defs = {}
           instance_eval(&nestings)
         end
 
@@ -189,8 +189,8 @@ module Karafka
           # object and then we would not redefine it for nodes. This ensures that we only do not
           # redefine our own definitions but we do redefine any user "accidentally" inherited
           # methods
-          if reader_respond ? !@local_defs.include?(reader_name) : true
-            @local_defs << reader_name
+          if reader_respond ? !@local_defs.key?(reader_name) : true
+            @local_defs[reader_name] = true
 
             define_singleton_method(reader_name) do
               @configs_refs[reader_name]
