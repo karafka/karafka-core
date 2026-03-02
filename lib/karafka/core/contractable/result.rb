@@ -12,6 +12,15 @@ module Karafka
 
         private_constant :EMPTY_HASH
 
+        class << self
+          # @return [Result] cached frozen success result to avoid allocating a new Result on
+          #   every successful contract validation. Safe because successful results are
+          #   identical regardless of contract (they all have @errors = EMPTY_HASH).
+          def success
+            @success ||= new([], nil).freeze
+          end
+        end
+
         # Builds a result object and remaps (if needed) error keys to proper error messages
         #
         # @param errors [Array<Array>] array with sub-arrays with paths and error keys

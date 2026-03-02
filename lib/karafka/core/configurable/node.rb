@@ -17,14 +17,16 @@ module Karafka
 
         # @param node_name [Symbol] node name
         # @param nestings [Proc] block for nested settings
-        def initialize(node_name, nestings = ->(_) {})
+        # @param evaluate [Boolean] when false, skip evaluating the nestings block. Used by
+        #   deep_dup to avoid re-creating children that will be overwritten immediately.
+        def initialize(node_name, nestings = ->(_) {}, evaluate: true)
           @node_name = node_name
           @children = []
           @nestings = nestings
           @compiled = false
           @configs_refs = {}
           @local_defs = {}
-          instance_eval(&nestings)
+          instance_eval(&nestings) if evaluate
         end
 
         # Allows for a single leaf or nested node definition
@@ -83,7 +85,7 @@ module Karafka
         # and non-side-effect usage on an instance/inherited.
         # @return [Node] duplicated node
         def deep_dup
-          dupped = Node.new(node_name, nestings)
+          dupped = Node.new(node_name, nestings, evaluate: false)
 
           children.each do |value|
             dupped.children << if value.is_a?(Leaf)
