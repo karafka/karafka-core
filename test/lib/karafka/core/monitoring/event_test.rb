@@ -35,6 +35,8 @@ describe_current do
 
       it "expect to return time directly via #[] without triggering payload construction" do
         assert_equal execution_time, timed_event[:time]
+        # We intentionally inspect the internal @payload ivar to ensure that #[] returns time
+        # without triggering the lazy payload memoization as a side effect.
         assert_nil timed_event.instance_variable_get(:@payload)
       end
 
