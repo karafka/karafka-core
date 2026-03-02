@@ -3,6 +3,8 @@
 ## 2.5.11 (Unreleased)
 - [Enhancement] Specialize `Contract#dig` for common 1-key and 2-key paths to avoid iterator overhead, yielding ~1.5x faster single-key lookups and ~1.45x faster two-key nested lookups.
 - [Enhancement] Replace `Node#build_accessors` `@local_defs` Array with Hash for O(1) membership checks instead of O(n) `Array#include?`, yielding up to ~5x faster accessor lookups at 50 settings.
+- [Enhancement] Use frozen `EMPTY_ARRAY` constant for `Contract#call` and `#validate!` default `scope` parameter to avoid allocating a new Array on every invocation, yielding ~1.36x faster call dispatch and saving 1 Array allocation per call.
+- [Enhancement] Pre-resolve `@events_methods_map` method name before the listener notification loop in `Notifications#instrument` to avoid repeated Hash lookup per listener, yielding ~1.12x faster event dispatch with multiple listeners.
 
 ## 2.5.10 (2026-03-02)
 - [Enhancement] Introduce `MinitestLocator` helper for minitest/spec subject class auto-discovery from test file paths.

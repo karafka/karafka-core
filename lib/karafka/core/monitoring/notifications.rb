@@ -142,7 +142,7 @@ module Karafka
           final_payload = build_payload(payload, time)
           event = Event.new(event_id, final_payload)
 
-          notify_listeners(event_id, event, assigned_listeners)
+          notify_listeners(@events_methods_map[event_id], event, assigned_listeners)
 
           result
         end
@@ -160,15 +160,15 @@ module Karafka
         end
 
         # Notifies all assigned listeners about the event
-        # @param event_id [String]
+        # @param method_name [Symbol] pre-resolved method name for object listeners
         # @param event [Event] event with payload to broadcast to listeners
         # @param assigned_listeners [Array] list of listeners to notify
-        def notify_listeners(event_id, event, assigned_listeners)
+        def notify_listeners(method_name, event, assigned_listeners)
           assigned_listeners.each do |listener|
             if listener.is_a?(Proc)
               listener.call(event)
             else
-              listener.send(@events_methods_map[event_id], event)
+              listener.send(method_name, event)
             end
           end
         end
