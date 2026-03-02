@@ -5,6 +5,11 @@
 - [Enhancement] Replace `Node#build_accessors` `@local_defs` Array with Hash for O(1) membership checks instead of O(n) `Array#include?`, yielding up to ~5x faster accessor lookups at 50 settings.
 - [Enhancement] Use frozen `EMPTY_ARRAY` constant for `Contract#call` and `#validate!` default `scope` parameter to avoid allocating a new Array on every invocation, yielding ~1.36x faster call dispatch and saving 1 Array allocation per call.
 - [Enhancement] Pre-resolve `@events_methods_map` method name before the listener notification loop in `Notifications#instrument` to avoid repeated Hash lookup per listener, yielding ~1.12x faster event dispatch with multiple listeners.
+- [Enhancement] Cache a frozen success `Result` singleton via `Result.success` to eliminate 1 object allocation per successful `Contract#call` on the happy path.
+- [Enhancement] Skip nestings block re-evaluation in `Node#deep_dup` to avoid recreating children that are immediately overwritten, yielding ~14x faster deep_dup and reducing allocations from ~620 to ~66 objects for large configs.
+- [Enhancement] Cache `CallbacksManager#call` values snapshot and invalidate on `add`/`delete` to avoid allocating a new Array on every invocation while preserving thread-safety snapshot semantics, saving 1 Array allocation per call.
+- [Enhancement] Store execution time separately in `Event` and build the merged payload hash lazily on `#payload` access, eliminating 1 Hash allocation per `Notifications#instrument` call when listeners use `#[]` access (the common pattern), yielding ~1.7x faster event dispatch.
+
 
 ## 2.5.10 (2026-03-02)
 - [Enhancement] Introduce `MinitestLocator` helper for minitest/spec subject class auto-discovery from test file paths.

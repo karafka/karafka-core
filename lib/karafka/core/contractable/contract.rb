@@ -99,6 +99,8 @@ module Karafka
             end
           end
 
+          return Result.success if errors.empty?
+
           Result.new(errors, self)
         end
 

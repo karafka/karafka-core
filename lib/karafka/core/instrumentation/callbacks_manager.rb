@@ -10,6 +10,7 @@ module Karafka
         # @return [::Karafka::Core::Instrumentation::CallbacksManager]
         def initialize
           @callbacks = {}
+          @values_cache = nil
         end
 
         # Invokes all the callbacks registered one after another
@@ -19,8 +20,10 @@ module Karafka
         #   callbacks and add new at the same time. Since we don't know when and in what thread
         #   things are going to be added to the manager, we need to extract values into an array and
         #   run it. That way we can add new things the same time.
+        #   The values snapshot is cached and invalidated on add/delete to avoid allocating a new
+        #   Array on every call while preserving the thread-safety snapshot semantics.
         def call(*args)
-          @callbacks.values.each { |callback| callback.call(*args) }
+          (@values_cache ||= @callbacks.values).each { |callback| callback.call(*args) }
         end
 
         # Adds a callback to the manager
@@ -29,12 +32,14 @@ module Karafka
         # @param callable [#call] object that responds to a `#call` method
         def add(id, callable)
           @callbacks[id] = callable
+          @values_cache = nil
         end
 
         # Removes the callback from the manager
         # @param id [String] id of the callback we want to remove
         def delete(id)
           @callbacks.delete(id)
+          @values_cache = nil
         end
       end
     end

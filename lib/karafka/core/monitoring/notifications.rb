@@ -139,8 +139,7 @@ module Karafka
             return
           end
 
-          final_payload = build_payload(payload, time)
-          event = Event.new(event_id, final_payload)
+          event = Event.new(event_id, payload, time)
 
           notify_listeners(@events_methods_map[event_id], event, assigned_listeners)
 
@@ -148,16 +147,6 @@ module Karafka
         end
 
         private
-
-        # Builds the final payload with time information if available
-        # @param payload [Hash] original payload
-        # @param time [Float, nil] execution time if block was given
-        # @return [Hash] final payload
-        def build_payload(payload, time)
-          return payload unless time
-
-          payload.empty? ? { time: time } : payload.merge(time: time)
-        end
 
         # Notifies all assigned listeners about the event
         # @param method_name [Symbol] pre-resolved method name for object listeners
