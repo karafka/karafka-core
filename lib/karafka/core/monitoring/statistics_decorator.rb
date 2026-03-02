@@ -34,8 +34,10 @@ module Karafka
           @previous_at = monotonic_now.round
           # Cache for memoized suffix keys to avoid repeated string allocations
           @suffix_keys_cache = {}
-          # Frozen hash for O(1) key exclusion lookup
-          @excluded_keys = excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
+          # Frozen hash for O(1) key exclusion lookup, nil when empty to avoid per-key
+          # lookups in the hot loop when no exclusions are configured
+          excluded = excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
+          @excluded_keys = excluded.empty? ? nil : excluded
         end
 
         # @param emited_stats [Hash] original emited statistics
@@ -87,7 +89,7 @@ module Karafka
           pw_size = pw_start
 
           current.each_pair do |key, value|
-            next if excluded.key?(key)
+            next if excluded&.key?(key)
 
             if value.is_a?(Hash)
               diff(filled_previous[key], value, pw, pw_size, change_d)
