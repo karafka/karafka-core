@@ -3,6 +3,7 @@
 ## 2.5.9 (Unreleased)
 - [Enhancement] Optimize `StatisticsDecorator` to eliminate per-hash Array allocations by using `each_pair` with a per-call pending-writes buffer instead of `current.keys.each`, reducing allocations from tens of thousands to one per call at scale.
 - [Enhancement] Inline `StatisticsDecorator#append` and `#suffix_keys_for` into `#diff` to reduce method call overhead by ~96% (from ~915k to ~39k calls at 6400 partitions).
+- [Enhancement] Support `excluded_keys` option in `StatisticsDecorator` to skip decoration of unused librdkafka statistics subtrees (e.g. broker toppars, window stats), yielding ~28% additional speedup at scale.
 
 ## 2.5.8 (2025-11-23)
 - [Enhancement] Memoize `StatisticsDecorator` suffix keys to reduce string allocations (#268).
