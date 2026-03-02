@@ -36,8 +36,9 @@ module Karafka
           @suffix_keys_cache = {}
           # Frozen hash for O(1) key exclusion lookup, nil when empty to avoid per-key
           # lookups in the hot loop when no exclusions are configured
-          excluded = excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
-          @excluded_keys = excluded.empty? ? nil : excluded
+          @excluded_keys = unless excluded_keys.empty?
+            excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
+          end
         end
 
         # @param emited_stats [Hash] original emited statistics
