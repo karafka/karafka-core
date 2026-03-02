@@ -27,13 +27,8 @@ module Karafka
           @previous = EMPTY_HASH
           # Operate on ms precision only
           @previous_at = monotonic_now.round
-          @current_at = @previous_at
           # Cache for memoized suffix keys to avoid repeated string allocations
           @suffix_keys_cache = {}
-          # Pre-allocated buffer for pending hash writes to avoid per-hash Array allocations
-          # that would otherwise be needed from `current.keys` when modifying hashes in-place
-          @pending_writes = []
-          @pw_size = 0
         end
 
         # @param emited_stats [Hash] original emited statistics
@@ -42,18 +37,19 @@ module Karafka
         #   any API to get raw data, users can just assume that the result of this decoration is
         #   the proper raw stats that they can use
         def call(emited_stats)
-          @current_at = monotonic_now.round
-
-          @change_d = @current_at - @previous_at
-          @pw_size = 0
+          current_at = monotonic_now.round
+          change_d = current_at - @previous_at
 
           diff(
             @previous,
-            emited_stats
+            emited_stats,
+            [],
+            0,
+            change_d
           )
 
           @previous = emited_stats
-          @previous_at = @current_at
+          @previous_at = current_at
 
           emited_stats.freeze
         end
@@ -63,65 +59,58 @@ module Karafka
         # Calculates the diff of the provided values, appends delta and freeze duration keys,
         # and modifies in place the emited statistics.
         #
-        # Uses `each_pair` with a reusable pending-writes buffer instead of `current.keys.each`
+        # Uses `each_pair` with a per-call pending-writes buffer instead of `current.keys.each`
         # to avoid allocating a new Array for every Hash node in the statistics tree. At scale
-        # (thousands of partitions), this eliminates tens of thousands of allocations per call.
+        # (thousands of partitions), this reduces allocations from tens of thousands to one per call.
         #
         # The append and suffix_keys_for logic is inlined to reduce method call overhead
         # (from ~915k method calls to ~39k at 6400 partitions).
         #
         # @param previous [Object] previous value from the given scope in which we are
         # @param current [Object] current scope from emitted statistics
-        # @return [Object] the diff if the values were numerics or the current scope
-        def diff(previous, current)
-          if current.is_a?(Hash)
-            filled_previous = previous || EMPTY_HASH
-            mark = @pw_size
-            cache = @suffix_keys_cache
-            change_d = @change_d
-            pw = @pending_writes
-            pw_size = mark
+        # @param pw [Array] pending writes buffer shared across recursive calls
+        # @param pw_start [Integer] starting offset in the buffer for this hash level
+        # @param change_d [Integer] time delta in ms since last stats emission
+        def diff(previous, current, pw, pw_start, change_d)
+          return unless current.is_a?(Hash)
 
-            current.each_pair do |key, value|
-              if value.is_a?(Hash)
-                # Sync instance variable before recursing so nested calls use correct offset
-                @pw_size = pw_size
-                diff(filled_previous[key], value)
-                next
-              end
+          filled_previous = previous || EMPTY_HASH
+          cache = @suffix_keys_cache
+          pw_size = pw_start
 
-              next unless value.is_a?(Numeric)
-
-              prev_value = filled_previous[key]
-
-              if prev_value.nil?
-                result = 0
-              elsif prev_value.is_a?(Numeric)
-                result = value - prev_value
-              else
-                next
-              end
-
-              # Inlined suffix_keys_for for reduced method call overhead
-              pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
-
-              pw[pw_size] = pair[0]
-              pw[pw_size + 1] = (result == 0) ? (filled_previous[pair[0]] || 0) + change_d : 0
-              pw[pw_size + 2] = pair[1]
-              pw[pw_size + 3] = result
-              pw_size += 4
+          current.each_pair do |key, value|
+            if value.is_a?(Hash)
+              diff(filled_previous[key], value, pw, pw_size, change_d)
+              next
             end
 
-            # Apply collected writes for this hash level
-            @pw_size = pw_size
-            i = mark
-            while i < pw_size
-              current[pw[i]] = pw[i + 1]
-              i += 2
+            next unless value.is_a?(Numeric)
+
+            prev_value = filled_previous[key]
+
+            if prev_value.nil?
+              result = 0
+            elsif prev_value.is_a?(Numeric)
+              result = value - prev_value
+            else
+              next
             end
 
-            # Rewind buffer so parent level can continue from its mark
-            @pw_size = mark
+            # Inlined suffix_keys_for for reduced method call overhead
+            pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
+
+            pw[pw_size] = pair[0]
+            pw[pw_size + 1] = (result == 0) ? (filled_previous[pair[0]] || 0) + change_d : 0
+            pw[pw_size + 2] = pair[1]
+            pw[pw_size + 3] = result
+            pw_size += 4
+          end
+
+          # Apply collected writes for this hash level
+          i = pw_start
+          while i < pw_size
+            current[pw[i]] = pw[i + 1]
+            i += 2
           end
         end
       end
