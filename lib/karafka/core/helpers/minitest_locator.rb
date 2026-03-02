@@ -6,8 +6,7 @@ module Karafka
       # Minitest/spec extension for the subject class auto-discovery.
       # It automatically detects the class name that should be described in the given test
       # based on the test file path.
-      # @example Just include it, extend with instantiation and use `describe_current`
-      #   instead of manually specifying the class
+      # @example Extend with instantiation and use `describe_current`
       #   extend Karafka::Core::Helpers::MinitestLocator.new(__FILE__)
       class MinitestLocator < Module
         # @param test_helper_file_path [String] path to the test_helper.rb file
