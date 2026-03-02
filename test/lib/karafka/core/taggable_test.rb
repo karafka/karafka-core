@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+describe_current do
   context "when operating on an instance basis" do
     subject(:tagged) { tagged_class.new }
 
@@ -11,8 +11,8 @@ RSpec.describe_current do
       end
     end
 
-    it { expect(tagged.tags.to_a).to be_empty }
-    it { expect(tagged.tags).not_to eq(other_tagged.tags) }
+    it { assert_empty tagged.tags.to_a }
+    it { refute_equal other_tagged.tags, tagged.tags }
   end
 
   context "when operating on a class basis" do
@@ -30,7 +30,7 @@ RSpec.describe_current do
       end
     end
 
-    it { expect(tagged.tags.to_a).to be_empty }
-    it { expect(tagged.tags).not_to eq(other_tagged.tags) }
+    it { assert_empty tagged.tags.to_a }
+    it { refute_equal other_tagged.tags, tagged.tags }
   end
 end

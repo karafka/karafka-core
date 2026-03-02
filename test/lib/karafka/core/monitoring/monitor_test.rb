@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+describe_current do
   subject(:monitor) do
     described_class.new(
       notifications_bus,
@@ -29,10 +29,10 @@ RSpec.describe_current do
       monitor.instrument("test") { 1 }
     end
 
-    it { expect(collected_data.size).to eq(1) }
-    it { expect(collected_data.first.id).to eq("test") }
-    it { expect(monitor.listeners.keys).to include("test") }
-    it { expect(monitor.listeners["test"]).to be_a(Array) }
+    it { assert_equal 1, collected_data.size }
+    it { assert_equal "test", collected_data.first.id }
+    it { assert_includes monitor.listeners.keys, "test" }
+    it { assert_kind_of Array, monitor.listeners["test"] }
   end
 
   context "when we do use a namespace" do
@@ -49,9 +49,9 @@ RSpec.describe_current do
       monitor.instrument("test") { 1 }
     end
 
-    it { expect(collected_data.size).to eq(1) }
-    it { expect(collected_data.first.id).to eq("test.namespace") }
-    it { expect(monitor.listeners.keys).to include("test") }
+    it { assert_equal 1, collected_data.size }
+    it { assert_equal "test.namespace", collected_data.first.id }
+    it { assert_includes monitor.listeners.keys, "test" }
   end
 
   describe "#unsubscribe" do
@@ -71,13 +71,15 @@ RSpec.describe_current do
       it "expect to remove the listener from the event" do
         monitor.unsubscribe(block_listener)
         monitor.instrument("test") { 1 }
-        expect(collected_data).to be_empty
+
+        assert_empty collected_data
       end
 
       it "expect to remove the listener from the notifications bus listeners" do
-        expect(monitor.listeners["test"]).to include(block_listener)
+        assert_includes monitor.listeners["test"], block_listener
         monitor.unsubscribe(block_listener)
-        expect(monitor.listeners["test"]).not_to include(block_listener)
+
+        refute_includes monitor.listeners["test"], block_listener
       end
     end
 
@@ -97,13 +99,15 @@ RSpec.describe_current do
       it "expect to remove the listener from the namespaced event" do
         monitor.unsubscribe(block_listener)
         monitor.instrument("test") { 1 }
-        expect(collected_data).to be_empty
+
+        assert_empty collected_data
       end
 
       it "expect to remove the listener from the notifications bus listeners" do
-        expect(monitor.listeners["test.namespace"]).to include(block_listener)
+        assert_includes monitor.listeners["test.namespace"], block_listener
         monitor.unsubscribe(block_listener)
-        expect(monitor.listeners["test.namespace"]).not_to include(block_listener)
+
+        refute_includes monitor.listeners["test.namespace"], block_listener
       end
     end
 
@@ -132,13 +136,15 @@ RSpec.describe_current do
       it "expect to remove the object listener" do
         monitor.unsubscribe(listener)
         monitor.instrument("test") { 1 }
-        expect(listener.accu).to be_empty
+
+        assert_empty listener.accu
       end
 
       it "expect to remove the listener from the notifications bus listeners" do
-        expect(monitor.listeners["test"]).to include(listener)
+        assert_includes monitor.listeners["test"], listener
         monitor.unsubscribe(listener)
-        expect(monitor.listeners["test"]).not_to include(listener)
+
+        refute_includes monitor.listeners["test"], listener
       end
     end
 
@@ -149,7 +155,7 @@ RSpec.describe_current do
       end
 
       it "expect not to raise any errors" do
-        expect { monitor.unsubscribe(unsubscribed_listener) }.not_to raise_error
+        monitor.unsubscribe(unsubscribed_listener)
       end
     end
 
@@ -180,15 +186,17 @@ RSpec.describe_current do
         monitor.unsubscribe(first_listener_added)
         monitor.instrument("test") { 1 }
 
-        expect(first_collected).to be_empty
-        expect(second_collected).not_to be_empty
+        assert_empty first_collected
+        refute_empty second_collected
       end
 
       it "expect to keep the other listener in the listeners hash" do
-        expect(monitor.listeners["test"]).to include(first_listener, second_listener)
+        assert_includes monitor.listeners["test"], first_listener
+        assert_includes monitor.listeners["test"], second_listener
         monitor.unsubscribe(first_listener_added)
-        expect(monitor.listeners["test"].include?(first_listener_added)).to be(false)
-        expect(monitor.listeners["test"]).to include(second_listener)
+
+        refute_includes monitor.listeners["test"], first_listener_added
+        assert_includes monitor.listeners["test"], second_listener
       end
     end
 
@@ -221,7 +229,8 @@ RSpec.describe_current do
         monitor.unsubscribe(multi_event_listener)
         monitor.instrument("test") { 1 }
         monitor.instrument("test.namespace") { 1 }
-        expect(multi_event_listener.accu).to be_empty
+
+        assert_empty multi_event_listener.accu
       end
     end
   end

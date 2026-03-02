@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+describe_current do
   subject(:manager) { described_class.new }
 
   let(:id) { SecureRandom.uuid }
@@ -8,7 +8,7 @@ RSpec.describe_current do
 
   describe "#call" do
     context "when there are no callbacks added" do
-      it { expect { manager.call }.not_to raise_error }
+      it { manager.call }
     end
 
     context "when there are callbacks added" do
@@ -23,7 +23,8 @@ RSpec.describe_current do
 
       it "expect to run each of them and pass the args" do
         manager.call(*start)
-        expect(changed).to eq([start[0] + 1, start[1] + 2, start[2] + 3])
+
+        assert_equal [start[0] + 1, start[1] + 2, start[2] + 3], changed
       end
     end
   end
@@ -32,7 +33,8 @@ RSpec.describe_current do
     it "expect after adding to be used" do
       manager.add(id, -> { changed << true })
       manager.call
-      expect(changed).to eq([true])
+
+      assert_equal [true], changed
     end
 
     context "when we are adding a callback but at the same time, we call callbacks" do
@@ -53,7 +55,7 @@ RSpec.describe_current do
         sleep(0.001) while changed.empty?
       end
 
-      it { expect { manager.add(added_id, callable) }.not_to raise_error }
+      it { manager.add(added_id, callable) }
 
       it "expect to register the new callback" do
         manager.delete(id)
@@ -61,7 +63,7 @@ RSpec.describe_current do
 
         manager.call
 
-        expect(changed).to eq([true, true])
+        assert_equal [true, true], changed
       end
     end
   end
@@ -72,7 +74,8 @@ RSpec.describe_current do
     it "expect after removal not to be used" do
       manager.delete(id)
       manager.call
-      expect(changed).to be_empty
+
+      assert_empty changed
     end
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+describe_current do
   subject(:notifications) { described_class.new }
 
   let(:event_name) { "message.produced_async" }
@@ -19,13 +19,13 @@ RSpec.describe_current do
     end
 
     it "expect to return blocks execution value" do
-      expect(instrumentation).to eq result
+      assert_equal result, instrumentation
     end
 
     context "when we want to instrument event that was not registered" do
       it "expect to raise error" do
         expected_error = event_not_registered_error
-        expect { notifications.instrument("na") }.to raise_error(expected_error)
+        assert_raises(expected_error) { notifications.instrument("na") }
       end
     end
   end
@@ -37,14 +37,14 @@ RSpec.describe_current do
       context "when we try to subscribe to an unsupported event" do
         it "expect to raise error" do
           expected_error = event_not_registered_error
-          expect { notifications.subscribe("na") { |_event| nil } }.to raise_error expected_error
+          assert_raises(expected_error) { notifications.subscribe("na") { |_event| nil } }
         end
       end
 
       context "when we try to subscribe to a supported event" do
         let(:event_name) { "message.produced_async" }
 
-        it { expect { subscription }.not_to raise_error }
+        it { subscription }
       end
     end
 
@@ -58,7 +58,7 @@ RSpec.describe_current do
         end
       end
 
-      it { expect { subscription }.not_to raise_error }
+      it { subscription }
     end
   end
 
@@ -78,7 +78,8 @@ RSpec.describe_current do
       it "expect to remove the block from the event" do
         notifications.unsubscribe(block_listener)
         notifications.instrument(event_name)
-        expect(tracked).to be_empty
+
+        assert_empty tracked
       end
 
       context "when the same block is subscribed to multiple events" do
@@ -93,7 +94,8 @@ RSpec.describe_current do
           notifications.unsubscribe(block_listener)
           notifications.instrument(event_name)
           notifications.instrument(second_event)
-          expect(tracked).to be_empty
+
+          assert_empty tracked
         end
       end
     end
@@ -126,7 +128,8 @@ RSpec.describe_current do
       it "expect to remove the listener from the event" do
         notifications.unsubscribe(listener)
         notifications.instrument(event_name)
-        expect(listener.accu).to be_empty
+
+        assert_empty listener.accu
       end
 
       context "when the listener is subscribed to multiple events" do
@@ -141,7 +144,8 @@ RSpec.describe_current do
           notifications.unsubscribe(listener)
           notifications.instrument(event_name)
           notifications.instrument(second_event)
-          expect(listener.accu).to be_empty
+
+          assert_empty listener.accu
         end
       end
     end
@@ -156,7 +160,7 @@ RSpec.describe_current do
       end
 
       it "expect not to raise any errors" do
-        expect { notifications.unsubscribe(unsubscribed_listener) }.not_to raise_error
+        notifications.unsubscribe(unsubscribed_listener)
       end
     end
 
@@ -181,14 +185,14 @@ RSpec.describe_current do
         notifications.unsubscribe(first_listener)
         notifications.instrument(event_name)
 
-        expect(tracked_first).to be_empty
-        expect(tracked_second).not_to be_empty
+        assert_empty tracked_first
+        refute_empty tracked_second
       end
     end
   end
 
   describe "#available_events" do
-    it { expect(notifications.available_events).to eq([event_name]) }
+    it { assert_equal [event_name], notifications.available_events }
   end
 
   describe "#clear" do
@@ -206,7 +210,7 @@ RSpec.describe_current do
 
       before do
         notifications.register_event("some-other-event")
-        notifications.subscribe(event_name) { instrumented.push(1) } # it's fine
+        notifications.subscribe(event_name) { instrumented.push(1) }
         notifications.subscribe("some-other-event") { instrumented.push(2) }
       end
 
@@ -214,14 +218,16 @@ RSpec.describe_current do
         notifications.clear("some-other-event")
         notifications.instrument(event_name)
         notifications.instrument("some-other-event")
-        expect(instrumented).to eq([1])
+
+        assert_equal [1], instrumented
       end
     end
 
     describe "clearing non-existing event" do
       it "expect to raise an error" do
-        expect { notifications.clear("some-nonexistent-event") }
-          .to raise_error(event_not_registered_error)
+        assert_raises(event_not_registered_error) {
+          notifications.clear("some-nonexistent-event")
+        }
       end
     end
   end
@@ -238,7 +244,7 @@ RSpec.describe_current do
         notifications.instrument(event_name)
       end
 
-      it { expect(tracked[0].id).to eq(event_name) }
+      it { assert_equal event_name, tracked[0].id }
     end
 
     context "when we subscribe with a class listener" do
@@ -263,7 +269,7 @@ RSpec.describe_current do
         notifications.instrument(event_name)
       end
 
-      it { expect(listener.accu[0].id).to eq(event_name) }
+      it { assert_equal event_name, listener.accu[0].id }
     end
   end
 end
