@@ -1,0 +1,101 @@
+# frozen_string_literal: true
+
+module Karafka
+  module Core
+    module Helpers
+      # Minitest/spec extension for the subject class auto-discovery.
+      # It automatically detects the class name that should be described in the given test
+      # based on the test file path.
+      # @example Extend with instantiation and use `describe_current`
+      #   extend Karafka::Core::Helpers::MinitestLocator.new(__FILE__)
+      class MinitestLocator < Module
+        # @param test_helper_file_path [String] path to the test_helper.rb file
+        # @param inflections [Hash{String => String}] optional inflections map
+        def initialize(test_helper_file_path, inflections = {})
+          super()
+          @inflections = inflections
+          @tests_root_dir = ::File.dirname(test_helper_file_path)
+        end
+
+        # Builds needed API
+        # @param minitest_module [Module] module or main object to extend
+        def extended(minitest_module)
+          super
+          this = self
+          # Allows "auto subject" definitions for the `describe` method, as it will figure
+          # out the proper class that we want to describe
+          # @param block [Proc] block with tests
+          minitest_module.define_singleton_method :describe_current do |&block|
+            describe(this.inherited, &block)
+          end
+        end
+
+        # @return [Class] class name for the minitest `describe` method
+        def inherited
+          caller(2..2)
+            .first
+            .split(":")
+            .first
+            .gsub(@tests_root_dir, "")
+            .gsub("_test.rb", "")
+            .split("/")
+            .delete_if(&:empty?)
+            .itself[1..]
+            .join("/")
+            .then { |path| custom_camelize(path) }
+            .then { |string| transform_inflections(string) }
+            .then { |class_name| custom_constantize(class_name) }
+        end
+
+        private
+
+        # @param string [String] string we want to cast
+        # @return [String] string after inflections
+        def transform_inflections(string)
+          string = string.dup
+          @inflections.each { |from, to| string.gsub!(from, to) }
+          string
+        end
+
+        # Custom implementation of camelize without ActiveSupport
+        # @param string [String] underscored string to convert to CamelCase
+        # @return [String] camel-case string
+        def custom_camelize(string)
+          # First, replace slashes with :: for proper namespacing
+          string = string.gsub("/", "::")
+
+          # Then camelize each segment
+          string.gsub(/(?:^|_|::)([a-z])/) do |match|
+            # If it's a namespace separator, keep it and uppercase the following letter
+            if match.include?("::")
+              "::#{match[-1].upcase}"
+            else
+              match[-1].upcase
+            end
+          end
+        end
+
+        # Custom implementation of constantize without ActiveSupport
+        # @param string [String] string representing a constant name
+        # @return [Class, Module] the constant
+        def custom_constantize(string)
+          names = string.split("::")
+          constant = Object
+          regexp = /^[A-Z][a-zA-Z0-9_]*$/
+
+          names.each do |name|
+            # Make sure we're dealing with a valid constant name
+            raise NameError, "#{name} is not a valid constant name!" unless name.match?(regexp)
+
+            # Get the constant from its parent
+            constant = constant.const_get(name)
+          end
+
+          constant
+        rescue NameError => e
+          raise NameError, "Uninitialized constant #{string}: #{e.message}"
+        end
+      end
+    end
+  end
+end
