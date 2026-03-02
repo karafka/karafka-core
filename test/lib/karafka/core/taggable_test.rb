@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 describe_current do
   context "when operating on an instance basis" do
     subject(:tagged) { tagged_class.new }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 describe_current do
   subject(:event) { described_class.new(id, payload) }
 

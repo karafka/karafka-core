@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 describe_current do
   subject(:contract_class) do
     Class.new(Karafka::Core::Contractable::Contract) do

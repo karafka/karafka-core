@@ -13,7 +13,7 @@ def describe_current(&block)
     .split(":")
     .first
     .gsub(TESTS_ROOT_DIR, "")
-    .gsub("_spec.rb", "")
+    .gsub("_test.rb", "")
     .split("/")
     .delete_if(&:empty?)
     .itself[1..]

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 describe_current do
   context "when we define settings on a class level" do
     subject(:configurable_class) do

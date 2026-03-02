@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "test_helper"
-
 describe_current do
   subject(:producer) do
     config = { "bootstrap.servers": "localhost:10092" }

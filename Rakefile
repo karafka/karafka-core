@@ -10,7 +10,7 @@ Minitest::TestTask.create(:test) do |t|
   t.libs << "lib"
   t.warning = false
   t.test_prelude = 'require "test_helper"'
-  t.test_globs = ["test/**/*_spec.rb"]
+  t.test_globs = ["test/**/*_test.rb"]
 end
 
 task default: :test
