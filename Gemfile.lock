@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    karafka-core (2.5.10)
+    karafka-core (2.5.11)
       karafka-rdkafka (>= 0.20.0)
       logger (>= 1.6.0)
 

@@ -183,15 +183,34 @@ module Karafka
         # @param keys [Array<Symbol>]
         # @return [DIG_MISS, Object] found element or DIGG_MISS indicating that not found
         def dig(data, keys)
-          current = data
+          case keys.length
+          when 1
+            key = keys[0]
 
-          keys.each do |nesting|
-            return DIG_MISS unless current.key?(nesting)
+            return DIG_MISS unless data.key?(key)
 
-            current = current[nesting]
+            data[key]
+          when 2
+            key1 = keys[0]
+
+            return DIG_MISS unless data.key?(key1)
+
+            mid = data[key1]
+
+            return DIG_MISS unless mid.is_a?(Hash) && mid.key?(keys[1])
+
+            mid[keys[1]]
+          else
+            current = data
+
+            keys.each do |nesting|
+              return DIG_MISS unless current.key?(nesting)
+
+              current = current[nesting]
+            end
+
+            current
           end
-
-          current
         end
       end
     end
