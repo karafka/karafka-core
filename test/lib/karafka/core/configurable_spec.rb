@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+require "test_helper"
+
+describe_current do
   context "when we define settings on a class level" do
     subject(:configurable_class) do
       Class.new do
@@ -27,19 +29,19 @@ RSpec.describe_current do
     context "when we want to inject more settings into it" do
       before { configurable_class.config.setting(:testme, default: 7) }
 
-      it { expect(configurable_class.config.testme).to eq(7) }
+      it { assert_equal 7, configurable_class.config.testme }
     end
 
     context "when we do not override any settings" do
       before { configurable_class.configure }
 
-      it { expect(config.with_default).to eq(123) }
-      it { expect(config.nested1.nested2.name).to eq("name") }
-      it { expect(config.nested1.nested2.leaf).to eq(6) }
-      it { expect(config.nested1.nested1).to eq(1) }
-      it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
-      it { expect(config.nested1.nested2.with_zero_constructor).to eq(7) }
+      it { assert_equal 123, config.with_default }
+      it { assert_equal "name", config.nested1.nested2.name }
+      it { assert_equal 6, config.nested1.nested2.leaf }
+      it { assert_equal 1, config.nested1.nested1 }
+      it { assert_equal 5, config.nested1.nested2.with_constructor }
+      it { assert config.nested1.nested2.ov_constructor }
+      it { assert_equal 7, config.nested1.nested2.with_zero_constructor }
     end
 
     context "when we do override some settings" do
@@ -50,11 +52,11 @@ RSpec.describe_current do
         end
       end
 
-      it { expect(config.with_default).to eq(7) }
-      it { expect(config.nested1.nested2.leaf).to eq(8) }
-      it { expect(config.nested1.nested1).to eq(1) }
-      it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
+      it { assert_equal 7, config.with_default }
+      it { assert_equal 8, config.nested1.nested2.leaf }
+      it { assert_equal 1, config.nested1.nested1 }
+      it { assert_equal 5, config.nested1.nested2.with_constructor }
+      it { assert config.nested1.nested2.ov_constructor }
     end
 
     context "when we inherit and alter settings" do
@@ -71,18 +73,18 @@ RSpec.describe_current do
         configurable_sub.configure
       end
 
-      it { expect { config.extra }.to raise_error(NoMethodError) }
-      it { expect(config_sub.extra).to eq(0) }
-      it { expect(config.with_default).to eq(123) }
-      it { expect(config.nested1.nested2.leaf).to eq(6) }
-      it { expect(config.nested1.nested1).to eq(1) }
-      it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
-      it { expect(config_sub.with_default).to eq(123) }
-      it { expect(config_sub.nested1.nested2.leaf).to eq(6) }
-      it { expect(config_sub.nested1.nested1).to eq(1) }
-      it { expect(config_sub.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config_sub.nested1.nested2.ov_constructor).to be(true) }
+      it { assert_raises(NoMethodError) { config.extra } }
+      it { assert_equal 0, config_sub.extra }
+      it { assert_equal 123, config.with_default }
+      it { assert_equal 6, config.nested1.nested2.leaf }
+      it { assert_equal 1, config.nested1.nested1 }
+      it { assert_equal 5, config.nested1.nested2.with_constructor }
+      it { assert config.nested1.nested2.ov_constructor }
+      it { assert_equal 123, config_sub.with_default }
+      it { assert_equal 6, config_sub.nested1.nested2.leaf }
+      it { assert_equal 1, config_sub.nested1.nested1 }
+      it { assert_equal 5, config_sub.nested1.nested2.with_constructor }
+      it { assert config_sub.nested1.nested2.ov_constructor }
     end
 
     context "when we inherit and change values" do
@@ -102,8 +104,8 @@ RSpec.describe_current do
         end
       end
 
-      it { expect(config.with_default).to eq(123) }
-      it { expect(config_sub.with_default).to eq(0) }
+      it { assert_equal 123, config.with_default }
+      it { assert_equal 0, config_sub.with_default }
     end
 
     context "when we run configuration once again" do
@@ -113,7 +115,7 @@ RSpec.describe_current do
       end
 
       it "expect not to update values that are set" do
-        expect(config.with_default).to eq(555)
+        assert_equal 555, config.with_default
       end
     end
 
@@ -137,7 +139,7 @@ RSpec.describe_current do
       before { config.configure }
 
       it "expect to map with correct values" do
-        expect(config.to_h).to eq(expected_hash)
+        assert_equal expected_hash, config.to_h
       end
 
       context "when casting with a dynamic attribute" do
@@ -164,7 +166,7 @@ RSpec.describe_current do
         let(:configurable) { configurable_class.new }
         let(:config) { configurable.config }
 
-        it { expect(config.to_h).to eq(expected_hash) }
+        it { assert_equal expected_hash, config.to_h }
       end
     end
 
@@ -185,10 +187,10 @@ RSpec.describe_current do
         end
       end
 
-      it { expect(configurable_class.config.superscope.additional).to eq(7) }
+      it { assert_equal 7, configurable_class.config.superscope.additional }
 
       it "expect to build correct hash when casted" do
-        expect(configurable_class.config.to_h[:superscope][:additional]).to eq(7)
+        assert_equal 7, configurable_class.config.to_h[:superscope][:additional]
       end
     end
 
@@ -215,13 +217,13 @@ RSpec.describe_current do
       context "when default is not false nor nil" do
         let(:default) { 100 }
 
-        it { expect(config.lazy_setting).to eq(100) }
+        it { assert_equal 100, config.lazy_setting }
       end
 
       context "when default is false" do
         let(:default) { false }
 
-        it { expect(config.lazy_setting).to eq(1) }
+        it { assert_equal 1, config.lazy_setting }
       end
 
       context "when default is false and value is false for some time" do
@@ -230,9 +232,9 @@ RSpec.describe_current do
         let(:constructor) { ->(default) { default || attempts.pop } }
 
         it "expect to retry until non-false is present and then cache it" do
-          3.times { expect(config.lazy_setting).to be(false) }
-          expect(config.lazy_setting).to eq(10)
-          expect(config.lazy_setting).to eq(10)
+          3.times { refute config.lazy_setting }
+          assert_equal 10, config.lazy_setting
+          assert_equal 10, config.lazy_setting
         end
       end
 
@@ -255,9 +257,9 @@ RSpec.describe_current do
         let(:constructor) { -> { attempts.pop } }
 
         it "expect to retry until non-false is present and then cache it" do
-          3.times { expect(config.lazy_setting).to be(false) }
-          expect(config.lazy_setting).to eq(10)
-          expect(config.lazy_setting).to eq(10)
+          3.times { refute config.lazy_setting }
+          assert_equal 10, config.lazy_setting
+          assert_equal 10, config.lazy_setting
         end
       end
 
@@ -271,7 +273,7 @@ RSpec.describe_current do
           end
         end
 
-        it { expect(config.lazy_setting).to eq(20) }
+        it { assert_equal 20, config.lazy_setting }
       end
     end
   end
@@ -301,11 +303,11 @@ RSpec.describe_current do
     context "when we do not override any settings" do
       before { configurable.configure }
 
-      it { expect(config.with_default).to eq(123) }
-      it { expect(config.nested1.nested2.leaf).to eq(6) }
-      it { expect(config.nested1.nested1).to eq(1) }
-      it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
+      it { assert_equal 123, config.with_default }
+      it { assert_equal 6, config.nested1.nested2.leaf }
+      it { assert_equal 1, config.nested1.nested1 }
+      it { assert_equal 5, config.nested1.nested2.with_constructor }
+      it { assert config.nested1.nested2.ov_constructor }
     end
 
     context "when we have two instances" do
@@ -320,8 +322,8 @@ RSpec.describe_current do
         end
       end
 
-      it { expect(config.nested1.nested2.leaf).to eq(6) }
-      it { expect(config2.nested1.nested2.leaf).to eq(100) }
+      it { assert_equal 6, config.nested1.nested2.leaf }
+      it { assert_equal 100, config2.nested1.nested2.leaf }
     end
 
     context "when we do override some settings" do
@@ -332,11 +334,11 @@ RSpec.describe_current do
         end
       end
 
-      it { expect(config.with_default).to eq(7) }
-      it { expect(config.nested1.nested2.leaf).to eq(8) }
-      it { expect(config.nested1.nested1).to eq(1) }
-      it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
+      it { assert_equal 7, config.with_default }
+      it { assert_equal 8, config.nested1.nested2.leaf }
+      it { assert_equal 1, config.nested1.nested1 }
+      it { assert_equal 5, config.nested1.nested2.with_constructor }
+      it { assert config.nested1.nested2.ov_constructor }
     end
 
     context "when we inherit and alter settings" do
@@ -353,18 +355,18 @@ RSpec.describe_current do
         configurable_sub.configure
       end
 
-      it { expect { config.extra }.to raise_error(NoMethodError) }
-      it { expect(config_sub.extra).to eq(0) }
-      it { expect(config.with_default).to eq(123) }
-      it { expect(config.nested1.nested2.leaf).to eq(6) }
-      it { expect(config.nested1.nested1).to eq(1) }
-      it { expect(config.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config.nested1.nested2.ov_constructor).to be(true) }
-      it { expect(config_sub.with_default).to eq(123) }
-      it { expect(config_sub.nested1.nested2.leaf).to eq(6) }
-      it { expect(config_sub.nested1.nested1).to eq(1) }
-      it { expect(config_sub.nested1.nested2.with_constructor).to eq(5) }
-      it { expect(config_sub.nested1.nested2.ov_constructor).to be(true) }
+      it { assert_raises(NoMethodError) { config.extra } }
+      it { assert_equal 0, config_sub.extra }
+      it { assert_equal 123, config.with_default }
+      it { assert_equal 6, config.nested1.nested2.leaf }
+      it { assert_equal 1, config.nested1.nested1 }
+      it { assert_equal 5, config.nested1.nested2.with_constructor }
+      it { assert config.nested1.nested2.ov_constructor }
+      it { assert_equal 123, config_sub.with_default }
+      it { assert_equal 6, config_sub.nested1.nested2.leaf }
+      it { assert_equal 1, config_sub.nested1.nested1 }
+      it { assert_equal 5, config_sub.nested1.nested2.with_constructor }
+      it { assert config_sub.nested1.nested2.ov_constructor }
     end
 
     context "when we inherit and change values" do
@@ -384,8 +386,8 @@ RSpec.describe_current do
         end
       end
 
-      it { expect(config.with_default).to eq(123) }
-      it { expect(config_sub.with_default).to eq(0) }
+      it { assert_equal 123, config.with_default }
+      it { assert_equal 0, config_sub.with_default }
     end
 
     # https://github.com/karafka/karafka-core/issues/1
@@ -441,13 +443,13 @@ RSpec.describe_current do
       context "when default is not false nor nil" do
         let(:default) { 100 }
 
-        it { expect(config.lazy_setting).to eq(100) }
+        it { assert_equal 100, config.lazy_setting }
       end
 
       context "when default is false" do
         let(:default) { false }
 
-        it { expect(config.lazy_setting).to eq(1) }
+        it { assert_equal 1, config.lazy_setting }
       end
 
       context "when default is false and value is false for some time" do
@@ -456,9 +458,9 @@ RSpec.describe_current do
         let(:constructor) { ->(default) { default || attempts.pop } }
 
         it "expect to retry until non-false is present and then cache it" do
-          3.times { expect(config.lazy_setting).to be(false) }
-          expect(config.lazy_setting).to eq(10)
-          expect(config.lazy_setting).to eq(10)
+          3.times { refute config.lazy_setting }
+          assert_equal 10, config.lazy_setting
+          assert_equal 10, config.lazy_setting
         end
       end
     end
@@ -498,7 +500,7 @@ RSpec.describe_current do
     let(:config) { configurable.config }
 
     it "expect not to raise because it should redefine" do
-      expect(config.logger).to eq(123)
+      assert_equal 123, config.logger
     end
   end
 end

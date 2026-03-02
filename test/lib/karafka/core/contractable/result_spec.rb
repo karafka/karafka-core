@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+require "test_helper"
+
+describe_current do
   subject(:contract_class) do
     Class.new(Karafka::Core::Contractable::Contract) do
       configure do |config|
@@ -22,11 +24,11 @@ RSpec.describe_current do
     let(:result) { contract.call(data) }
 
     it "returns success" do
-      expect(result.success?).to be true
+      assert_predicate result, :success?
     end
 
     it "has no errors" do
-      expect(result.errors).to be_empty
+      assert_empty result.errors
     end
   end
 
@@ -35,13 +37,13 @@ RSpec.describe_current do
     let(:result) { contract.call(data) }
 
     it "does not return success" do
-      expect(result.success?).to be false
+      refute_predicate result, :success?
     end
 
     it "maps errors to messages" do
-      expect(result.errors).to eq(
-        id: "needs to be a String",
-        test: "needs to be 5"
+      assert_equal(
+        { id: "needs to be a String", test: "needs to be 5" },
+        result.errors
       )
     end
   end
@@ -65,12 +67,13 @@ RSpec.describe_current do
     let(:result) { contract.call(data) }
 
     it "does not return success" do
-      expect(result.success?).to be false
+      refute_predicate result, :success?
     end
 
     it "maps nested errors to messages with dot notation" do
-      expect(result.errors).to eq(
-        "details.id": "needs to be a String"
+      assert_equal(
+        { "details.id": "needs to be a String" },
+        result.errors
       )
     end
   end
@@ -92,12 +95,13 @@ RSpec.describe_current do
     let(:result) { contract.call(data) }
 
     it "does not return success" do
-      expect(result.success?).to be false
+      refute_predicate result, :success?
     end
 
     it "falls back to a generic error message" do
-      expect(result.errors).to eq(
-        id: "needs to be a String"
+      assert_equal(
+        { id: "needs to be a String" },
+        result.errors
       )
     end
   end

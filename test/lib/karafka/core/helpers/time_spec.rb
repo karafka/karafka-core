@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+require "test_helper"
+
+describe_current do
   let(:timed) do
     current = described_class
 
@@ -13,7 +15,8 @@ RSpec.describe_current do
     it "expect to return monotonic in ms" do
       pre = timed.monotonic_now
       sleep(0.5)
-      expect(timed.monotonic_now - pre).to be_within(500).of(500)
+
+      assert_in_delta 500, timed.monotonic_now - pre, 500
     end
   end
 
@@ -21,7 +24,8 @@ RSpec.describe_current do
     it "expect to return float time in ms" do
       pre = timed.float_now
       sleep(0.5)
-      expect(timed.float_now - pre).to be_within(500).of(500)
+
+      assert_in_delta 500, timed.float_now - pre, 500
     end
   end
 end

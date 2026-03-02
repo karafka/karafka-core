@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+require "test_helper"
+
+describe_current do
   subject(:validator_class) do
     Class.new(described_class) do
       configure do |config|
@@ -22,37 +24,37 @@ RSpec.describe_current do
     context "when data is valid" do
       let(:data) { { id: "1" } }
 
-      it { expect { validation }.not_to raise_error }
+      it { validation }
     end
 
     context "when data is not valid" do
       let(:data) { { id: 1 } }
 
-      it { expect { validation }.to raise_error(ArgumentError) }
+      it { assert_raises(ArgumentError) { validation } }
     end
 
     context "when optional data is not valid" do
       let(:data) { { id: 1, test: Time.now } }
 
-      it { expect { validation }.to raise_error(ArgumentError) }
+      it { assert_raises(ArgumentError) { validation } }
     end
 
     context "when optional name is not valid" do
       let(:data) { { id: 1, name: Time.now } }
 
-      it { expect { validation }.to raise_error(ArgumentError) }
+      it { assert_raises(ArgumentError) { validation } }
     end
 
     context "when optional name is valid" do
       let(:data) { { id: "1", name: "name" } }
 
-      it { expect { validation }.not_to raise_error }
+      it { validation }
     end
 
     context "when optional data is valid" do
       let(:data) { { id: 1, test: nil } }
 
-      it { expect { validation }.to raise_error(ArgumentError) }
+      it { assert_raises(ArgumentError) { validation } }
     end
 
     context "when validating with extra scope details" do
@@ -63,37 +65,37 @@ RSpec.describe_current do
       context "when data is valid" do
         let(:data) { { id: "1" } }
 
-        it { expect { validation }.not_to raise_error }
+        it { validation }
       end
 
       context "when data is not valid" do
         let(:data) { { id: 1 } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
 
       context "when optional data is not valid" do
         let(:data) { { id: 1, test: Time.now } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
 
       context "when optional name is not valid" do
         let(:data) { { id: 1, name: Time.now } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
 
       context "when optional name is valid" do
         let(:data) { { id: "1", name: "name" } }
 
-        it { expect { validation }.not_to raise_error }
+        it { validation }
       end
 
       context "when optional data is valid" do
         let(:data) { { id: 1, test: nil } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
     end
 
@@ -112,7 +114,7 @@ RSpec.describe_current do
 
       let(:data) { { na_id: 1 } }
 
-      it { expect { validation }.to raise_error(KeyError) }
+      it { assert_raises(KeyError) { validation } }
     end
   end
 
@@ -127,14 +129,14 @@ RSpec.describe_current do
       context "when data is valid" do
         let(:data) { { id: "1" } }
 
-        it { expect(validation.errors).to eq({}) }
+        it { assert_equal({}, validation.errors) }
       end
 
       context "when data is not valid" do
         let(:data) { { id: 1 } }
 
         it "expect to have the path key nested with the scope" do
-          expect(validation.errors.keys).to include(:"#{scope.join(".")}.id")
+          assert_includes validation.errors.keys, :"#{scope.join(".")}.id"
         end
       end
     end
@@ -162,25 +164,25 @@ RSpec.describe_current do
       context "when data is valid without optional" do
         let(:data) { { nested: { id: "1" } } }
 
-        it { expect { validation }.not_to raise_error }
+        it { validation }
       end
 
       context "when data is valid with optional" do
         let(:data) { { nested: { id: "1", id2: "2" } } }
 
-        it { expect { validation }.not_to raise_error }
+        it { validation }
       end
 
       context "when data is not valid with invalid optional" do
         let(:data) { { nested: { id: "1", id2: 2 } } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
 
       context "when data is not valid" do
         let(:data) { { id: 1 } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
     end
   end
@@ -199,7 +201,7 @@ RSpec.describe_current do
     context "when data is valid without optional" do
       let(:data) { { nested: { id: "1" } } }
 
-      it { expect { validation }.to raise_error(ArgumentError) }
+      it { assert_raises(ArgumentError) { validation } }
     end
   end
 
@@ -228,13 +230,13 @@ RSpec.describe_current do
       context "when data is valid" do
         let(:data) { { a: { b: { c: { id: "1" } } } } }
 
-        it { expect { validation }.not_to raise_error }
+        it { validation }
       end
 
       context "when data is not valid" do
         let(:data) { { id: 1 } }
 
-        it { expect { validation }.to raise_error(ArgumentError) }
+        it { assert_raises(ArgumentError) { validation } }
       end
     end
   end

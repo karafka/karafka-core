@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-RSpec.describe_current do
+require "test_helper"
+
+describe_current do
   subject(:producer) do
     config = { "bootstrap.servers": "localhost:10092" }
     Rdkafka::Config.new(config).producer
@@ -18,8 +20,8 @@ RSpec.describe_current do
       producer.produce(topic: "test", payload: "1")
       sleep(0.01) while errors.empty?
 
-      expect(errors.first.first).to include("rdkafka#producer")
-      expect(errors.first.last.code).to eq(:transport)
+      assert_includes errors.first.first, "rdkafka#producer"
+      assert_equal :transport, errors.first.last.code
     end
   end
 end

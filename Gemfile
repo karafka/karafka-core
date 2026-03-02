@@ -6,7 +6,7 @@ gemspec
 
 group :test do
   gem "byebug"
-  gem "rspec"
+  gem "minitest"
   gem "simplecov"
   gem "warning"
 end

@@ -31,7 +31,7 @@ SimpleCov.start do
   add_filter "/gems/"
   add_filter "/.bundle/"
   add_filter "/doc/"
-  add_filter "/spec/"
+  add_filter "/test/"
   add_filter "/config/"
   add_filter "/patches/"
   merge_timeout 600
@@ -39,18 +39,17 @@ end
 
 SimpleCov.minimum_coverage(98.8)
 
+require "minitest/autorun"
+require "minitest/spec"
+
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"]
   .each { |f| require f }
 
-RSpec.configure do |config|
-  config.disable_monkey_patching!
-  config.order = :random
+require "karafka-core"
 
-  config.expect_with :rspec do |expectations|
-    expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+# Allow `context` as an alias for `describe` in minitest/spec
+Minitest::Spec.class_eval do
+  class << self
+    alias_method :context, :describe
   end
 end
-
-require "karafka-core"
-require "karafka/core/helpers/rspec_locator"
-RSpec.extend Karafka::Core::Helpers::RSpecLocator.new(__FILE__)
