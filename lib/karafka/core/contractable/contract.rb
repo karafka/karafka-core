@@ -14,7 +14,12 @@ module Karafka
         # prevent additional array allocation
         DIG_MISS = Object.new
 
-        private_constant :DIG_MISS
+        # Empty array for scope default to avoid allocating a new Array on each
+        # `#call` / `#validate!` invocation. Safe because scope is never mutated – it is only
+        # used in `scope + rule.path` which creates a new Array.
+        EMPTY_ARRAY = [].freeze
+
+        private_constant :DIG_MISS, :EMPTY_ARRAY
 
         # Yaml based error messages data
         setting(:error_messages)
@@ -80,7 +85,7 @@ module Karafka
         # @param scope [Array<String>] scope of this contract (if any) or empty array if no parent
         #   scope is needed if contract starts from root
         # @return [Result] validaton result
-        def call(data, scope: [])
+        def call(data, scope: EMPTY_ARRAY)
           errors = []
 
           self.class.rules.each do |rule|
@@ -104,7 +109,7 @@ module Karafka
         # @return [Boolean] true
         # @raise [StandardError] any error provided in the error_class that inherits from the
         #   standard error
-        def validate!(data, error_class, scope: [])
+        def validate!(data, error_class, scope: EMPTY_ARRAY)
           result = call(data, scope: scope)
 
           return true if result.success?
