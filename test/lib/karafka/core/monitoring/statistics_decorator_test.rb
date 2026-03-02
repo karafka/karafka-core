@@ -183,4 +183,40 @@ describe_current do
     it { assert_predicate decorated, :frozen? }
     it { refute decorated.key?("float_d_d") }
   end
+
+  context "when a value type changed from non-numeric to numeric between emissions" do
+    subject(:decorated) do
+      decorator.call(emited_stats1)
+      decorator.call(emited_stats2)
+    end
+
+    before do
+      # In the first emission, txbytes is a string (unusual but defensive)
+      emited_stats1["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
+    end
+
+    # When previous value was non-numeric but current is numeric, no delta should be computed
+    it { refute decorated.dig(*broker_scope).key?("txbytes_d") }
+    it { refute decorated.dig(*broker_scope).key?("txbytes_fd") }
+    it { assert_equal 153, decorated.dig(*broker_scope)["txbytes"] }
+    it { assert_predicate decorated, :frozen? }
+  end
+
+  context "when a value type changed from numeric to non-numeric between emissions" do
+    subject(:decorated) do
+      decorator.call(emited_stats1)
+      decorator.call(emited_stats2)
+    end
+
+    before do
+      # In the second emission, txbytes changed to a string
+      emited_stats2["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
+    end
+
+    # Non-numeric values are never decorated
+    it { refute decorated.dig(*broker_scope).key?("txbytes_d") }
+    it { refute decorated.dig(*broker_scope).key?("txbytes_fd") }
+    it { assert_equal "not_a_number", decorated.dig(*broker_scope)["txbytes"] }
+    it { assert_predicate decorated, :frozen? }
+  end
 end
