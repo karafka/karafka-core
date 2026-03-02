@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.10 (Unreleased)
+## 2.5.10 (2026-03-02)
 - [Enhancement] Introduce `MinitestLocator` helper for minitest/spec subject class auto-discovery from test file paths.
 
 ## 2.5.9 (2026-03-02)
