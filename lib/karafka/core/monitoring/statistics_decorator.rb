@@ -6,7 +6,7 @@ module Karafka
       # Many of the librdkafka statistics are absolute values instead of a gauge.
       # This means, that for example number of messages sent is an absolute growing value
       # instead of being a value of messages sent from the last statistics report.
-      # This decorator calculates the diff against previously emited stats, so we get also
+      # This decorator calculates the diff against previously emitted stats, so we get also
       # the diff together with the original values
       #
       # It adds two extra values to numerics:
@@ -41,33 +41,33 @@ module Karafka
           end
         end
 
-        # @param emited_stats [Hash] original emited statistics
-        # @return [Hash] emited statistics extended with the diff data
-        # @note We modify the emited statistics, instead of creating new. Since we don't expose
+        # @param emitted_stats [Hash] original emitted statistics
+        # @return [Hash] emitted statistics extended with the diff data
+        # @note We modify the emitted statistics, instead of creating new. Since we don't expose
         #   any API to get raw data, users can just assume that the result of this decoration is
         #   the proper raw stats that they can use
-        def call(emited_stats)
+        def call(emitted_stats)
           current_at = monotonic_now.round
           change_d = current_at - @previous_at
 
           diff(
             @previous,
-            emited_stats,
+            emitted_stats,
             [],
             0,
             change_d
           )
 
-          @previous = emited_stats
+          @previous = emitted_stats
           @previous_at = current_at
 
-          emited_stats.freeze
+          emitted_stats.freeze
         end
 
         private
 
         # Calculates the diff of the provided values, appends delta and freeze duration keys,
-        # and modifies in place the emited statistics.
+        # and modifies in place the emitted statistics.
         #
         # Uses `each_pair` with a per-call pending-writes buffer instead of `current.keys.each`
         # to avoid allocating a new Array for every Hash node in the statistics tree. At scale

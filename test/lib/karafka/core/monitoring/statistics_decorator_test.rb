@@ -3,7 +3,7 @@
 describe_current do
   subject(:decorator) { described_class.new }
 
-  let(:emited_stats1) do
+  let(:emitted_stats1) do
     {
       "string" => "value1",
       "float" => 10.4,
@@ -18,7 +18,7 @@ describe_current do
     }
   end
 
-  let(:emited_stats2) do
+  let(:emitted_stats2) do
     {
       "string" => "value2",
       "float" => 10.8,
@@ -33,7 +33,7 @@ describe_current do
     }
   end
 
-  let(:emited_stats3) do
+  let(:emitted_stats3) do
     {
       "string" => "value3",
       "float" => 11.8,
@@ -51,7 +51,7 @@ describe_current do
   let(:broker_scope) { %w[nested brokers localhost:9092/2] }
 
   context "when it is a first stats emit" do
-    subject(:decorated) { decorator.call(emited_stats1) }
+    subject(:decorated) { decorator.call(emitted_stats1) }
 
     it { assert_equal "value1", decorated["string"] }
     it { refute decorated.key?("string_d") }
@@ -63,8 +63,8 @@ describe_current do
 
   context "when it is a second stats emit" do
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
     it { assert_equal "value2", decorated["string"] }
@@ -77,9 +77,9 @@ describe_current do
 
   context "when it is a third stats emit" do
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
-      decorator.call(emited_stats3)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
+      decorator.call(emitted_stats3)
     end
 
     it { assert_equal "value3", decorated["string"] }
@@ -97,11 +97,11 @@ describe_current do
 
   context "when a broker is no longer present" do
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
-    before { emited_stats2["nested"] = {} }
+    before { emitted_stats2["nested"] = {} }
 
     it { assert_equal "value2", decorated["string"] }
     it { refute decorated.key?("string_d") }
@@ -117,11 +117,11 @@ describe_current do
 
   context "when broker was introduced later on" do
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
-    before { emited_stats1["nested"] = {} }
+    before { emitted_stats1["nested"] = {} }
 
     it { assert_equal "value2", decorated["string"] }
     it { refute decorated.key?("string_d") }
@@ -146,7 +146,7 @@ describe_current do
       decorator.call(deep_copy.call)
     end
 
-    let(:deep_copy) { -> { Marshal.load(Marshal.dump(emited_stats1)) } }
+    let(:deep_copy) { -> { Marshal.load(Marshal.dump(emitted_stats1)) } }
 
     it { refute decorated.key?("string_d") }
     it { refute decorated.key?("string_fd") }
@@ -171,7 +171,7 @@ describe_current do
       decorator.call(deep_copy.call)
     end
 
-    let(:deep_copy) { -> { Marshal.load(Marshal.dump(emited_stats1)) } }
+    let(:deep_copy) { -> { Marshal.load(Marshal.dump(emitted_stats1)) } }
 
     it { refute decorated.key?("string_d") }
     it { refute decorated.key?("string_fd") }
@@ -186,13 +186,13 @@ describe_current do
 
   context "when a value type changed from non-numeric to numeric between emissions" do
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
     before do
       # In the first emission, txbytes is a string (unusual but defensive)
-      emited_stats1["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
+      emitted_stats1["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
     end
 
     # When previous value was non-numeric but current is numeric, no delta should be computed
@@ -206,7 +206,7 @@ describe_current do
     subject(:decorator) { described_class.new(excluded_keys: %w[nested]) }
 
     context "when it is a first stats emit" do
-      subject(:decorated) { decorator.call(emited_stats1) }
+      subject(:decorated) { decorator.call(emitted_stats1) }
 
       it { assert_equal 0, decorated["float_d"] }
       it { assert_equal 0, decorated["int_d"] }
@@ -222,8 +222,8 @@ describe_current do
 
     context "when it is a second stats emit" do
       subject(:decorated) do
-        decorator.call(emited_stats1)
-        decorator.call(emited_stats2)
+        decorator.call(emitted_stats1)
+        decorator.call(emitted_stats2)
       end
 
       it { assert_in_delta(0.4, decorated["float_d"].round(10)) }
@@ -241,8 +241,8 @@ describe_current do
     let(:decorator) { described_class.new(excluded_keys: %w[int]) }
 
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
     it { assert_in_delta(0.4, decorated["float_d"].round(10)) }
@@ -256,8 +256,8 @@ describe_current do
     let(:decorator) { described_class.new }
 
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
     it { assert_equal 18, decorated["int_d"] }
@@ -266,13 +266,13 @@ describe_current do
 
   context "when a value type changed from numeric to non-numeric between emissions" do
     subject(:decorated) do
-      decorator.call(emited_stats1)
-      decorator.call(emited_stats2)
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
     end
 
     before do
       # In the second emission, txbytes changed to a string
-      emited_stats2["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
+      emitted_stats2["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
     end
 
     # Non-numeric values are never decorated
