@@ -264,6 +264,225 @@ describe_current do
     it { assert_equal 30, decorated.dig(*broker_scope)["txbytes_d"] }
   end
 
+  context "when only_keys are configured" do
+    let(:decorator) { described_class.new(only_keys: %w[int]) }
+
+    context "when it is a first stats emit" do
+      subject(:decorated) { decorator.call(emitted_stats1) }
+
+      it { assert_equal 0, decorated["int_d"] }
+      it { assert_predicate decorated, :frozen? }
+
+      it "does not decorate non-listed numeric keys" do
+        refute decorated.key?("float_d")
+        refute decorated.key?("float_fd")
+      end
+
+      it "preserves non-listed numeric values" do
+        assert_in_delta 10.4, decorated["float"]
+      end
+
+      it "preserves string values" do
+        assert_equal "value1", decorated["string"]
+      end
+    end
+
+    context "when it is a second stats emit" do
+      subject(:decorated) do
+        decorator.call(emitted_stats1)
+        decorator.call(emitted_stats2)
+      end
+
+      it { assert_equal 18, decorated["int_d"] }
+      it { assert_predicate decorated, :frozen? }
+
+      it "does not decorate non-listed numeric keys" do
+        refute decorated.key?("float_d")
+        refute decorated.key?("float_fd")
+      end
+    end
+
+    context "when only_keys targets a nested value" do
+      let(:decorator) { described_class.new(only_keys: %w[txbytes]) }
+
+      subject(:decorated) do
+        decorator.call(emitted_stats1)
+        decorator.call(emitted_stats2)
+      end
+
+      it "decorates matching keys in nested hashes" do
+        assert_equal 30, decorated.dig(*broker_scope)["txbytes_d"]
+      end
+
+      it "does not decorate non-listed root keys" do
+        refute decorated.key?("int_d")
+        refute decorated.key?("float_d")
+      end
+    end
+  end
+
+  context "when only_keys and excluded_keys are combined" do
+    let(:decorator) { described_class.new(excluded_keys: %w[nested], only_keys: %w[int]) }
+
+    subject(:decorated) do
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
+    end
+
+    it { assert_equal 18, decorated["int_d"] }
+    it { assert_predicate decorated, :frozen? }
+
+    it "does not decorate non-listed keys" do
+      refute decorated.key?("float_d")
+    end
+
+    it "does not recurse into excluded subtrees" do
+      refute decorated.dig(*broker_scope).key?("txbytes_d")
+    end
+  end
+
+  context "when only_keys value remains unchanged over time" do
+    subject(:decorated) do
+      decorator.call(deep_copy.call)
+      decorator.call(deep_copy.call)
+      sleep(0.01)
+      decorator.call(deep_copy.call)
+    end
+
+    let(:decorator) { described_class.new(only_keys: %w[int]) }
+    let(:deep_copy) { -> { Marshal.load(Marshal.dump(emitted_stats1)) } }
+
+    it { assert_equal 0, decorated["int_d"] }
+    it { assert_in_delta 10, decorated["int_fd"], 5 }
+
+    it "does not decorate non-listed keys" do
+      refute decorated.key?("float_d")
+      refute decorated.key?("float_fd")
+    end
+  end
+
+  context "when only_keys is used with librdkafka-like structure" do
+    let(:decorator) { described_class.new(only_keys: %w[rxmsgs txbytes consumer_lag]) }
+
+    let(:rdkafka_stats1) do
+      {
+        "rxmsgs" => 100,
+        "name" => "consumer-1",
+        "brokers" => {
+          "localhost:9092/0" => {
+            "txbytes" => 500,
+            "rxbytes" => 300,
+            "nodeid" => 0
+          }
+        },
+        "topics" => {
+          "events" => {
+            "age" => 1000,
+            "partitions" => {
+              "0" => {
+                "consumer_lag" => 50,
+                "hi_offset" => 1000,
+                "txmsgs" => 200
+              },
+              "1" => {
+                "consumer_lag" => 30,
+                "hi_offset" => 800,
+                "txmsgs" => 150
+              }
+            }
+          }
+        },
+        "cgrp" => {
+          "stateage" => 5000,
+          "rebalance_cnt" => 2
+        }
+      }
+    end
+
+    let(:rdkafka_stats2) do
+      {
+        "rxmsgs" => 150,
+        "name" => "consumer-1",
+        "brokers" => {
+          "localhost:9092/0" => {
+            "txbytes" => 700,
+            "rxbytes" => 500,
+            "nodeid" => 0
+          }
+        },
+        "topics" => {
+          "events" => {
+            "age" => 2000,
+            "partitions" => {
+              "0" => {
+                "consumer_lag" => 40,
+                "hi_offset" => 1100,
+                "txmsgs" => 250
+              },
+              "1" => {
+                "consumer_lag" => 25,
+                "hi_offset" => 900,
+                "txmsgs" => 200
+              }
+            }
+          }
+        },
+        "cgrp" => {
+          "stateage" => 6000,
+          "rebalance_cnt" => 2
+        }
+      }
+    end
+
+    subject(:decorated) do
+      decorator.call(rdkafka_stats1)
+      decorator.call(rdkafka_stats2)
+    end
+
+    it "decorates root only_keys" do
+      assert_equal 50, decorated["rxmsgs_d"]
+    end
+
+    it "does not decorate non-listed root keys" do
+      refute decorated.key?("name_d")
+    end
+
+    it "decorates broker only_keys" do
+      assert_equal 200, decorated["brokers"]["localhost:9092/0"]["txbytes_d"]
+    end
+
+    it "does not decorate non-listed broker keys" do
+      refute decorated["brokers"]["localhost:9092/0"].key?("rxbytes_d")
+    end
+
+    it "decorates partition only_keys" do
+      assert_equal(-10, decorated.dig("topics", "events", "partitions", "0")["consumer_lag_d"])
+      assert_equal(-5, decorated.dig("topics", "events", "partitions", "1")["consumer_lag_d"])
+    end
+
+    it "does not decorate non-listed partition keys" do
+      refute decorated.dig("topics", "events", "partitions", "0").key?("txmsgs_d")
+      refute decorated.dig("topics", "events", "partitions", "0").key?("hi_offset_d")
+    end
+
+    it "does not decorate non-listed topic keys" do
+      refute decorated.dig("topics", "events").key?("age_d")
+    end
+
+    it { assert_predicate decorated, :frozen? }
+  end
+
+  context "when only_keys previous value type changed to non-numeric" do
+    let(:decorator) { described_class.new(only_keys: %w[val]) }
+
+    subject(:decorated) do
+      decorator.call({ "val" => "not_numeric" })
+      decorator.call({ "val" => 10 })
+    end
+
+    it { refute decorated.key?("val_d") }
+  end
+
   context "when a value type changed from numeric to non-numeric between emissions" do
     subject(:decorated) do
       decorator.call(emitted_stats1)

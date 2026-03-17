@@ -11,6 +11,7 @@
 - [Enhancement] Store execution time separately in `Event` and build the merged payload hash lazily on `#payload` access, eliminating 1 Hash allocation per `Notifications#instrument` call when listeners use `#[]` access (the common pattern), yielding ~1.7x faster event dispatch.
 - [Enhancement] Replace `StatisticsDecorator#diff` pending-writes buffer with `keys.each` direct-write iteration, eliminating the buffer and write-back loop for ~13% faster decoration at scale (10 brokers, 20 topics, 2000 partitions).
 - [Enhancement] Reorder `StatisticsDecorator#diff` type checks to test `Numeric` before `Hash`, matching the ~80% numeric value distribution in librdkafka statistics.
+- [Enhancement] Support `only_keys` option in `StatisticsDecorator` to decorate only specified numeric keys (e.g. `consumer_lag`, `committed_offset`). When combined with `excluded_keys`, reduces decoration cost from ~80ms to ~8.5ms per call on large clusters (10 brokers, 20 topics, 2000 partitions) by using structure-aware navigation of the librdkafka statistics tree and direct key access instead of full-hash iteration.
 
 
 ## 2.5.10 (2026-03-02)
