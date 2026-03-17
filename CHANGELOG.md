@@ -9,6 +9,8 @@
 - [Enhancement] Skip nestings block re-evaluation in `Node#deep_dup` to avoid recreating children that are immediately overwritten, yielding ~14x faster deep_dup and reducing allocations from ~620 to ~66 objects for large configs.
 - [Enhancement] Cache `CallbacksManager#call` values snapshot and invalidate on `add`/`delete` to avoid allocating a new Array on every invocation while preserving thread-safety snapshot semantics, saving 1 Array allocation per call.
 - [Enhancement] Store execution time separately in `Event` and build the merged payload hash lazily on `#payload` access, eliminating 1 Hash allocation per `Notifications#instrument` call when listeners use `#[]` access (the common pattern), yielding ~1.7x faster event dispatch.
+- [Enhancement] Replace `StatisticsDecorator#diff` pending-writes buffer with `keys.each` direct-write iteration, eliminating the buffer and write-back loop for ~13% faster decoration at scale (10 brokers, 20 topics, 2000 partitions).
+- [Enhancement] Reorder `StatisticsDecorator#diff` type checks to test `Numeric` before `Hash`, matching the ~80% numeric value distribution in librdkafka statistics.
 
 
 ## 2.5.10 (2026-03-02)
