@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.12 (Unreleased)
+## 2.5.12 (2026-04-02)
 - [Fix] Exclude `test/` directory from gem releases to reduce package size.
 
 ## 2.5.11 (2026-04-02)
