@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.11 (Unreleased)
+## 2.5.11 (2026-04-02)
 - [Enhancement] Specialize `Contract#dig` for common 1-key and 2-key paths to avoid iterator overhead, yielding ~1.5x faster single-key lookups and ~1.45x faster two-key nested lookups.
 - [Enhancement] Replace `Node#build_accessors` `@local_defs` Array with Hash for O(1) membership checks instead of O(n) `Array#include?`, yielding up to ~5x faster accessor lookups at 50 settings.
 - [Enhancement] Use frozen `EMPTY_ARRAY` constant for `Contract#call` and `#validate!` default `scope` parameter to avoid allocating a new Array on every invocation, yielding ~1.36x faster call dispatch and saving 1 Array allocation per call.
