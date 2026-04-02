@@ -13,7 +13,6 @@
 - [Enhancement] Reorder `StatisticsDecorator#diff` type checks to test `Numeric` before `Hash`, matching the ~80% numeric value distribution in librdkafka statistics.
 - [Enhancement] Support `only_keys` option in `StatisticsDecorator` to decorate only specified numeric keys (e.g. `consumer_lag`, `committed_offset`). When combined with `excluded_keys`, reduces decoration cost from ~80ms to ~8.5ms per call on large clusters (10 brokers, 20 topics, 2000 partitions) by using structure-aware navigation of the librdkafka statistics tree and direct key access instead of full-hash iteration.
 
-
 ## 2.5.10 (2026-03-02)
 - [Enhancement] Introduce `MinitestLocator` helper for minitest/spec subject class auto-discovery from test file paths.
 
