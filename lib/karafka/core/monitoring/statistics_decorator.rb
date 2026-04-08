@@ -201,10 +201,7 @@ module Karafka
                   if partitions.is_a?(Hash)
                     prev_partitions = prev_topic["partitions"] || EMPTY_HASH
 
-                    partitions.each_pair do |pid, partition|
-                      # Leaf level: no hash children, just decorate
-                      decorate_keys(partition, prev_partitions[pid] || EMPTY_HASH, change_d)
-                    end
+                    decorate_partitions(partitions, prev_partitions, change_d)
                   end
                 end
               end
@@ -245,6 +242,19 @@ module Karafka
             next if excluded&.key?(key)
 
             diff_only_keys_generic(filled_previous[key], value, change_d) if value.is_a?(Hash)
+          end
+        end
+
+        # Decorates partitions within a topic. Extracted as a method so subclasses can
+        # override to filter which partitions are decorated (e.g. skip unassigned partitions
+        # in a consumer context).
+        #
+        # @param partitions [Hash] partition id => partition stats hash
+        # @param prev_partitions [Hash] previous partition stats
+        # @param change_d [Integer] time delta in ms
+        def decorate_partitions(partitions, prev_partitions, change_d)
+          partitions.each_pair do |pid, partition|
+            decorate_keys(partition, prev_partitions[pid] || EMPTY_HASH, change_d)
           end
         end
 
