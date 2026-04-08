@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.5.13 (Unreleased)
+## 2.5.13 (2026-04-08)
 - [Enhancement] Extract `decorate_partitions` method from `StatisticsDecorator` to allow subclasses to filter which partitions are decorated (e.g. skip unassigned partitions in a consumer context).
 
 ## 2.5.12 (2026-04-02)
