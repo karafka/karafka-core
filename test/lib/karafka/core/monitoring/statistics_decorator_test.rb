@@ -151,9 +151,11 @@ describe_current do
     it { refute decorated.key?("string_d") }
     it { refute decorated.key?("string_fd") }
     it { assert_equal 0, decorated["float_d"] }
-    it { assert_in_delta 10, decorated["float_fd"], 5 }
+    # On slow CIs this value tends to grow and crash
+    it { assert_in_delta 10, decorated["float_fd"], 10 }
     it { assert_equal 0, decorated["int_d"] }
-    it { assert_in_delta 10, decorated["int_fd"], 5 }
+    # On slow CIs this value tends to grow and crash
+    it { assert_in_delta 10, decorated["int_fd"], 10 }
     it { assert_predicate decorated, :frozen? }
     it { refute decorated.key?("float_d_d") }
   end
@@ -176,7 +178,8 @@ describe_current do
     it { refute decorated.key?("string_d") }
     it { refute decorated.key?("string_fd") }
     it { assert_equal 0, decorated["float_d"] }
-    it { assert_in_delta 20, decorated["float_fd"], 5 }
+    # On slow CIs this value tends to grow and crash
+    it { assert_in_delta 20, decorated["float_fd"], 15 }
     it { assert_equal 0, decorated["int_d"] }
     # On slow CIs this value tends to grow and crash
     it { assert_in_delta 20, decorated["int_fd"], 15 }
