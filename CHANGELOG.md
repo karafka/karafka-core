@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.14 (2026-06-02)
+- [Enhancement] Replace version-gated `Warning[:performance]` with a `Warning.categories`-based loop that enables all opt-in Ruby warning categories automatically, picking up new categories (e.g. `strict_unused_block` in Ruby 3.4+) without future patches.
+
 ## 2.5.13 (2026-04-08)
 - [Enhancement] Extract `decorate_partitions` method from `StatisticsDecorator` to allow subclasses to filter which partitions are decorated (e.g. skip unassigned partitions in a consumer context).
 
