@@ -131,8 +131,7 @@ module Karafka
         def validate_required(data, rule, errors, scope)
           for_checking = dig(data, rule.path)
 
-          # We need to compare `DIG_MISS` against stuff because of the ownership of the `#==`
-          # method
+          # We need to compare `DIG_MISS` against stuff because of the ownership of the `#==` method
           if for_checking == DIG_MISS
             errors << [scope + rule.path, :missing]
           else

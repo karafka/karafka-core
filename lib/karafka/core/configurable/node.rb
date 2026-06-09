@@ -89,8 +89,7 @@ module Karafka
 
           children.each do |value|
             dupped.children << if value.is_a?(Leaf)
-              # After inheritance we need to reload the state so the leafs are
-              # recompiled again
+              # After inheritance we need to reload the state so the leafs are recompiled again
               value = value.dup
               value.compiled = false
               value
@@ -146,8 +145,7 @@ module Karafka
 
         # Defines a lazy evaluated read and writer that will re-evaluate in case value constructor
         # evaluates to `nil` or `false`. This allows us to define dynamic constructors that
-        # can react to external conditions to become expected value once this value is
-        # available
+        # can react to external conditions to become expected value once this value is available
         #
         # @param value [Leaf]
         def build_dynamic_accessor(value)
