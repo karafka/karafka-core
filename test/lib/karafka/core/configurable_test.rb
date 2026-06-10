@@ -42,6 +42,7 @@ describe_current do
 
         it "makes the value writable via accessor" do
           node.my_cluster = { "bootstrap.servers": "other:9092" }
+
           assert_equal({ "bootstrap.servers": "other:9092" }, node.my_cluster)
         end
 
@@ -53,6 +54,7 @@ describe_current do
         it "carries the registered key through deep_dup" do
           dupped = node.deep_dup
           dupped.configure
+
           assert_equal({ "bootstrap.servers": "kafka:9092" }, dupped.my_cluster)
         end
       end
@@ -90,7 +92,12 @@ describe_current do
         end
 
         it "does not overwrite the original value" do
-          node.register(:taken, "second") rescue nil
+          begin
+            node.register(:taken, "second")
+          rescue ArgumentError
+            nil
+          end
+
           assert_equal "first", node.taken
         end
       end

@@ -114,7 +114,8 @@ module Karafka
         # Raises `ArgumentError` if the name is already registered to prevent silent overwrites.
         #
         # @param name [Symbol, String] setting name
-        # @param value [Object] value to store
+        # @param value [Object] the setting value assigned immediately; also used as the default
+        #   when the node is deep-duped and recompiled on a new instance
         # @raise [ArgumentError] when the name is already taken
         def register(name, value)
           name = name.to_sym
