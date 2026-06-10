@@ -30,6 +30,103 @@ describe_current do
       it { assert_equal 7, configurable_class.config.testme }
     end
 
+    describe "#register" do
+      let(:node) { configurable_class.config }
+
+      context "when registering a new key-value pair" do
+        before { node.register(:my_cluster, { "bootstrap.servers": "kafka:9092" }) }
+
+        it "makes the value readable via accessor" do
+          assert_equal({ "bootstrap.servers": "kafka:9092" }, node.my_cluster)
+        end
+
+        it "makes the value writable via accessor" do
+          node.my_cluster = { "bootstrap.servers": "other:9092" }
+
+          assert_equal({ "bootstrap.servers": "other:9092" }, node.my_cluster)
+        end
+
+        it "includes the registered key in to_h" do
+          assert node.to_h.key?(:my_cluster)
+          assert_equal({ "bootstrap.servers": "kafka:9092" }, node.to_h[:my_cluster])
+        end
+
+        it "carries the registered key through deep_dup" do
+          dupped = node.deep_dup
+          dupped.configure
+
+          assert_equal({ "bootstrap.servers": "kafka:9092" }, dupped.my_cluster)
+        end
+      end
+
+      context "when registering a string name" do
+        before { node.register("analytics", 42) }
+
+        it "coerces the name to a symbol" do
+          assert_equal 42, node.analytics
+        end
+      end
+
+      context "when registering multiple keys" do
+        before do
+          node.register(:cluster_a, "a:9092")
+          node.register(:cluster_b, "b:9092")
+        end
+
+        it "stores all keys independently" do
+          assert_equal "a:9092", node.cluster_a
+          assert_equal "b:9092", node.cluster_b
+        end
+
+        it "includes all keys in to_h" do
+          assert_equal "a:9092", node.to_h[:cluster_a]
+          assert_equal "b:9092", node.to_h[:cluster_b]
+        end
+      end
+
+      context "when registering a duplicate name" do
+        before { node.register(:taken, "first") }
+
+        it "raises ArgumentError" do
+          assert_raises(ArgumentError) { node.register(:taken, "second") }
+        end
+
+        it "does not overwrite the original value" do
+          begin
+            node.register(:taken, "second")
+          rescue ArgumentError
+            nil
+          end
+
+          assert_equal "first", node.taken
+        end
+      end
+
+      context "when the registered value is nil" do
+        before { node.register(:nullable, nil) }
+
+        it "stores and returns nil" do
+          assert_nil node.nullable
+        end
+
+        it "includes the key in to_h" do
+          assert node.to_h.key?(:nullable)
+        end
+      end
+
+      context "when registering on a nested node" do
+        before { configurable_class.config.nested1.register(:extra, "nested-value") }
+
+        it "makes the value readable on the nested node" do
+          assert_equal "nested-value", configurable_class.config.nested1.extra
+        end
+
+        it "includes it in the nested node's to_h" do
+          assert_equal "nested-value", configurable_class.config.nested1.to_h[:extra]
+        end
+      end
+    end
+
     context "when we do not override any settings" do
       before { configurable_class.configure }
 
