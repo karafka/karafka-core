@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.5.15 (Unreleased)
+- [Enhancement] Add `Node#register` to allow runtime key-value registration on compiled nodes without going through the static `setting` DSL. Useful for dynamic registries (e.g. named clusters) where setting names are not known at class-load time.
+
 ## 2.5.14 (2026-06-02)
 - [Enhancement] Replace version-gated `Warning[:performance]` with a `Warning.categories`-based loop that enables all opt-in Ruby warning categories automatically, picking up new categories (e.g. `strict_unused_block` in Ruby 3.4+) without future patches.
 

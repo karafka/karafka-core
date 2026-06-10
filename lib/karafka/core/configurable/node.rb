@@ -101,6 +101,32 @@ module Karafka
           dupped
         end
 
+        # Registers a key-value pair as a setting on an already-compiled node without going
+        # through the static `setting` DSL. Useful for dynamic registries (e.g. named clusters)
+        # where the keys are not known at class-load time.
+        #
+        # Unlike `setting`, which is designed to be called at class-definition time, `register`
+        # is safe to call at runtime because it:
+        #   - appends a pre-compiled Leaf so `deep_dup` and `to_h` include it
+        #   - sets `@configs_refs` directly so the reader accessor returns the value immediately
+        #   - builds reader/writer accessors via the same `build_accessors` path
+        #
+        # Raises `ArgumentError` if the name is already registered to prevent silent overwrites.
+        #
+        # @param name [Symbol, String] setting name
+        # @param value [Object] value to store
+        # @raise [ArgumentError] when the name is already taken
+        def register(name, value)
+          name = name.to_sym
+
+          raise ArgumentError, "#{name} is already registered" if @configs_refs.key?(name)
+
+          leaf = Leaf.new(name, value, nil, true, false)
+          @children << leaf
+          build_accessors(leaf)
+          @configs_refs[name] = value
+        end
+
         # Converts the settings definitions into end children
         # @note It runs once, after things are compiled, they will not be recompiled again
         def compile
