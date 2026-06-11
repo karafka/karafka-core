@@ -1,6 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.1 (2026-06-11)
+- [Enhancement] Skip the event name mapping hash lookup in `Monitor#instrument` when no namespace is used and the event id is already a `String`, which is the case for all events in the Karafka ecosystem (~1.2x faster dispatch on the common no-subscribers path). Symbol event ids and namespaced monitors keep going through the mapping.
 - [Enhancement] Mirror config values into instance variables and use `attr_reader` based readers in `Configurable::Node`, yielding ~1.4x faster flat and ~1.6x faster nested settings reads on hot paths. `@configs_refs` remains the canonical store; non-identifier setting names (e.g. registered names with dashes) keep the previous hash-based accessors.
 - [Enhancement] Instantiate each `Configurable::Node` through a per-layout anonymous subclass so the ivar-backed settings do not grow object shape variations on the shared `Node` class (which would degrade ivar access and trigger Ruby performance warnings). `deep_dup` reuses the template's subclass, so duplicated configs share object shapes.
 - [Fix] Symbolize setting names at definition time (`setting`, same as `register`) and on config store writes so `String` setting names work end to end (accessors, `#to_h`, recompilation state) and cannot corrupt node internal state when matching reserved internal names (previously string-named settings were quietly broken as accessors and the store disagreed on the key type).
