@@ -152,29 +152,49 @@ describe_current do
       end
     end
 
-    context "when a setting name is a string matching a reserved internal name" do
-      subject(:reserved_class) do
-        Class.new do
-          extend Karafka::Core::Configurable
+    context "when a setting name is reserved for the node internal state" do
+      %i[node_name children nestings compiled configs_refs local_defs].each do |reserved|
+        it "raises ArgumentError for #{reserved} defined via setting" do
+          error = assert_raises(ArgumentError) do
+            Class.new do
+              extend Karafka::Core::Configurable
 
-          setting("children", default: "boom")
-          setting(:regular, default: 1)
+              setting(reserved, default: 1)
+            end
+          end
+
+          assert_includes error.message, "#{reserved} is a reserved name"
         end
       end
 
-      let(:reserved_config) { reserved_class.config }
+      it "raises ArgumentError also when the reserved name is a string" do
+        assert_raises(ArgumentError) do
+          Class.new do
+            extend Karafka::Core::Configurable
 
-      it "does not corrupt the node internal state" do
-        assert_equal 1, reserved_config.regular
-        assert reserved_config.to_h.key?(:regular)
+            setting("children", default: "boom")
+          end
+        end
       end
 
-      it "makes the value readable via accessor" do
-        assert_equal "boom", reserved_config.public_send(:children)
+      it "raises ArgumentError for a reserved nested node name" do
+        assert_raises(ArgumentError) do
+          Class.new do
+            extend Karafka::Core::Configurable
+
+            setting(:nested) do
+              setting(:children, default: 1)
+            end
+          end
+        end
       end
 
-      it "exposes the value in to_h under a symbol key" do
-        assert_equal "boom", reserved_config.to_h[:children]
+      it "raises ArgumentError when registering a reserved name" do
+        node = Class.new { extend Karafka::Core::Configurable }.config
+
+        error = assert_raises(ArgumentError) { node.register(:nestings, "value") }
+
+        assert_includes error.message, "nestings is a reserved name"
       end
     end
 
