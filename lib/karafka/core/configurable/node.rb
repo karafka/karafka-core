@@ -15,6 +15,36 @@ module Karafka
         # We need to be able to redefine children for deep copy
         attr_accessor :children
 
+        # Names of settings that cannot use the ivar-backed fast accessors because they would
+        # collide with the node internal state
+        RESERVED_NAMES = %i[
+          node_name
+          children
+          nestings
+          compiled
+          configs_refs
+          local_defs
+        ].to_h { |name| [name, true] }.freeze
+
+        # Setting names that match this format can be backed by instance variables and use the
+        # fast `attr_reader` based readers. Others (e.g. registered names with dashes) fall back
+        # to the hash-based accessors
+        IVAR_NAMEABLE_FORMAT = /\A[A-Za-z_][A-Za-z0-9_]*\z/
+
+        private_constant :RESERVED_NAMES, :IVAR_NAMEABLE_FORMAT
+
+        class << self
+          # Builds each node through its own anonymous subclass. Since setting values are
+          # mirrored into instance variables for fast access and each node layout carries a
+          # different set of them, instantiating nodes directly from this class would grow its
+          # object shape variations past the Ruby limit, degrading ivar access for all nodes.
+          # A subclass per layout keeps every class at a single shape. `#deep_dup` reuses the
+          # subclass of its template, so duplicated configs share shapes as well.
+          def new(...)
+            equal?(Node) ? Class.new(self).new(...) : super
+          end
+        end
+
         # @param node_name [Symbol] node name
         # @param nestings [Proc] block for nested settings
         # @param evaluate [Boolean] when false, skip evaluating the nestings block. Used by
@@ -85,7 +115,8 @@ module Karafka
         # and non-side-effect usage on an instance/inherited.
         # @return [Node] duplicated node
         def deep_dup
-          dupped = Node.new(node_name, nestings, evaluate: false)
+          # Same-layout nodes reuse the class of their template so they share object shapes
+          dupped = self.class.new(node_name, nestings, evaluate: false)
 
           children.each do |value|
             dupped.children << if value.is_a?(Leaf)
@@ -125,7 +156,7 @@ module Karafka
           leaf = Leaf.new(name, value, nil, true, false)
           @children << leaf
           build_accessors(leaf)
-          @configs_refs[name] = value
+          config_write(name, value)
         end
 
         # Converts the settings definitions into end children
@@ -161,7 +192,7 @@ module Karafka
             if lazy_leaf && !initialized
               build_dynamic_accessor(value)
             else
-              @configs_refs[value.node_name] = initialized
+              config_write(value.node_name, initialized)
             end
           end
 
@@ -207,6 +238,12 @@ module Karafka
 
         # Builds regular accessors for value fetching
         #
+        # Settings with names that can form valid instance variables get `attr_reader` based
+        # readers backed by an ivar mirror of the config value. This is significantly faster
+        # than a method with a hash lookup, which matters since settings are read on hot paths
+        # across the whole ecosystem. `@configs_refs` remains the canonical store used by
+        # `#to_h`, `#compile` and `#register`, with `#config_write` keeping the mirror in sync.
+        #
         # @param value [Leaf]
         def build_accessors(value)
           reader_name = value.node_name.to_sym
@@ -219,16 +256,45 @@ module Karafka
           if reader_respond ? !@local_defs.key?(reader_name) : true
             @local_defs[reader_name] = true
 
-            define_singleton_method(reader_name) do
-              @configs_refs[reader_name]
+            if ivar_backed?(reader_name)
+              singleton_class.attr_reader(reader_name)
+            else
+              define_singleton_method(reader_name) do
+                @configs_refs[reader_name]
+              end
             end
           end
 
-          return if respond_to?(:"#{value.node_name}=")
+          return if respond_to?(:"#{reader_name}=")
 
-          define_singleton_method(:"#{value.node_name}=") do |new_value|
-            @configs_refs[value.node_name] = new_value
+          if ivar_backed?(reader_name)
+            ivar_name = :"@#{reader_name}"
+
+            define_singleton_method(:"#{reader_name}=") do |new_value|
+              instance_variable_set(ivar_name, @configs_refs[reader_name] = new_value)
+            end
+          else
+            define_singleton_method(:"#{reader_name}=") do |new_value|
+              @configs_refs[reader_name] = new_value
+            end
           end
+        end
+
+        # Writes a config value to the canonical store and mirrors it into the backing instance
+        # variable when the setting uses the fast ivar-backed reader
+        #
+        # @param name [Symbol] setting name
+        # @param value [Object] config value assigned to the setting
+        def config_write(name, value)
+          @configs_refs[name] = value
+          instance_variable_set(:"@#{name}", value) if ivar_backed?(name)
+        end
+
+        # @param name [Symbol] setting name
+        # @return [Boolean] true if this setting can be backed by an instance variable and use
+        #   the fast `attr_reader` based reader
+        def ivar_backed?(name)
+          !RESERVED_NAMES.key?(name) && IVAR_NAMEABLE_FORMAT.match?(name)
         end
       end
     end

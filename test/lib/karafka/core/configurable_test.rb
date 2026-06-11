@@ -114,6 +114,31 @@ describe_current do
         end
       end
 
+      context "when registering a name that cannot back an instance variable" do
+        before { node.register(:"my-cluster", "dashed:9092") }
+
+        it "makes the value readable via accessor" do
+          assert_equal "dashed:9092", node.public_send(:"my-cluster")
+        end
+
+        it "makes the value writable via accessor" do
+          node.public_send(:"my-cluster=", "changed:9092")
+
+          assert_equal "changed:9092", node.public_send(:"my-cluster")
+        end
+
+        it "includes the registered key in to_h" do
+          assert_equal "dashed:9092", node.to_h[:"my-cluster"]
+        end
+
+        it "carries the registered key through deep_dup" do
+          dupped = node.deep_dup
+          dupped.configure
+
+          assert_equal "dashed:9092", dupped.public_send(:"my-cluster")
+        end
+      end
+
       context "when registering on a nested node" do
         before { configurable_class.config.nested1.register(:extra, "nested-value") }
 
