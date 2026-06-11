@@ -114,6 +114,31 @@ describe_current do
         end
       end
 
+      context "when registering a name that cannot back an instance variable" do
+        before { node.register(:"my-cluster", "dashed:9092") }
+
+        it "makes the value readable via accessor" do
+          assert_equal "dashed:9092", node.public_send(:"my-cluster")
+        end
+
+        it "makes the value writable via accessor" do
+          node.public_send(:"my-cluster=", "changed:9092")
+
+          assert_equal "changed:9092", node.public_send(:"my-cluster")
+        end
+
+        it "includes the registered key in to_h" do
+          assert_equal "dashed:9092", node.to_h[:"my-cluster"]
+        end
+
+        it "carries the registered key through deep_dup" do
+          dupped = node.deep_dup
+          dupped.configure
+
+          assert_equal "dashed:9092", dupped.public_send(:"my-cluster")
+        end
+      end
+
       context "when registering on a nested node" do
         before { configurable_class.config.nested1.register(:extra, "nested-value") }
 
@@ -124,6 +149,60 @@ describe_current do
         it "includes it in the nested node's to_h" do
           assert_equal "nested-value", configurable_class.config.nested1.to_h[:extra]
         end
+      end
+    end
+
+    context "when a setting name is a string matching a reserved internal name" do
+      subject(:reserved_class) do
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting("children", default: "boom")
+          setting(:regular, default: 1)
+        end
+      end
+
+      let(:reserved_config) { reserved_class.config }
+
+      it "does not corrupt the node internal state" do
+        assert_equal 1, reserved_config.regular
+        assert reserved_config.to_h.key?(:regular)
+      end
+
+      it "makes the value readable via accessor" do
+        assert_equal "boom", reserved_config.public_send(:children)
+      end
+
+      it "exposes the value in to_h under a symbol key" do
+        assert_equal "boom", reserved_config.to_h[:children]
+      end
+    end
+
+    context "when a setting name is a string" do
+      subject(:string_named_class) do
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting("alpha", default: 1)
+        end
+      end
+
+      let(:string_named_config) { string_named_class.config }
+
+      before { string_named_config.alpha = 5 }
+
+      it "reflects writes in the accessor" do
+        assert_equal 5, string_named_config.alpha
+      end
+
+      it "reflects writes in to_h under a symbol key" do
+        assert_equal 5, string_named_config.to_h[:alpha]
+      end
+
+      it "preserves the written value across reconfiguration" do
+        string_named_class.configure
+
+        assert_equal 5, string_named_config.alpha
       end
     end
 
