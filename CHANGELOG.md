@@ -3,6 +3,9 @@
 ## 2.6.1 (2026-06-11)
 - [Enhancement] Mirror config values into instance variables and use `attr_reader` based readers in `Configurable::Node`, yielding ~1.4x faster flat and ~1.6x faster nested settings reads on hot paths. `@configs_refs` remains the canonical store; non-identifier setting names (e.g. registered names with dashes) keep the previous hash-based accessors.
 - [Enhancement] Instantiate each `Configurable::Node` through a per-layout anonymous subclass so the ivar-backed settings do not grow object shape variations on the shared `Node` class (which would degrade ivar access and trigger Ruby performance warnings). `deep_dup` reuses the template's subclass, so duplicated configs share object shapes.
+- [Fix] Symbolize setting names in the config store so `String` setting names work end to end and cannot corrupt node internal state when matching reserved internal names (previously string-named settings were quietly broken as accessors and the store disagreed on the key type).
+- [Change] Config nodes are now instances of anonymous `Node` subclasses: `is_a?(Karafka::Core::Configurable::Node)` still holds, but `instance_of?(Node)` is now `false` and `node.class.name` is `nil`.
+- [Change] Assigning a setting on a frozen config node now raises `FrozenError` (previously the write silently mutated internal storage despite the freeze).
 
 ## 2.6.0 (2026-06-10)
 - [Enhancement] Add `Node#register` to allow runtime key-value registration on compiled nodes without going through the static `setting` DSL. Useful for dynamic registries (e.g. named clusters) where setting names are not known at class-load time.

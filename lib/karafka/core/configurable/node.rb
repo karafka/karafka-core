@@ -38,8 +38,10 @@ module Karafka
           # mirrored into instance variables for fast access and each node layout carries a
           # different set of them, instantiating nodes directly from this class would grow its
           # object shape variations past the Ruby limit, degrading ivar access for all nodes.
-          # A subclass per layout keeps every class at a single shape. `#deep_dup` reuses the
-          # subclass of its template, so duplicated configs share shapes as well.
+          # A subclass per layout keeps shape variations per class minimal (late `setting`
+          # calls after inheritance or runtime `register` calls may add a few more, staying
+          # well under the limit). `#deep_dup` reuses the subclass of its template, so
+          # duplicated configs share shapes as well.
           def new(...)
             equal?(Node) ? Class.new(self).new(...) : super
           end
@@ -283,9 +285,14 @@ module Karafka
         # Writes a config value to the canonical store and mirrors it into the backing instance
         # variable when the setting uses the fast ivar-backed reader
         #
-        # @param name [Symbol] setting name
+        # @param name [Symbol, String] setting name
         # @param value [Object] config value assigned to the setting
         def config_write(name, value)
+          # Accessors operate on symbolized names, so the store has to be keyed consistently.
+          # This also guarantees that a String name matching a reserved internal name is
+          # recognized by the `ivar_backed?` guard and cannot corrupt the node internal state
+          name = name.to_sym
+
           @configs_refs[name] = value
           instance_variable_set(:"@#{name}", value) if ivar_backed?(name)
         end

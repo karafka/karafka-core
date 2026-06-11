@@ -152,6 +152,28 @@ describe_current do
       end
     end
 
+    context "when a setting name is a string matching a reserved internal name" do
+      subject(:reserved_class) do
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting("children", default: "boom")
+          setting(:regular, default: 1)
+        end
+      end
+
+      let(:reserved_config) { reserved_class.config }
+
+      it "does not corrupt the node internal state" do
+        assert_equal 1, reserved_config.regular
+        assert reserved_config.to_h.key?(:regular)
+      end
+
+      it "makes the value readable via accessor" do
+        assert_equal "boom", reserved_config.public_send(:children)
+      end
+    end
+
     context "when we do not override any settings" do
       before { configurable_class.configure }
 
