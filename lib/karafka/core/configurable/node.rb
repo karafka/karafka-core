@@ -16,10 +16,12 @@ module Karafka
         attr_accessor :children
 
         # Names that cannot be used as setting names because they would collide with the node
-        # internal state: their accessors would shadow the node own readers (breaking for
-        # example `#deep_dup`) and writers like `children=` would overwrite internal ivars.
-        # `#setting` and `#register` reject them upfront and `#ivar_backed?` keeps guarding the
-        # ivar mirror as defense in depth
+        # internal state or the node public API: their accessors would shadow the node own
+        # readers (breaking for example `#deep_dup` or `#to_h`) and writers like `children=`
+        # would overwrite internal ivars. `#setting` and `#register` reject them upfront and
+        # `#ivar_backed?` keeps guarding the ivar mirror as defense in depth.
+        # Private method names are deliberately not reserved: that would make internal
+        # implementation details part of the public contract
         RESERVED_NAMES = %i[
           node_name
           children
@@ -27,6 +29,12 @@ module Karafka
           compiled
           configs_refs
           local_defs
+          setting
+          configure
+          to_h
+          deep_dup
+          register
+          compile
         ].to_h { |name| [name, true] }.freeze
 
         # Setting names that match this format can be backed by instance variables and use the

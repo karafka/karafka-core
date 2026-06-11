@@ -153,7 +153,12 @@ describe_current do
     end
 
     context "when a setting name is reserved for the node internal state" do
-      %i[node_name children nestings compiled configs_refs local_defs].each do |reserved|
+      reserved_names = %i[
+        node_name children nestings compiled configs_refs local_defs
+        setting configure to_h deep_dup register compile
+      ]
+
+      reserved_names.each do |reserved|
         it "raises ArgumentError for #{reserved} defined via setting" do
           error = assert_raises(ArgumentError) do
             Class.new do
