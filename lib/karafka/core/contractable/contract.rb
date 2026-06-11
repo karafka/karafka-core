@@ -15,7 +15,7 @@ module Karafka
         DIG_MISS = Object.new
 
         # Empty array for scope default to avoid allocating a new Array on each
-        # `#call` / `#validate!` invocation. Safe because scope is never mutated – it is only
+        # `#call` / `#validate!` invocation. Safe because scope is never mutated - it is only
         # used in `scope + rule.path` which creates a new Array.
         EMPTY_ARRAY = [].freeze
 
