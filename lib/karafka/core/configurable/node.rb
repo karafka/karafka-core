@@ -63,12 +63,17 @@ module Karafka
 
         # Allows for a single leaf or nested node definition
         #
-        # @param node_name [Symbol] setting or nested node name
+        # @param node_name [Symbol, String] setting or nested node name
         # @param default [Object] default value
         # @param constructor [#call, nil] callable or nil
         # @param lazy [Boolean] is this a lazy leaf
         # @param block [Proc] block for nested settings
         def setting(node_name, default: nil, constructor: nil, lazy: false, &block)
+          # Symbolize at definition time (same as `#register`) so the config store, accessors,
+          # `#to_h` and the compile state checks all agree on the key type also when a String
+          # name is provided
+          node_name = node_name.to_sym
+
           @children << if block
             Node.new(node_name, block)
           else

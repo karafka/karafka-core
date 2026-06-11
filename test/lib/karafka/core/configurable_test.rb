@@ -172,6 +172,38 @@ describe_current do
       it "makes the value readable via accessor" do
         assert_equal "boom", reserved_config.public_send(:children)
       end
+
+      it "exposes the value in to_h under a symbol key" do
+        assert_equal "boom", reserved_config.to_h[:children]
+      end
+    end
+
+    context "when a setting name is a string" do
+      subject(:string_named_class) do
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting("alpha", default: 1)
+        end
+      end
+
+      let(:string_named_config) { string_named_class.config }
+
+      before { string_named_config.alpha = 5 }
+
+      it "reflects writes in the accessor" do
+        assert_equal 5, string_named_config.alpha
+      end
+
+      it "reflects writes in to_h under a symbol key" do
+        assert_equal 5, string_named_config.to_h[:alpha]
+      end
+
+      it "preserves the written value across reconfiguration" do
+        string_named_class.configure
+
+        assert_equal 5, string_named_config.alpha
+      end
     end
 
     context "when we do not override any settings" do
