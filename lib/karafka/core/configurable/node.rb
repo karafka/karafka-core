@@ -15,8 +15,13 @@ module Karafka
         # We need to be able to redefine children for deep copy
         attr_accessor :children
 
-        # Names of settings that cannot use the ivar-backed fast accessors because they would
-        # collide with the node internal state
+        # Names that cannot be used as setting names because they would collide with the node
+        # internal state or the node public API: their accessors would shadow the node own
+        # readers (breaking for example `#deep_dup` or `#to_h`) and writers like `children=`
+        # would overwrite internal ivars. `#setting` and `#register` reject them upfront and
+        # `#ivar_backed?` keeps guarding the ivar mirror as defense in depth.
+        # Private method names are deliberately not reserved: that would make internal
+        # implementation details part of the public contract
         RESERVED_NAMES = %i[
           node_name
           children
@@ -24,6 +29,12 @@ module Karafka
           compiled
           configs_refs
           local_defs
+          setting
+          configure
+          to_h
+          deep_dup
+          register
+          compile
         ].to_h { |name| [name, true] }.freeze
 
         # Setting names that match this format can be backed by instance variables and use the
@@ -68,11 +79,14 @@ module Karafka
         # @param constructor [#call, nil] callable or nil
         # @param lazy [Boolean] is this a lazy leaf
         # @param block [Proc] block for nested settings
+        # @raise [ArgumentError] when the name is reserved for the node internal state
         def setting(node_name, default: nil, constructor: nil, lazy: false, &block)
           # Symbolize at definition time (same as `#register`) so the config store, accessors,
           # `#to_h` and the compile state checks all agree on the key type also when a String
           # name is provided
           node_name = node_name.to_sym
+
+          prevent_reserved_names!(node_name)
 
           @children << if block
             Node.new(node_name, block)
@@ -154,9 +168,12 @@ module Karafka
         # @param name [Symbol, String] setting name
         # @param value [Object] the setting value assigned immediately; also used as the default
         #   when the node is deep-duped and recompiled on a new instance
-        # @raise [ArgumentError] when the name is already taken
+        # @raise [ArgumentError] when the name is already taken or reserved for the node
+        #   internal state
         def register(name, value)
           name = name.to_sym
+
+          prevent_reserved_names!(name)
 
           raise ArgumentError, "#{name} is already registered" if @configs_refs.key?(name)
 
@@ -307,6 +324,19 @@ module Karafka
         #   the fast `attr_reader` based reader
         def ivar_backed?(name)
           !RESERVED_NAMES.key?(name) && IVAR_NAMEABLE_FORMAT.match?(name)
+        end
+
+        # Rejects setting names that would collide with the node internal state. Without this,
+        # such names would shadow the node own accessors, breaking `#deep_dup` and silently
+        # corrupting internals on assignment (e.g. `config.children = value` hitting the node
+        # own `attr_writer`)
+        #
+        # @param name [Symbol] already symbolized setting name
+        # @raise [ArgumentError] when the name is reserved
+        def prevent_reserved_names!(name)
+          return unless RESERVED_NAMES.key?(name)
+
+          raise ArgumentError, "#{name} is a reserved name and cannot be used as a setting name"
         end
       end
     end
