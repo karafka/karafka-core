@@ -35,6 +35,24 @@ describe_current do
     it { assert_kind_of Array, monitor.listeners["test"] }
   end
 
+  context "when we do not use any namespace and instrument with a symbol id" do
+    let(:namespace) { nil }
+    let(:collected_data) { [] }
+
+    before do
+      collected = collected_data
+
+      monitor.subscribe("test") do |event|
+        collected << event
+      end
+
+      monitor.instrument(:test) { 1 }
+    end
+
+    it { assert_equal 1, collected_data.size }
+    it { assert_equal "test", collected_data.first.id }
+  end
+
   context "when we do use a namespace" do
     let(:namespace) { "namespace" }
     let(:collected_data) { [] }
