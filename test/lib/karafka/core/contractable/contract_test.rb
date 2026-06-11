@@ -185,6 +185,41 @@ describe_current do
     end
   end
 
+  context "when a deeply nested path encounters a non-hash intermediate value" do
+    let(:validator_class) do
+      Class.new(described_class) do
+        configure do |config|
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, "config", "locales", "errors.yml")
+          ).fetch("en").fetch("validations").fetch("test")
+        end
+
+        nested(:level1) do
+          nested(:level2) do
+            required(:id) { |id| id.is_a?(String) }
+          end
+        end
+      end
+    end
+
+    subject(:result) { validator_class.new.call(data) }
+
+    context "when the full path is present" do
+      let(:data) { { level1: { level2: { id: "1" } } } }
+
+      it { assert_predicate result, :success? }
+    end
+
+    context "when an intermediate level is not a hash" do
+      let(:data) { { level1: "not-a-hash" } }
+
+      it "reports the path as missing instead of raising" do
+        refute_predicate result, :success?
+        assert result.errors.key?(:"level1.level2.id")
+      end
+    end
+  end
+
   context "when contract has its own error reported" do
     let(:validator_class) do
       Class.new(described_class) do
