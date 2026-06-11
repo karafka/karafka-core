@@ -15,7 +15,7 @@ module Karafka
         DIG_MISS = Object.new
 
         # Empty array for scope default to avoid allocating a new Array on each
-        # `#call` / `#validate!` invocation. Safe because scope is never mutated – it is only
+        # `#call` / `#validate!` invocation. Safe because scope is never mutated - it is only
         # used in `scope + rule.path` which creates a new Array.
         EMPTY_ARRAY = [].freeze
 
@@ -81,6 +81,12 @@ module Karafka
 
         # Runs the validation
         #
+        # The per-rule handling is inlined instead of dispatching to per-type methods because
+        # this runs per rule per validation, including the per-message validations in
+        # WaterDrop. Required and optional rules share the whole flow except the missing-key
+        # handling. `DIG_MISS` is compared via `#equal?` so we never dispatch `#==` to the
+        # validated (user-provided) values.
+        #
         # @param data [Hash] hash with data we want to validate
         # @param scope [Array<String>] scope of this contract (if any) or empty array if no parent
         #   scope is needed if contract starts from root
@@ -89,13 +95,28 @@ module Karafka
           errors = []
 
           self.class.rules.each do |rule|
-            case rule.type
-            when :required
-              validate_required(data, rule, errors, scope)
-            when :optional
-              validate_optional(data, rule, errors, scope)
-            when :virtual
-              validate_virtual(data, rule, errors, scope)
+            if rule.type == :virtual
+              result = rule.validator.call(data, errors, self)
+
+              next if result == true
+
+              result&.each do |sub_result|
+                sub_result[0] = scope + sub_result[0]
+              end
+
+              errors.push(*result)
+            else
+              for_checking = dig(data, rule.path)
+
+              if DIG_MISS.equal?(for_checking)
+                errors << [scope + rule.path, :missing] if rule.type == :required
+              else
+                result = rule.validator.call(for_checking, data, errors, self)
+
+                next if result == true
+
+                errors << [scope + rule.path, result || :format]
+              end
             end
           end
 
@@ -121,69 +142,15 @@ module Karafka
 
         private
 
-        # Runs validation for rules on fields that are required and adds errors (if any) to the
-        # errors array
-        #
-        # @param data [Hash] input hash
-        # @param rule [Rule] validation rule
-        # @param errors [Array] array with errors from previous rules (if any)
-        # @param scope [Array<String>]
-        def validate_required(data, rule, errors, scope)
-          for_checking = dig(data, rule.path)
-
-          # We need to compare `DIG_MISS` against stuff because of the ownership of the `#==` method
-          if for_checking == DIG_MISS
-            errors << [scope + rule.path, :missing]
-          else
-            result = rule.validator.call(for_checking, data, errors, self)
-
-            return if result == true
-
-            errors << [scope + rule.path, result || :format]
-          end
-        end
-
-        # Runs validation for rules on fields that are optional and adds errors (if any) to the
-        # errors array
-        #
-        # @param data [Hash] input hash
-        # @param rule [Rule] validation rule
-        # @param errors [Array] array with errors from previous rules (if any)
-        # @param scope [Array<String>]
-        def validate_optional(data, rule, errors, scope)
-          for_checking = dig(data, rule.path)
-
-          return if for_checking == DIG_MISS
-
-          result = rule.validator.call(for_checking, data, errors, self)
-
-          return if result == true
-
-          errors << [scope + rule.path, result || :format]
-        end
-
-        # Runs validation for rules on virtual fields (aggregates, etc) and adds errors (if any) to
-        # the errors array
-        #
-        # @param data [Hash] input hash
-        # @param rule [Rule] validation rule
-        # @param errors [Array] array with errors from previous rules (if any)
-        # @param scope [Array<String>]
-        def validate_virtual(data, rule, errors, scope)
-          result = rule.validator.call(data, errors, self)
-
-          return if result == true
-
-          result&.each do |sub_result|
-            sub_result[0] = scope + sub_result[0]
-          end
-
-          errors.push(*result)
-        end
-
         # Tries to dig for a given key in a hash and returns it with indication whether or not it
         # was possible to find it (dig returns nil and we don't know if it wasn't the digged key
         # value)
+        #
+        # Uses `Hash#fetch` with the `DIG_MISS` sentinel as the default, which resolves presence
+        # and value in a single hash lookup instead of a `key?` check followed by `[]`. This
+        # runs per rule per validation, including the per-message validations in WaterDrop,
+        # hence the lookup count matters. `fetch` with a default ignores `default_proc`, same
+        # as the previous `key?` based logic.
         #
         # @param data [Hash]
         # @param keys [Array<Symbol>]
@@ -191,28 +158,23 @@ module Karafka
         def dig(data, keys)
           case keys.length
           when 1
-            key = keys[0]
-
-            return DIG_MISS unless data.key?(key)
-
-            data[key]
+            data.fetch(keys[0], DIG_MISS)
           when 2
-            key1 = keys[0]
+            mid = data.fetch(keys[0], DIG_MISS)
 
-            return DIG_MISS unless data.key?(key1)
+            return DIG_MISS if DIG_MISS.equal?(mid)
+            return DIG_MISS unless mid.is_a?(Hash)
 
-            mid = data[key1]
-
-            return DIG_MISS unless mid.is_a?(Hash) && mid.key?(keys[1])
-
-            mid[keys[1]]
+            mid.fetch(keys[1], DIG_MISS)
           else
             current = data
 
             keys.each do |nesting|
-              return DIG_MISS unless current.key?(nesting)
+              return DIG_MISS unless current.is_a?(Hash)
 
-              current = current[nesting]
+              current = current.fetch(nesting, DIG_MISS)
+
+              return DIG_MISS if DIG_MISS.equal?(current)
             end
 
             current
