@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.6.1 (2026-06-11)
+## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.
 - [Change] Reject reserved setting names with an `ArgumentError` in `Configurable::Node#setting` and `#register`: internal state names (`node_name`, `children`, `nestings`, `compiled`, `configs_refs`, `local_defs`) and the node public API names (`setting`, `configure`, `to_h`, `deep_dup`, `register`, `compile`). Previously such names silently shadowed the node own accessors, breaking `deep_dup` or `to_h`, and assignments like `config.children = value` corrupted the node internal state.
