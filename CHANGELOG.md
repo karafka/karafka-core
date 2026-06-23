@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.2 (Unreleased)
+- [Fix] Report a freeze duration (`_fd`) of `0` for statistics keys that are newly introduced in an emission (e.g. a broker or partition that appears mid-stream) instead of the elapsed time since the previous emission. A key that did not exist in the prior emission could not have been "frozen" for any duration, so accumulating the inter-emission gap was incorrect and also made the related `StatisticsDecorator` spec flaky on slow CIs (`_fd` depended on the wall-clock gap between the two emissions).
+
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.
