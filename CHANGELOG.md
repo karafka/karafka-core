@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.2 (Unreleased)
+- [Fix] `Configurable::Node#to_h` now evaluates a setting's constructor with its default (arity-aware, matching `#compile`) instead of calling it with no arguments. The documented `->(default) { ... }` constructor form previously raised `ArgumentError: wrong number of arguments` from `#to_h` whenever the value was not yet in the config store (e.g. `#to_h` on an unconfigured instance, or an unread lazy setting).
+
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.

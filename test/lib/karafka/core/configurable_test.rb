@@ -367,6 +367,32 @@ describe_current do
 
         it { assert_equal expected_hash, config.to_h }
       end
+
+      context "when a lazy setting has a one-arity constructor and was not read" do
+        # Regression: #to_h invoked the constructor with no arguments, ignoring its arity, and
+        # crashed for the documented `->(default) { ... }` form. A lazy setting is not written to
+        # the store until first read, so even after #configure #to_h reaches the constructor
+        # branch with the value still absent from @configs_refs.
+        let(:configurable_class) do
+          Class.new do
+            include Karafka::Core::Configurable
+
+            setting(
+              :lazy_one_arity,
+              default: 3,
+              constructor: ->(default) { (default || 0) + 1 },
+              lazy: true
+            )
+          end
+        end
+
+        let(:configurable) { configurable_class.new }
+        let(:config) { configurable.config }
+
+        it "evaluates the constructor with its default" do
+          assert_equal({ lazy_one_arity: 4 }, config.to_h)
+        end
+      end
     end
 
     context "when we want to merge extra config as a nested setting" do
