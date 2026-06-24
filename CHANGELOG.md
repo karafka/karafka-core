@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.2 (Unreleased)
+- [Fix] A lazy setting declared without a constructor (`setting(:x, lazy: true)`) no longer raises when its accessor is read. `lazy: true` only makes sense together with a constructor to (re)evaluate; without one there is nothing to evaluate, so such a setting now behaves like a regular setting backed by its default. Previously reading it raised `NoMethodError` — `nil.arity` through the dynamic accessor for a falsy default, or a missing accessor for a truthy default.
+
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.
