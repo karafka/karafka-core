@@ -108,7 +108,11 @@ module Karafka
         # @param current [Hash] current scope from emitted statistics
         # @param change_d [Integer] time delta in ms
         def diff_all(previous, current, change_d)
-          filled_previous = previous || EMPTY_HASH
+          # A key can change type between emissions. When the previous value at this scope was
+          # not a Hash (e.g. it was Numeric and became a Hash), treat it as "no previous" so we
+          # do not index a non-Hash with a key (`5["x"]` raises TypeError). This mirrors the
+          # scalar type-change defense in the numeric branch below.
+          filled_previous = previous.is_a?(Hash) ? previous : EMPTY_HASH
           cache = @suffix_keys_cache
           excluded = @excluded_keys
 
@@ -233,7 +237,10 @@ module Karafka
         def diff_only_keys_generic(previous, current, change_d)
           return unless current.is_a?(Hash)
 
-          filled_previous = previous || EMPTY_HASH
+          # As in diff_all: a key that was not a Hash in the previous emission (e.g. Numeric ->
+          # Hash) must be treated as "no previous" so decorate_keys/recursion do not index a
+          # non-Hash value with a key and raise TypeError.
+          filled_previous = previous.is_a?(Hash) ? previous : EMPTY_HASH
           excluded = @excluded_keys
 
           decorate_keys(current, filled_previous, change_d)

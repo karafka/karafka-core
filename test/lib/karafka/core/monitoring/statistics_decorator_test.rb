@@ -503,4 +503,30 @@ describe_current do
     it { assert_equal "not_a_number", decorated.dig(*broker_scope)["txbytes"] }
     it { assert_predicate decorated, :frozen? }
   end
+
+  context "when a key changes from numeric to a hash between emissions" do
+    # Regression: recursing into a Hash child without checking the previous value was itself a
+    # Hash indexed a non-Hash previous (e.g. `5["y"]`) and raised TypeError. The newly-appeared
+    # nested keys are now decorated as first-seen.
+    subject(:decorated) do
+      decorator.call({ "x" => 1 })
+      decorator.call({ "x" => { "y" => 2 } })
+    end
+
+    it { assert_equal 2, decorated.dig("x", "y") }
+    it { assert_equal 0, decorated.dig("x", "y_d") }
+    it { assert_predicate decorated, :frozen? }
+  end
+
+  context "when an only_keys key's container changes from numeric to a hash" do
+    let(:decorator) { described_class.new(only_keys: %w[lag]) }
+
+    subject(:decorated) do
+      decorator.call({ "custom" => 5 })
+      decorator.call({ "custom" => { "lag" => 10 } })
+    end
+
+    it { assert_equal 0, decorated.dig("custom", "lag_d") }
+    it { assert_equal 10, decorated.dig("custom", "lag") }
+  end
 end
