@@ -28,11 +28,17 @@ module Karafka
         #   duration suffixes. This is useful for skipping large subtrees of the librdkafka
         #   statistics that are not consumed by the application (e.g. broker toppars, window
         #   stats like int_latency, outbuf_latency, throttle, batchsize, batchcnt, req).
-        # @param only_keys [Array<String>] when set, only these numeric keys will be decorated
-        #   with delta/freeze duration suffixes. Hash children are still recursed into for
-        #   structural navigation, but only the listed keys receive _d and _fd computation.
-        #   This drastically reduces work at the partition level where most cost occurs.
-        #   When empty (default), all numeric keys are decorated.
+        # @param only_keys [Array<String>] when set, only these numeric keys are decorated with
+        #   delta/freeze duration suffixes, and only at the levels of the known librdkafka
+        #   statistics tree: the root, each broker, each topic, each partition and cgrp. The
+        #   decorator navigates that known structure directly and decorates the listed keys it
+        #   finds at each of those levels. It deliberately does NOT descend into nested
+        #   sub-objects within a broker, topic, partition or cgrp (e.g. broker window stats like
+        #   rtt/throttle/int_latency, or the toppars map) -- skipping that descent is exactly what
+        #   makes this mode cheap on large clusters. Non-librdkafka hash children found at the
+        #   root are still fully recursed for correctness. If you need a key nested inside one of
+        #   those sub-objects decorated, use the default full-decoration mode. When empty
+        #   (default), all numeric keys at every depth are decorated.
         def initialize(excluded_keys: [], only_keys: [])
           @previous = EMPTY_HASH
           # Operate on ms precision only
@@ -156,8 +162,13 @@ module Karafka
         # librdkafka statistics layout: root → brokers → broker, root → topics → topic →
         # partitions → partition, root → cgrp.
         #
-        # For non-librdkafka hash children (e.g. custom or test data), falls back to generic
-        # recursion to maintain correctness with arbitrary nested structures.
+        # Broker, topic, partition and cgrp nodes are decorated as leaves: their listed keys are
+        # decorated, but their nested sub-objects (e.g. broker window stats like rtt/throttle, or
+        # the toppars map) are NOT descended into. Not descending into those large sub-objects is
+        # the whole point of this path, so they are intentionally left untouched here.
+        #
+        # For non-librdkafka hash children at the root (e.g. custom or test data), falls back to
+        # generic recursion to maintain correctness with arbitrary nested structures.
         #
         # @param previous [Object] previous value from the given scope
         # @param current [Hash] current stats hash (root level)
