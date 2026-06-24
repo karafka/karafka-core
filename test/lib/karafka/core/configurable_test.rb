@@ -525,6 +525,37 @@ describe_current do
       it { assert_equal 100, config2.nested1.nested2.leaf }
     end
 
+    context "when two instances share a mutable container default mutated in place" do
+      # Regression: a mutable default (Array/Hash) must not be shared across config instances.
+      # deep_dup shallow-copied the leaf, so every instance shared the same default object and
+      # an in-place mutation on one instance leaked into all the others.
+      let(:configurable_class) do
+        Class.new do
+          include Karafka::Core::Configurable
+
+          setting(:list, default: [])
+          setting(:map, default: {})
+        end
+      end
+
+      let(:configurable2) { configurable_class.new }
+      let(:config2) { configurable2.config }
+
+      before do
+        configurable.configure
+        configurable2.configure
+
+        config.list << :only_first
+        config.map[:only] = :first
+      end
+
+      it { assert_equal %i[only_first], config.list }
+      it { assert_empty config2.list }
+      it { assert_equal({ only: :first }, config.map) }
+      it { assert_empty config2.map }
+      it { refute_same config.list, config2.list }
+    end
+
     context "when we do override some settings" do
       before do
         configurable.configure do |config|

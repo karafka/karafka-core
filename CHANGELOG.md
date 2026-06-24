@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.2 (Unreleased)
+- [Fix] Give each config instance its own copy of mutable container defaults (`Array`/`Hash`) in `Configurable::Node#deep_dup`. Previously the shallow leaf copy shared the same default object across all instances (and the class template), so an in-place mutation such as `config.list << :x` leaked into every other instance. Scalars, frozen values and deliberately shared service objects (e.g. a logger passed as a default) keep their reference identity.
+
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.
