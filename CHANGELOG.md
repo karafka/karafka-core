@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.2 (Unreleased)
+- [Fix] Iterate over a snapshot of the listeners in `Notifications#instrument` so a listener that unsubscribes itself (or an earlier listener) from within its own handler no longer causes the listener following it to be silently skipped. Previously the live listeners array was mutated mid-iteration, which also made concurrent subscribe/unsubscribe during dispatch unsafe.
+
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.

@@ -152,8 +152,12 @@ module Karafka
         # @param method_name [Symbol] pre-resolved method name for object listeners
         # @param event [Event] event with payload to broadcast to listeners
         # @param assigned_listeners [Array] list of listeners to notify
+        # @note We iterate over a snapshot (`#dup`) of the listeners on purpose. A listener may
+        #   unsubscribe itself (or an earlier listener) from within its own handler, and another
+        #   thread may subscribe/unsubscribe concurrently. Iterating the live array directly would
+        #   mutate it mid-iteration and silently skip the listener following the removed one.
         def notify_listeners(method_name, event, assigned_listeners)
-          assigned_listeners.each do |listener|
+          assigned_listeners.dup.each do |listener|
             if listener.is_a?(Proc)
               listener.call(event)
             else
