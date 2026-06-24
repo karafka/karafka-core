@@ -40,8 +40,14 @@ module Karafka
           def nested(path, &)
             init_accu
             @nested << path
-            instance_eval(&)
-            @nested.pop
+            begin
+              instance_eval(&)
+            ensure
+              # Always pop, even if the block raises. Otherwise a rescued exception during
+              # contract definition would leave `path` on @nested and prefix it onto every rule
+              # defined afterwards.
+              @nested.pop
+            end
           end
 
           # Defines a rule for a required field (required means, that will automatically create an

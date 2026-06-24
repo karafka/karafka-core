@@ -238,6 +238,27 @@ describe_current do
     end
   end
 
+  context "when a nested block raises during definition" do
+    # Regression: nested pushed its path, ran the block, then popped -- with no ensure. If the
+    # block raised and the caller rescued it, the path was left on @nested and prefixed onto
+    # every rule defined afterwards.
+    let(:validator_class) do
+      Class.new(described_class) do
+        begin
+          nested(:a) { raise "boom" }
+        rescue
+          nil
+        end
+
+        required(:id) { |id| id.is_a?(String) }
+      end
+    end
+
+    it "does not leak the nested path onto later rules" do
+      assert_equal %i[id], validator_class.rules.last.path
+    end
+  end
+
   context "when contract has multiple nestings" do
     subject(:validator_class) do
       Class.new(described_class) do
