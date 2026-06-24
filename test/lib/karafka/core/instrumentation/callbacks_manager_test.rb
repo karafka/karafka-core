@@ -78,4 +78,41 @@ describe_current do
       assert_empty changed
     end
   end
+
+  describe "concurrency safety" do
+    # Regression: a callback added concurrently while #call is taking its snapshot of the
+    # registered callbacks must not be permanently lost. A previous optimization cached the
+    # values snapshot and invalidated it on add/delete; under interleaving, #call could write
+    # a stale snapshot back over a concurrent invalidation, so a newly added callback would
+    # never fire afterwards (and a deleted one would keep firing forever). We force the exact
+    # interleaving deterministically with a Hash whose #values mutates the manager right after
+    # the snapshot is read.
+    it "does not permanently drop a callback added while a call snapshots the callbacks" do
+      racy = Class.new(Hash) do
+        attr_accessor :after_values
+
+        def values
+          snapshot = super
+          after_values&.call
+          snapshot
+        end
+      end.new
+
+      manager.instance_variable_set(:@callbacks, racy)
+      manager.add("a", -> { changed << :a })
+
+      # Simulate another thread adding a callback in the window between the snapshot read
+      # and any cache write-back inside #call. Runs once.
+      racy.after_values = lambda do
+        racy.after_values = nil
+        manager.add("b", -> { changed << :b })
+      end
+
+      manager.call # snapshots [a], then "b" is added in the race window
+      changed.clear
+      manager.call # "b" must fire now; if it was lost to a stale cache it never will
+
+      assert_includes changed, :b
+    end
+  end
 end
