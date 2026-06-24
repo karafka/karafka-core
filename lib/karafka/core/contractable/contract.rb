@@ -156,6 +156,12 @@ module Karafka
         # @param keys [Array<Symbol>]
         # @return [DIG_MISS, Object] found element or DIGG_MISS indicating that not found
         def dig(data, keys)
+          # A non-Hash root has no key to dig, so report a miss. Without this guard the 1-key and
+          # 2-key fast paths called `#fetch` straight on the root and raised `NoMethodError` for a
+          # non-Hash value, while the 3+-key path already returned a miss -- making the behavior
+          # depend on the rule path length.
+          return DIG_MISS unless data.is_a?(Hash)
+
           case keys.length
           when 1
             data.fetch(keys[0], DIG_MISS)
