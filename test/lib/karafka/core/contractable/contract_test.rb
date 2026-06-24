@@ -273,4 +273,30 @@ describe_current do
       end
     end
   end
+
+  describe "virtual rule returning a memoized array" do
+    # Regression: the scope was applied by mutating the array the virtual rule returned, so a
+    # memoized/reused array had its entries rewritten in place and accumulated the scope prefix
+    # on every validation.
+    let(:memoized) { [[%i[id], "boom"]] }
+
+    subject(:validator_class) do
+      memo = memoized
+
+      Class.new(described_class) do
+        virtual { |_data, _errors, _contract| memo }
+      end
+    end
+
+    let(:contract) { validator_class.new }
+
+    it "does not mutate the returned array or accumulate the scope across calls" do
+      first = contract.call({}, scope: %i[outer]).errors
+      second = contract.call({}, scope: %i[outer]).errors
+
+      assert_equal({ "outer.id": "boom" }, first)
+      assert_equal first, second
+      assert_equal [[%i[id], "boom"]], memoized
+    end
+  end
 end

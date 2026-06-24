@@ -100,11 +100,12 @@ module Karafka
 
               next if result == true
 
+              # Build fresh error entries instead of mutating the array the virtual rule
+              # returned. A rule that returns a memoized/reused array would otherwise have its
+              # entries rewritten in place, accumulating the scope prefix on every validation.
               result&.each do |sub_result|
-                sub_result[0] = scope + sub_result[0]
+                errors << [scope + sub_result[0], sub_result[1]]
               end
-
-              errors.push(*result)
             else
               for_checking = dig(data, rule.path)
 
