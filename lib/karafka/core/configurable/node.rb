@@ -144,6 +144,17 @@ module Karafka
               # After inheritance we need to reload the state so the leafs are recompiled again
               value = value.dup
               value.compiled = false
+
+              # `Struct#dup` is shallow, so a mutable container default (Array/Hash) would be
+              # shared by reference across every duplicated node, and thus across every config
+              # instance (instances are produced by `deep_dup`). In-place mutation of one
+              # instance's default (e.g. `config.list << :x`) would then leak into all the others.
+              # Give each duplicate its own copy of such defaults. Scalars, frozen values and
+              # shared service objects (e.g. a logger passed as a default) keep their reference
+              # identity, so deliberately shared defaults are not affected.
+              default = value.default
+              value.default = default.dup if default.is_a?(Array) || default.is_a?(Hash)
+
               value
             else
               value.deep_dup
