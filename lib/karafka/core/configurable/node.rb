@@ -295,7 +295,12 @@ module Karafka
             ivar_name = :"@#{reader_name}"
 
             define_singleton_method(:"#{reader_name}=") do |new_value|
-              instance_variable_set(ivar_name, @configs_refs[reader_name] = new_value)
+              # Assign the ivar first: on a frozen node this raises FrozenError before the
+              # canonical store is touched. Writing the store first (as part of the same
+              # expression) mutated `@configs_refs` and only then raised, leaving the store and
+              # the ivar-backed reader permanently out of sync.
+              instance_variable_set(ivar_name, new_value)
+              @configs_refs[reader_name] = new_value
             end
           else
             define_singleton_method(:"#{reader_name}=") do |new_value|
