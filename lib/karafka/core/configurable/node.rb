@@ -175,7 +175,12 @@ module Karafka
 
           prevent_reserved_names!(name)
 
-          raise ArgumentError, "#{name} is already registered" if @configs_refs.key?(name)
+          # Check the defined children, not just @configs_refs: a lazy setting with a constructor
+          # is not written to @configs_refs until first read, so a `@configs_refs.key?` guard
+          # alone would silently overwrite it instead of raising the documented error.
+          if @children.any? { |child| child.node_name == name }
+            raise ArgumentError, "#{name} is already registered"
+          end
 
           leaf = Leaf.new(name, value, nil, true, false)
           @children << leaf
