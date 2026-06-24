@@ -98,9 +98,13 @@ module Karafka
             if rule.type == :virtual
               result = rule.validator.call(data, errors, self)
 
-              next if result == true
+              # A virtual rule signals "no errors" with any non-Array result (true, but also a
+              # falsy `nil`/`false` returned by e.g. `condition && [[...], :err]`). Only an Array
+              # of error pairs is iterated; previously a `false` return reached `false.each` and
+              # raised NoMethodError (a `nil` return was already tolerated by the safe navigation).
+              next unless result.is_a?(Array)
 
-              result&.each do |sub_result|
+              result.each do |sub_result|
                 sub_result[0] = scope + sub_result[0]
               end
 
