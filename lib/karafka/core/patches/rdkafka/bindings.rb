@@ -27,9 +27,28 @@ module Karafka
               ) do |client_ptr, err_code, reason, _opaque|
                 return nil unless ::Rdkafka::Config.error_callback
 
-                name = ::Rdkafka::Bindings.rd_kafka_name(client_ptr)
+                # Guard against a null client pointer. librdkafka can invoke the error callback
+                # with a NULL `rd_kafka_t` (e.g. very early in client construction), and calling
+                # `rd_kafka_name` on it dereferences the pointer and segfaults the whole process.
+                # Mirrors the upstream `ErrorCallback`.
+                name = client_ptr.null? ? nil : ::Rdkafka::Bindings.rd_kafka_name(client_ptr)
 
-                error = ::Rdkafka::RdkafkaError.new(err_code, broker_message: reason)
+                # Resolve fatal errors to their underlying cause. `ERR__FATAL` is only a generic
+                # marker; the real error code and description must be fetched from librdkafka via
+                # `rd_kafka_fatal_error` (done by `RdkafkaError.build_fatal`). Without this the
+                # callback would report the generic fatal code instead of the actual error.
+                # Mirrors the upstream `ErrorCallback`.
+                error = if err_code == ::Rdkafka::Bindings::RD_KAFKA_RESP_ERR__FATAL
+                  ::Rdkafka::RdkafkaError.build_fatal(
+                    client_ptr,
+                    fallback_error_code: err_code,
+                    fallback_message: reason,
+                    instance_name: name
+                  )
+                else
+                  ::Rdkafka::RdkafkaError.new(err_code, broker_message: reason)
+                end
+
                 error.set_backtrace(caller)
 
                 ::Rdkafka::Config.error_callback.call(name, error)
