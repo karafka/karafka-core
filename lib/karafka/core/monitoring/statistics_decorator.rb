@@ -267,8 +267,13 @@ module Karafka
         def decorate_keys(current, filled_previous, change_d)
           cache = @suffix_keys_cache
           only = @only_keys
+          excluded = @excluded_keys
 
           only.each do |key|
+            # `excluded_keys` wins over `only_keys`: a key listed in both is not decorated,
+            # matching the full-decoration path which skips excluded keys before anything else.
+            next if excluded&.key?(key)
+
             value = current[key]
 
             next unless value.is_a?(Numeric)
