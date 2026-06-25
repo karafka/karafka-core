@@ -702,4 +702,37 @@ describe_current do
       assert_equal 123, config.logger
     end
   end
+
+  context "when assigning a setting on a frozen config node" do
+    # Regression: the ivar-backed writer evaluated `@configs_refs[name] = value` before
+    # `instance_variable_set`, so a frozen node mutated the canonical store and only then raised
+    # FrozenError, leaving the store and the ivar-backed reader out of sync. The write must be
+    # atomic: it raises without changing any state.
+    let(:configurable_class) do
+      Class.new do
+        include Karafka::Core::Configurable
+
+        setting(:a, default: 1)
+      end
+    end
+
+    let(:config) { configurable_class.new.tap(&:configure).config }
+
+    before { config.freeze }
+
+    it "raises FrozenError" do
+      assert_raises(FrozenError) { config.a = 5 }
+    end
+
+    it "does not mutate the store or the reader when the write is rejected" do
+      begin
+        config.a = 5
+      rescue FrozenError
+        nil
+      end
+
+      assert_equal 1, config.a
+      assert_equal 1, config.to_h[:a]
+    end
+  end
 end

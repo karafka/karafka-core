@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.2 (Unreleased)
+- [Fix] Make assigning a setting on a frozen `Configurable::Node` atomic. The ivar-backed writer evaluated `@configs_refs[name] = value` before `instance_variable_set`, so a frozen node mutated the canonical store and only then raised `FrozenError`, leaving the store and the ivar-backed reader permanently out of sync. It now raises before touching any state.
+
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
 - [Fix] `Contract#call` with rule paths of 3+ keys no longer raises `NoMethodError` when an intermediate value is not a `Hash` and reports the path as missing instead, consistent with the 2-key path behavior.
