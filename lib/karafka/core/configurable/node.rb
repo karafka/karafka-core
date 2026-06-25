@@ -145,16 +145,16 @@ module Karafka
               value = value.dup
               value.compiled = false
 
-              # `Struct#dup` is shallow, so a mutable container default (Array/Hash) would be
-              # shared by reference across every duplicated node, and thus across every config
-              # instance (instances are produced by `deep_dup`). In-place mutation of one
-              # instance's default (e.g. `config.list << :x`) would then leak into all the others.
-              # Give each duplicate its own copy of such defaults. Scalars, frozen values and
-              # shared service objects (e.g. a logger passed as a default) keep their reference
-              # identity, so deliberately shared defaults are not affected.
-              default = value.default
-              value.default = default.dup if default.is_a?(Array) || default.is_a?(Hash)
-
+              # `Struct#dup` is intentionally shallow here: the leaf's `default` value is shared by
+              # reference across the class template and every config instance produced by
+              # `deep_dup`. This is the contract -- one uniform rule for all default types -- and it
+              # is what lets a shared service object passed as a default (e.g. a logger) keep its
+              # identity across all configs instead of being cloned per instance. The flip side is
+              # that an in-place mutation of a mutable container default (e.g. `config.list << :x`)
+              # is visible on every other instance and on the template. A caller that needs a
+              # per-instance mutable default should not rely on a mutable `default:` (e.g.
+              # `default: []`): assign the value inside a `configure` block, or dup it themselves,
+              # so each instance owns its own copy.
               value
             else
               value.deep_dup

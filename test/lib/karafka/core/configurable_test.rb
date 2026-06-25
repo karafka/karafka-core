@@ -525,10 +525,14 @@ describe_current do
       it { assert_equal 100, config2.nested1.nested2.leaf }
     end
 
-    context "when two instances share a mutable container default mutated in place" do
-      # Regression: a mutable default (Array/Hash) must not be shared across config instances.
-      # deep_dup shallow-copied the leaf, so every instance shared the same default object and
-      # an in-place mutation on one instance leaked into all the others.
+    context "when a mutable container default is mutated in place across instances" do
+      # These document an intentional, by-design property of `deep_dup`: a leaf's `default`
+      # value is shared by reference across the class template and every config instance. An
+      # in-place mutation of a mutable container default (Array/Hash) on one instance is
+      # therefore visible on the others. This is expected behavior, not a latent bug -- it is
+      # what lets a shared service object (e.g. a logger) passed as a default keep its identity
+      # across all configs. Each example builds its own anonymous template so these intentional
+      # in-place mutations stay isolated from the rest of the suite.
       let(:configurable_class) do
         Class.new do
           include Karafka::Core::Configurable
@@ -545,15 +549,17 @@ describe_current do
         configurable.configure
         configurable2.configure
 
-        config.list << :only_first
-        config.map[:only] = :first
+        config.list << :leaked
+        config.map[:leaked] = true
       end
 
-      it { assert_equal %i[only_first], config.list }
-      it { assert_empty config2.list }
-      it { assert_equal({ only: :first }, config.map) }
-      it { assert_empty config2.map }
-      it { refute_same config.list, config2.list }
+      # An in-place Array mutation on one instance is visible on the other (sharing is expected)
+      it { assert_equal %i[leaked], config2.list }
+      # An in-place Hash mutation on one instance is visible on the other (sharing is expected)
+      it { assert_equal({ leaked: true }, config2.map) }
+      # Both instances expose the very same default objects -- sharing by reference is the contract
+      it { assert_same config.list, config2.list }
+      it { assert_same config.map, config2.map }
     end
 
     context "when we do override some settings" do

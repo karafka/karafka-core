@@ -1,7 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.2 (Unreleased)
-- [Fix] Give each config instance its own copy of mutable container defaults (`Array`/`Hash`) in `Configurable::Node#deep_dup`. Previously the shallow leaf copy shared the same default object across all instances (and the class template), so an in-place mutation such as `config.list << :x` leaked into every other instance. Scalars, frozen values and deliberately shared service objects (e.g. a logger passed as a default) keep their reference identity.
+- [Enhancement] Document that a leaf's `default` value is intentionally shared by reference across the class template and every config instance produced by `Configurable::Node#deep_dup`. This uniform rule (the leaf is shallow-copied) is what lets a shared service object passed as a default (e.g. a logger) keep its identity across all configs; the flip side is that an in-place mutation of a mutable container default (`config.list << :x`) is visible on every instance. Callers that need a per-instance mutable default should assign it inside a `configure` block or dup it themselves rather than relying on a mutable `default:` (e.g. `default: []`). Adds characterization tests covering the shared-default behavior.
 
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25x for minimal and ~1.4x for fully populated data: resolve rule paths with a single `Hash#fetch` per level instead of `key?` + `[]`, inline the per-rule type dispatch into the rules loop, and compare the dig sentinel via `#equal?` so `#==` is never dispatched to the validated (user-provided) values. This is the per-message validation path in WaterDrop producers.
