@@ -46,9 +46,12 @@ module Karafka
           @excluded_keys = unless excluded_keys.empty?
             excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
           end
-          # Frozen array for direct-access decoration, nil when empty to use full decoration
+          # Frozen array for direct-access decoration, nil when empty to use full decoration.
+          # Exclusions are applied once here (excluded_keys wins over only_keys), so the hot
+          # decoration loop iterates an already-filtered list and never re-checks exclusions.
           @only_keys = unless only_keys.empty?
-            only_keys.freeze
+            effective = @excluded_keys ? only_keys.reject { |k| @excluded_keys.key?(k) } : only_keys
+            effective.freeze
           end
         end
 
@@ -270,13 +273,8 @@ module Karafka
         def decorate_keys(current, filled_previous, change_d)
           cache = @suffix_keys_cache
           only = @only_keys
-          excluded = @excluded_keys
 
           only.each do |key|
-            # `excluded_keys` wins over `only_keys`: a key listed in both is not decorated,
-            # matching the full-decoration path which skips excluded keys before anything else.
-            next if excluded&.key?(key)
-
             value = current[key]
 
             next unless value.is_a?(Numeric)
