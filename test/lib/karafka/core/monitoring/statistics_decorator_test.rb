@@ -130,9 +130,28 @@ describe_current do
     it { assert_equal 18, decorated["int_d"] }
     it { assert_in_delta 0, decorated["int_fd"], 5 }
     it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_d"] }
-    it { assert_in_delta 0, decorated.dig(*broker_scope)["txbytes_fd"], 5 }
+    # A newly introduced key has no previous value to be "frozen" against, so its freeze
+    # duration is exactly zero regardless of the time elapsed between emissions.
+    it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_fd"] }
     it { assert_predicate decorated, :frozen? }
     it { refute decorated.key?("float_d_d") }
+  end
+
+  context "when a broker is introduced after a delay between emissions" do
+    # Regression guard: a freshly introduced key must report a freeze duration of zero
+    # regardless of how much wall-clock time elapsed since the previous emission. The
+    # freeze duration previously accumulated the inter-emission gap for new keys, which
+    # depended on timing and flaked on slow CIs.
+    subject(:decorated) do
+      decorator.call(emitted_stats1)
+      sleep(0.05)
+      decorator.call(emitted_stats2)
+    end
+
+    before { emitted_stats1["nested"] = {} }
+
+    it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_fd"] }
+    it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_d"] }
   end
 
   context "when value remains unchanged over time" do
