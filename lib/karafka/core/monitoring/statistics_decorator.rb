@@ -14,7 +14,9 @@ module Karafka
       #   - KEY_fd - freeze duration - describes how long the delta remains unchanged (zero)
       #              and can be useful for detecting values that "hang" for extended period of time
       #              and do not have any change (delta always zero). This value is in ms for the
-      #              consistency with other time operators we use.
+      #              consistency with other time operators we use. A newly introduced key (one
+      #              that had no value in the previous emission) starts at a freeze duration of
+      #              zero, since there is no prior value it could have been "frozen" against.
       #
       # The `_d` and `_fd` suffixes are reserved. For every numeric KEY the decorator writes
       # `KEY_d` and `KEY_fd` into the same hash, so if the input already contains a real key
@@ -127,18 +129,19 @@ module Karafka
             if value.is_a?(Numeric)
               prev_value = filled_previous[key]
 
-              if prev_value.nil?
-                result = 0
-              elsif prev_value.is_a?(Numeric)
-                result = value - prev_value
-              else
-                next
-              end
+              next if !prev_value.nil? && !prev_value.is_a?(Numeric)
 
               pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
 
-              current[pair[0]] = (result == 0) ? (filled_previous[pair[0]] || 0) + change_d : 0
-              current[pair[1]] = result
+              if prev_value.nil?
+                current[pair[0]] = 0
+                current[pair[1]] = 0
+              else
+                result = value - prev_value
+
+                current[pair[0]] = (result == 0) ? (filled_previous[pair[0]] || 0) + change_d : 0
+                current[pair[1]] = result
+              end
             elsif value.is_a?(Hash)
               diff_all(filled_previous[key], value, change_d)
             end
@@ -282,18 +285,19 @@ module Karafka
 
             prev_value = filled_previous[key]
 
-            if prev_value.nil?
-              result = 0
-            elsif prev_value.is_a?(Numeric)
-              result = value - prev_value
-            else
-              next
-            end
+            next if !prev_value.nil? && !prev_value.is_a?(Numeric)
 
             pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
 
-            current[pair[0]] = (result == 0) ? (filled_previous[pair[0]] || 0) + change_d : 0
-            current[pair[1]] = result
+            if prev_value.nil?
+              current[pair[0]] = 0
+              current[pair[1]] = 0
+            else
+              result = value - prev_value
+
+              current[pair[0]] = (result == 0) ? (filled_previous[pair[0]] || 0) + change_d : 0
+              current[pair[1]] = result
+            end
           end
         end
       end
