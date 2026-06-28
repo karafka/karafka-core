@@ -94,6 +94,11 @@ module Karafka
         def call(data, scope: EMPTY_ARRAY)
           errors = []
 
+          # A non-Hash root has no keys to dig; resolve it once here so #dig stays on its lean
+          # fast path and is only invoked with a Hash. Non-Hash data makes every required rule
+          # report missing, consistent with the non-Hash intermediate handling inside #dig.
+          data_is_hash = data.is_a?(Hash)
+
           self.class.rules.each do |rule|
             if rule.type == :virtual
               result = rule.validator.call(data, errors, self)
@@ -106,7 +111,7 @@ module Karafka
 
               errors.push(*result)
             else
-              for_checking = dig(data, rule.path)
+              for_checking = data_is_hash ? dig(data, rule.path) : DIG_MISS
 
               if DIG_MISS.equal?(for_checking)
                 errors << [scope + rule.path, :missing] if rule.type == :required
@@ -156,12 +161,6 @@ module Karafka
         # @param keys [Array<Symbol>]
         # @return [DIG_MISS, Object] found element or DIGG_MISS indicating that not found
         def dig(data, keys)
-          # A non-Hash root has no key to dig, so report a miss. Without this guard the 1-key and
-          # 2-key fast paths called `#fetch` straight on the root and raised `NoMethodError` for a
-          # non-Hash value, while the 3+-key path already returned a miss -- making the behavior
-          # depend on the rule path length.
-          return DIG_MISS unless data.is_a?(Hash)
-
           case keys.length
           when 1
             data.fetch(keys[0], DIG_MISS)
