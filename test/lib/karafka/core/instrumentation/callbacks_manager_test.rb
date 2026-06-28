@@ -79,40 +79,49 @@ describe_current do
     end
   end
 
-  describe "concurrency safety" do
-    # Regression: a callback added concurrently while #call is taking its snapshot of the
-    # registered callbacks must not be permanently lost. A previous optimization cached the
-    # values snapshot and invalidated it on add/delete; under interleaving, #call could write
-    # a stale snapshot back over a concurrent invalidation, so a newly added callback would
-    # never fire afterwards (and a deleted one would keep firing forever). We force the exact
-    # interleaving deterministically with a Hash whose #values mutates the manager right after
-    # the snapshot is read.
-    it "does not permanently drop a callback added while a call snapshots the callbacks" do
-      racy = Class.new(Hash) do
-        attr_accessor :after_values
+  describe "concurrency safety (copy-on-write snapshot)" do
+    # `#call` iterates an immutable snapshot taken before dispatch, so registering or removing a
+    # callback while a `#call` is in progress never corrupts the running iteration and is never
+    # lost: the change takes effect on the next `#call`. This replaces an earlier values cache
+    # (2.5.11) that could permanently drop a concurrently added/removed callback by lazily writing
+    # a stale snapshot back from within `#call`.
+    it "does not run a callback registered during an in-progress call, but runs it next time" do
+      registered_b = false
 
-        def values
-          snapshot = super
-          after_values&.call
-          snapshot
-        end
-      end.new
+      manager.add("a", lambda do
+        changed << :a
+        # Simulate a registration arriving mid-dispatch (e.g. from another thread). Runs once.
+        next if registered_b
 
-      manager.instance_variable_set(:@callbacks, racy)
-      manager.add("a", -> { changed << :a })
-
-      # Simulate another thread adding a callback in the window between the snapshot read
-      # and any cache write-back inside #call. Runs once.
-      racy.after_values = lambda do
-        racy.after_values = nil
+        registered_b = true
         manager.add("b", -> { changed << :b })
-      end
+      end)
 
-      manager.call # snapshots [a], then "b" is added in the race window
+      manager.call
+      # Snapshot for this call was [a]; "b" registered mid-dispatch must not fire yet
+      assert_equal %i[a], changed
+
       changed.clear
-      manager.call # "b" must fire now; if it was lost to a stale cache it never will
+      manager.call
+      # "b" was not lost; it fires on the next call
+      assert_equal %i[a b], changed
+    end
 
-      assert_includes changed, :b
+    it "finishes the in-progress snapshot even when a callback is removed mid-call" do
+      manager.add("a", lambda do
+        manager.delete("b")
+        changed << :a
+      end)
+      manager.add("b", -> { changed << :b })
+
+      manager.call
+      # Snapshot was [a, b]; "b" still runs this call even though "a" removed it
+      assert_equal %i[a b], changed
+
+      changed.clear
+      manager.call
+      # Removal takes effect on the next call
+      assert_equal %i[a], changed
     end
   end
 end
