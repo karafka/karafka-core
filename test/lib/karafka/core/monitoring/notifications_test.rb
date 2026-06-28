@@ -272,4 +272,43 @@ describe_current do
       it { assert_equal event_name, listener.accu[0].id }
     end
   end
+
+  describe "when a listener unsubscribes during dispatch" do
+    # Regression: a listener that unsubscribes itself (or an earlier listener) from within its
+    # own handler must not cause the listener following it to be skipped. Notification iterates
+    # over a snapshot of the listeners, so mutating the live array mid-dispatch is safe.
+    let(:order) { [] }
+
+    let(:detaching_listener) do
+      accu = order
+      notif = notifications
+
+      Class.new do
+        define_method(:on_message_produced_async) do |_event|
+          accu << :detacher
+          notif.unsubscribe(self)
+        end
+      end.new
+    end
+
+    let(:second_listener) do
+      accu = order
+
+      Class.new do
+        define_method(:on_message_produced_async) do |_event|
+          accu << :second
+        end
+      end.new
+    end
+
+    before do
+      notifications.subscribe(detaching_listener)
+      notifications.subscribe(second_listener)
+      notifications.instrument(event_name)
+    end
+
+    it "still notifies the listener following the one that unsubscribed" do
+      assert_equal %i[detacher second], order
+    end
+  end
 end

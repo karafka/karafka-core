@@ -48,8 +48,17 @@ module Karafka
         # @param event_id [String] the key of the event to clear listeners for.
         def clear(event_id = nil)
           @mutex.synchronize do
-            return @listeners.each_value(&:clear) unless event_id
-            return @listeners[event_id].clear if @listeners.key?(event_id)
+            # Copy-on-write: replace the per-event arrays rather than mutating them in place, so a
+            # dispatch iterating a previously captured array is unaffected (see #notify_listeners).
+            unless event_id
+              @listeners.transform_values! { [] }
+              return
+            end
+
+            if @listeners.key?(event_id)
+              @listeners[event_id] = []
+              return
+            end
 
             raise(EventNotRegistered, "#{event_id} not registered!")
           end
@@ -76,14 +85,16 @@ module Karafka
 
               raise EventNotRegistered, event_id unless @listeners.key?(event_id)
 
-              @listeners[event_id] << block
+              # Copy-on-write: append by replacing the array, never mutating the one a concurrent
+              # dispatch may be iterating (see #notify_listeners).
+              @listeners[event_id] += [block]
             else
               listener = event_id_or_listener
 
               @listeners.each_key do |reg_event_id|
                 next unless listener.respond_to?(@events_methods_map[reg_event_id])
 
-                @listeners[reg_event_id] << listener
+                @listeners[reg_event_id] += [listener]
               end
             end
           end
@@ -98,9 +109,9 @@ module Karafka
         #   unsubscribe(my_listener)
         def unsubscribe(listener_or_block)
           @mutex.synchronize do
-            @listeners.each_value do |event_listeners|
-              event_listeners.delete(listener_or_block)
-            end
+            # Copy-on-write: rebuild each array without the listener instead of deleting in place,
+            # so a dispatch iterating a previously captured array still sees the full set.
+            @listeners.transform_values! { |event_listeners| event_listeners - [listener_or_block] }
           end
         end
 
