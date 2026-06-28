@@ -1,6 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.2 (Unreleased)
+- [Fix] Report a freeze duration (`_fd`) of `0` for statistics keys that are newly introduced in an emission (e.g. a broker or partition that appears mid-stream) instead of the elapsed time since the previous emission. A key that did not exist in the prior emission could not have been "frozen" for any duration, so accumulating the inter-emission gap was incorrect and also made the related `StatisticsDecorator` spec flaky on slow CIs (`_fd` depended on the wall-clock gap between the two emissions).
 - [Fix] Make assigning a setting on a frozen `Configurable::Node` atomic. The ivar-backed writer evaluated `@configs_refs[name] = value` before `instance_variable_set`, so a frozen node mutated the canonical store and only then raised `FrozenError`, leaving the store and the ivar-backed reader permanently out of sync. It now raises before touching any state.
 
 ## 2.6.1 (2026-06-15)
