@@ -238,6 +238,24 @@ describe_current do
     end
   end
 
+  context "when a virtual rule returns a non-array value" do
+    # Regression: a virtual rule returning false reached `false.each` and raised NoMethodError
+    # (nil was already tolerated). Any non-Array result (true/false/nil) means "no errors".
+    [false, nil, true].each do |returned|
+      context "when it returns #{returned.inspect}" do
+        let(:validator_class) do
+          value = returned
+
+          Class.new(described_class) do
+            virtual { |_data, _errors, _contract| value }
+          end
+        end
+
+        it { assert_predicate validator_class.new.call({}), :success? }
+      end
+    end
+  end
+
   context "when contract has multiple nestings" do
     subject(:validator_class) do
       Class.new(described_class) do
