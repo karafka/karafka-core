@@ -144,6 +144,17 @@ module Karafka
               # After inheritance we need to reload the state so the leafs are recompiled again
               value = value.dup
               value.compiled = false
+
+              # `Struct#dup` is intentionally shallow here: the leaf's `default` value is shared by
+              # reference across the class template and every config instance produced by
+              # `deep_dup`. This is the contract -- one uniform rule for all default types -- and it
+              # is what lets a shared service object passed as a default (e.g. a logger) keep its
+              # identity across all configs instead of being cloned per instance. The flip side is
+              # that an in-place mutation of a mutable container default (e.g. `config.list << :x`)
+              # is visible on every other instance and on the template. A caller that needs a
+              # per-instance mutable default should not rely on a mutable `default:` (e.g.
+              # `default: []`): assign the value inside a `configure` block, or dup it themselves,
+              # so each instance owns its own copy.
               value
             else
               value.deep_dup
@@ -295,7 +306,8 @@ module Karafka
             ivar_name = :"@#{reader_name}"
 
             define_singleton_method(:"#{reader_name}=") do |new_value|
-              instance_variable_set(ivar_name, @configs_refs[reader_name] = new_value)
+              instance_variable_set(ivar_name, new_value)
+              @configs_refs[reader_name] = new_value
             end
           else
             define_singleton_method(:"#{reader_name}=") do |new_value|
