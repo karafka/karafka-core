@@ -306,7 +306,8 @@ module Karafka
             ivar_name = :"@#{reader_name}"
 
             define_singleton_method(:"#{reader_name}=") do |new_value|
-              instance_variable_set(ivar_name, @configs_refs[reader_name] = new_value)
+              instance_variable_set(ivar_name, new_value)
+              @configs_refs[reader_name] = new_value
             end
           else
             define_singleton_method(:"#{reader_name}=") do |new_value|
