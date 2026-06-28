@@ -122,19 +122,11 @@ module Karafka
             if value.is_a?(Numeric)
               prev_value = filled_previous[key]
 
-              # Skip decoration when a previous value existed but was non-numeric: there is
-              # no meaningful delta to compute against it.
               next if !prev_value.nil? && !prev_value.is_a?(Numeric)
 
               pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
 
               if prev_value.nil?
-                # Newly introduced key: there is no previous value to diff against, so the
-                # delta is zero and the freeze duration starts fresh at zero. The value did
-                # not exist during the prior interval, so it must not be reported as having
-                # been "frozen" for that elapsed time. Accumulating change_d here would make
-                # the freeze duration depend on the wall-clock gap between emissions, which is
-                # non-deterministic and flaked on slow CIs.
                 current[pair[0]] = 0
                 current[pair[1]] = 0
               else
@@ -286,17 +278,11 @@ module Karafka
 
             prev_value = filled_previous[key]
 
-            # Skip decoration when a previous value existed but was non-numeric: there is
-            # no meaningful delta to compute against it.
             next if !prev_value.nil? && !prev_value.is_a?(Numeric)
 
             pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
 
             if prev_value.nil?
-              # Newly introduced key: there is no previous value to diff against, so the
-              # delta is zero and the freeze duration starts fresh at zero. See diff_all
-              # for the full rationale (avoids depending on the wall-clock gap between
-              # emissions, which flaked on slow CIs).
               current[pair[0]] = 0
               current[pair[1]] = 0
             else
