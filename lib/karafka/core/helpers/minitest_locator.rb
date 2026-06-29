@@ -36,7 +36,7 @@ module Karafka
             .first
             .split(":")
             .first
-            .gsub(@tests_root_dir, "")
+            .sub(/\A#{::Regexp.escape(@tests_root_dir)}/, "")
             .gsub("_test.rb", "")
             .split("/")
             .delete_if(&:empty?)
