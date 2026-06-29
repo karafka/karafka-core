@@ -59,9 +59,12 @@ module Karafka
           @excluded_keys = unless excluded_keys.empty?
             excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
           end
-          # Frozen array for direct-access decoration, nil when empty to use full decoration
+          # Frozen array for direct-access decoration, nil when empty to use full decoration.
+          # Exclusions are applied once here (excluded_keys wins over only_keys), so the hot
+          # decoration loop iterates an already-filtered list and never re-checks exclusions.
           @only_keys = unless only_keys.empty?
-            only_keys.freeze
+            effective = @excluded_keys ? only_keys.reject { |k| @excluded_keys.key?(k) } : only_keys
+            effective.freeze
           end
         end
 
