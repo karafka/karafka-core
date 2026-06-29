@@ -61,10 +61,19 @@ module Karafka
             @rules << Rule.new(@nested + keys, :optional, block).freeze
           end
 
-          # @param block [Proc] validation rule
+          # Defines a virtual rule that validates the whole data rather than a single key. Unlike
+          # `required`/`optional`, the block receives the full data and returns its own errors.
           #
-          # @note Virtual rules have different result expectations. Please see contracts or specs for
-          #   details.
+          # @param block [Proc] validation rule, called with `(data, errors, contract)`. It must
+          #   return either a non-Array (`true`/`nil`/`false`) for "no errors", or an `Array` of
+          #   `[path, message]` error pairs (where `path` is itself an `Array` of symbols).
+          #
+          # @note The returned error `Array` is owned by the contract: `#call` prepends the current
+          #   scope onto each pair in place and collects them, so a rule must return a freshly
+          #   built `Array` on every call. Returning a memoized, shared or frozen `Array` is not
+          #   supported -- in-place scoping would accumulate the prefix across validations (or
+          #   raise `FrozenError`). Build the result in the block (e.g. `[[%i[id], :invalid]]`)
+          #   rather than returning a constant.
           def virtual(&block)
             init_accu
             @rules << Rule.new([], :virtual, block).freeze
@@ -104,6 +113,10 @@ module Karafka
               # raised NoMethodError (a `nil` return was already tolerated by the safe navigation).
               next unless result.is_a?(Array)
 
+              # Apply the scope prefix in place on the rule's returned pairs and collect them
+              # directly. Per the `virtual` contract the rule hands back a freshly built Array
+              # each call (see `DSL#virtual`), so mutating it here is safe and avoids allocating a
+              # new pair per error.
               result.each do |sub_result|
                 sub_result[0] = scope + sub_result[0]
               end
