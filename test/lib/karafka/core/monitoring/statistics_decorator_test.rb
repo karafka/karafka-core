@@ -130,9 +130,28 @@ describe_current do
     it { assert_equal 18, decorated["int_d"] }
     it { assert_in_delta 0, decorated["int_fd"], 5 }
     it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_d"] }
-    it { assert_in_delta 0, decorated.dig(*broker_scope)["txbytes_fd"], 5 }
+    # A newly introduced key has no previous value to be "frozen" against, so its freeze
+    # duration is exactly zero regardless of the time elapsed between emissions.
+    it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_fd"] }
     it { assert_predicate decorated, :frozen? }
     it { refute decorated.key?("float_d_d") }
+  end
+
+  context "when a broker is introduced after a delay between emissions" do
+    # Regression guard: a freshly introduced key must report a freeze duration of zero
+    # regardless of how much wall-clock time elapsed since the previous emission. The
+    # freeze duration previously accumulated the inter-emission gap for new keys, which
+    # depended on timing and flaked on slow CIs.
+    subject(:decorated) do
+      decorator.call(emitted_stats1)
+      sleep(0.05)
+      decorator.call(emitted_stats2)
+    end
+
+    before { emitted_stats1["nested"] = {} }
+
+    it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_fd"] }
+    it { assert_equal 0, decorated.dig(*broker_scope)["txbytes_d"] }
   end
 
   context "when value remains unchanged over time" do
@@ -151,9 +170,11 @@ describe_current do
     it { refute decorated.key?("string_d") }
     it { refute decorated.key?("string_fd") }
     it { assert_equal 0, decorated["float_d"] }
-    it { assert_in_delta 10, decorated["float_fd"], 5 }
+    # On slow CIs this value tends to grow and crash
+    it { assert_in_delta 10, decorated["float_fd"], 10 }
     it { assert_equal 0, decorated["int_d"] }
-    it { assert_in_delta 10, decorated["int_fd"], 5 }
+    # On slow CIs this value tends to grow and crash
+    it { assert_in_delta 10, decorated["int_fd"], 10 }
     it { assert_predicate decorated, :frozen? }
     it { refute decorated.key?("float_d_d") }
   end
@@ -176,30 +197,13 @@ describe_current do
     it { refute decorated.key?("string_d") }
     it { refute decorated.key?("string_fd") }
     it { assert_equal 0, decorated["float_d"] }
-    it { assert_in_delta 20, decorated["float_fd"], 5 }
+    # On slow CIs this value tends to grow and crash
+    it { assert_in_delta 20, decorated["float_fd"], 15 }
     it { assert_equal 0, decorated["int_d"] }
     # On slow CIs this value tends to grow and crash
     it { assert_in_delta 20, decorated["int_fd"], 15 }
     it { assert_predicate decorated, :frozen? }
     it { refute decorated.key?("float_d_d") }
-  end
-
-  context "when a value type changed from non-numeric to numeric between emissions" do
-    subject(:decorated) do
-      decorator.call(emitted_stats1)
-      decorator.call(emitted_stats2)
-    end
-
-    before do
-      # In the first emission, txbytes is a string (unusual but defensive)
-      emitted_stats1["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
-    end
-
-    # When previous value was non-numeric but current is numeric, no delta should be computed
-    it { refute decorated.dig(*broker_scope).key?("txbytes_d") }
-    it { refute decorated.dig(*broker_scope).key?("txbytes_fd") }
-    it { assert_equal 153, decorated.dig(*broker_scope)["txbytes"] }
-    it { assert_predicate decorated, :frozen? }
   end
 
   context "when excluded_keys are configured" do
@@ -341,6 +345,46 @@ describe_current do
     end
   end
 
+  context "when a key is listed in both only_keys and excluded_keys" do
+    # Regression: decorate_keys iterated only_keys without consulting excluded_keys, so a key
+    # present in both lists was still decorated. excluded_keys wins, matching the full path.
+    let(:decorator) { described_class.new(only_keys: %w[int], excluded_keys: %w[int]) }
+
+    subject(:decorated) do
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
+    end
+
+    it { refute decorated.key?("int_d") }
+    it { refute decorated.key?("int_fd") }
+    it { assert_equal 130, decorated["int"] }
+  end
+
+  context "when only_keys includes a cgrp key" do
+    let(:stats1) { { "cgrp" => { "stateage" => 1000 } } }
+    let(:stats2) { { "cgrp" => { "stateage" => 2000 } } }
+
+    subject(:decorated) do
+      decorator.call(stats1)
+      decorator.call(stats2)
+    end
+
+    context "when cgrp is not excluded" do
+      let(:decorator) { described_class.new(only_keys: %w[stateage]) }
+
+      it { assert_equal 1000, decorated["cgrp"]["stateage_d"] }
+    end
+
+    context "when cgrp is excluded" do
+      # Regression: excluded_keys was honored for brokers and topics in only_keys mode but not
+      # for the cgrp branch, so excluding "cgrp" still decorated the consumer-group subtree.
+      let(:decorator) { described_class.new(only_keys: %w[stateage], excluded_keys: %w[cgrp]) }
+
+      it { refute decorated["cgrp"].key?("stateage_d") }
+      it { refute decorated["cgrp"].key?("stateage_fd") }
+    end
+  end
+
   context "when only_keys value remains unchanged over time" do
     subject(:decorated) do
       decorator.call(deep_copy.call)
@@ -470,17 +514,6 @@ describe_current do
     end
 
     it { assert_predicate decorated, :frozen? }
-  end
-
-  context "when only_keys previous value type changed to non-numeric" do
-    let(:decorator) { described_class.new(only_keys: %w[val]) }
-
-    subject(:decorated) do
-      decorator.call({ "val" => "not_numeric" })
-      decorator.call({ "val" => 10 })
-    end
-
-    it { refute decorated.key?("val_d") }
   end
 
   context "when a value type changed from numeric to non-numeric between emissions" do

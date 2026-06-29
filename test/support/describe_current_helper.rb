@@ -10,7 +10,7 @@ extend Karafka::Core::Helpers::MinitestLocator.new(
   File.expand_path("../test_helper.rb", __dir__)
 )
 
-# Provide `described_class` for minitest/spec — walks the desc hierarchy to find a Class/Module
+# Provide `described_class` for minitest/spec - walks the desc hierarchy to find a Class/Module
 module MinitestDescribedClass
   def described_class
     # Walk up the describe hierarchy to find the Class/Module

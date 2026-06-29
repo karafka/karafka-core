@@ -28,7 +28,15 @@ module Karafka
         # @param event_id [String, Symbol] event id
         # @param payload [Hash]
         def instrument(event_id, payload = EMPTY_HASH, &)
-          full_event_name = @mapped_events[event_id] ||= [event_id, @namespace].compact.join(".")
+          # With no namespace, string event ids already are the full event names. This is the
+          # case for all the events in the Karafka ecosystem, so we can skip the mapping hash
+          # lookup on this hot path. Symbols still go through the mapping to be converted into
+          # strings without allocating on each call.
+          full_event_name = if @namespace.nil? && event_id.is_a?(String)
+            event_id
+          else
+            @mapped_events[event_id] ||= [event_id, @namespace].compact.join(".")
+          end
 
           @notifications_bus.instrument(full_event_name, payload, &)
         end

@@ -30,6 +30,224 @@ describe_current do
       it { assert_equal 7, configurable_class.config.testme }
     end
 
+    describe "#register" do
+      let(:node) { configurable_class.config }
+
+      context "when registering a new key-value pair" do
+        before { node.register(:my_cluster, { "bootstrap.servers": "kafka:9092" }) }
+
+        it "makes the value readable via accessor" do
+          assert_equal({ "bootstrap.servers": "kafka:9092" }, node.my_cluster)
+        end
+
+        it "makes the value writable via accessor" do
+          node.my_cluster = { "bootstrap.servers": "other:9092" }
+
+          assert_equal({ "bootstrap.servers": "other:9092" }, node.my_cluster)
+        end
+
+        it "includes the registered key in to_h" do
+          assert node.to_h.key?(:my_cluster)
+          assert_equal({ "bootstrap.servers": "kafka:9092" }, node.to_h[:my_cluster])
+        end
+
+        it "carries the registered key through deep_dup" do
+          dupped = node.deep_dup
+          dupped.configure
+
+          assert_equal({ "bootstrap.servers": "kafka:9092" }, dupped.my_cluster)
+        end
+      end
+
+      context "when registering a string name" do
+        before { node.register("analytics", 42) }
+
+        it "coerces the name to a symbol" do
+          assert_equal 42, node.analytics
+        end
+      end
+
+      context "when registering multiple keys" do
+        before do
+          node.register(:cluster_a, "a:9092")
+          node.register(:cluster_b, "b:9092")
+        end
+
+        it "stores all keys independently" do
+          assert_equal "a:9092", node.cluster_a
+          assert_equal "b:9092", node.cluster_b
+        end
+
+        it "includes all keys in to_h" do
+          assert_equal "a:9092", node.to_h[:cluster_a]
+          assert_equal "b:9092", node.to_h[:cluster_b]
+        end
+      end
+
+      context "when registering a duplicate name" do
+        before { node.register(:taken, "first") }
+
+        it "raises ArgumentError" do
+          assert_raises(ArgumentError) { node.register(:taken, "second") }
+        end
+
+        it "does not overwrite the original value" do
+          begin
+            node.register(:taken, "second")
+          rescue ArgumentError
+            nil
+          end
+
+          assert_equal "first", node.taken
+        end
+      end
+
+      context "when the name is already used by an unread lazy setting" do
+        # Regression: the duplicate guard only checked @configs_refs, but a lazy-with-constructor
+        # setting is not written to @configs_refs until first read, so register silently
+        # overwrote it instead of raising the documented "already registered" error.
+        let(:lazy_node) do
+          Class.new do
+            extend Karafka::Core::Configurable
+
+            setting(:cache, default: 1, constructor: -> { 1 }, lazy: true)
+          end.tap(&:configure).config
+        end
+
+        it "raises ArgumentError instead of overwriting" do
+          assert_raises(ArgumentError) { lazy_node.register(:cache, "overwrite") }
+        end
+      end
+
+      context "when the registered value is nil" do
+        before { node.register(:nullable, nil) }
+
+        it "stores and returns nil" do
+          assert_nil node.nullable
+        end
+
+        it "includes the key in to_h" do
+          assert node.to_h.key?(:nullable)
+        end
+      end
+
+      context "when registering a name that cannot back an instance variable" do
+        before { node.register(:"my-cluster", "dashed:9092") }
+
+        it "makes the value readable via accessor" do
+          assert_equal "dashed:9092", node.public_send(:"my-cluster")
+        end
+
+        it "makes the value writable via accessor" do
+          node.public_send(:"my-cluster=", "changed:9092")
+
+          assert_equal "changed:9092", node.public_send(:"my-cluster")
+        end
+
+        it "includes the registered key in to_h" do
+          assert_equal "dashed:9092", node.to_h[:"my-cluster"]
+        end
+
+        it "carries the registered key through deep_dup" do
+          dupped = node.deep_dup
+          dupped.configure
+
+          assert_equal "dashed:9092", dupped.public_send(:"my-cluster")
+        end
+      end
+
+      context "when registering on a nested node" do
+        before { configurable_class.config.nested1.register(:extra, "nested-value") }
+
+        it "makes the value readable on the nested node" do
+          assert_equal "nested-value", configurable_class.config.nested1.extra
+        end
+
+        it "includes it in the nested node's to_h" do
+          assert_equal "nested-value", configurable_class.config.nested1.to_h[:extra]
+        end
+      end
+    end
+
+    context "when a setting name is reserved for the node internal state" do
+      reserved_names = %i[
+        node_name children nestings compiled configs_refs local_defs
+        setting configure to_h deep_dup register compile
+      ]
+
+      reserved_names.each do |reserved|
+        it "raises ArgumentError for #{reserved} defined via setting" do
+          error = assert_raises(ArgumentError) do
+            Class.new do
+              extend Karafka::Core::Configurable
+
+              setting(reserved, default: 1)
+            end
+          end
+
+          assert_includes error.message, "#{reserved} is a reserved name"
+        end
+      end
+
+      it "raises ArgumentError also when the reserved name is a string" do
+        assert_raises(ArgumentError) do
+          Class.new do
+            extend Karafka::Core::Configurable
+
+            setting("children", default: "boom")
+          end
+        end
+      end
+
+      it "raises ArgumentError for a reserved nested node name" do
+        assert_raises(ArgumentError) do
+          Class.new do
+            extend Karafka::Core::Configurable
+
+            setting(:nested) do
+              setting(:children, default: 1)
+            end
+          end
+        end
+      end
+
+      it "raises ArgumentError when registering a reserved name" do
+        node = Class.new { extend Karafka::Core::Configurable }.config
+
+        error = assert_raises(ArgumentError) { node.register(:nestings, "value") }
+
+        assert_includes error.message, "nestings is a reserved name"
+      end
+    end
+
+    context "when a setting name is a string" do
+      subject(:string_named_class) do
+        Class.new do
+          extend Karafka::Core::Configurable
+
+          setting("alpha", default: 1)
+        end
+      end
+
+      let(:string_named_config) { string_named_class.config }
+
+      before { string_named_config.alpha = 5 }
+
+      it "reflects writes in the accessor" do
+        assert_equal 5, string_named_config.alpha
+      end
+
+      it "reflects writes in to_h under a symbol key" do
+        assert_equal 5, string_named_config.to_h[:alpha]
+      end
+
+      it "preserves the written value across reconfiguration" do
+        string_named_class.configure
+
+        assert_equal 5, string_named_config.alpha
+      end
+    end
+
     context "when we do not override any settings" do
       before { configurable_class.configure }
 
@@ -166,6 +384,32 @@ describe_current do
 
         it { assert_equal expected_hash, config.to_h }
       end
+
+      context "when a lazy setting has a one-arity constructor and was not read" do
+        # Regression: #to_h invoked the constructor with no arguments, ignoring its arity, and
+        # crashed for the documented `->(default) { ... }` form. A lazy setting is not written to
+        # the store until first read, so even after #configure #to_h reaches the constructor
+        # branch with the value still absent from @configs_refs.
+        let(:configurable_class) do
+          Class.new do
+            include Karafka::Core::Configurable
+
+            setting(
+              :lazy_one_arity,
+              default: 3,
+              constructor: ->(default) { (default || 0) + 1 },
+              lazy: true
+            )
+          end
+        end
+
+        let(:configurable) { configurable_class.new }
+        let(:config) { configurable.config }
+
+        it "evaluates the constructor with its default" do
+          assert_equal({ lazy_one_arity: 4 }, config.to_h)
+        end
+      end
     end
 
     context "when we want to merge extra config as a nested setting" do
@@ -274,6 +518,27 @@ describe_current do
         it { assert_equal 20, config.lazy_setting }
       end
     end
+
+    context "when a lazy setting has no constructor" do
+      # Regression: `lazy: true` without a constructor has nothing to evaluate lazily. Reading
+      # such a setting used to crash -- `nil.arity` via the dynamic accessor for a falsy default,
+      # or a missing accessor (NoMethodError) for a truthy default. It now behaves like a regular
+      # setting backed by its default.
+      let(:configurable_class) do
+        Class.new do
+          include Karafka::Core::Configurable
+
+          setting(:lazy_nil, lazy: true)
+          setting(:lazy_with_default, default: 5, lazy: true)
+        end
+      end
+
+      let(:config) { configurable_class.new.tap(&:configure).config }
+
+      it { assert_nil config.lazy_nil }
+      it { assert_equal 5, config.lazy_with_default }
+      it { assert_equal({ lazy_nil: nil, lazy_with_default: 5 }, config.to_h) }
+    end
   end
 
   context "when we define settings on an instance level" do
@@ -322,6 +587,43 @@ describe_current do
 
       it { assert_equal 6, config.nested1.nested2.leaf }
       it { assert_equal 100, config2.nested1.nested2.leaf }
+    end
+
+    context "when a mutable container default is mutated in place across instances" do
+      # These document an intentional, by-design property of `deep_dup`: a leaf's `default`
+      # value is shared by reference across the class template and every config instance. An
+      # in-place mutation of a mutable container default (Array/Hash) on one instance is
+      # therefore visible on the others. This is expected behavior, not a latent bug -- it is
+      # what lets a shared service object (e.g. a logger) passed as a default keep its identity
+      # across all configs. Each example builds its own anonymous template so these intentional
+      # in-place mutations stay isolated from the rest of the suite.
+      let(:configurable_class) do
+        Class.new do
+          include Karafka::Core::Configurable
+
+          setting(:list, default: [])
+          setting(:map, default: {})
+        end
+      end
+
+      let(:configurable2) { configurable_class.new }
+      let(:config2) { configurable2.config }
+
+      before do
+        configurable.configure
+        configurable2.configure
+
+        config.list << :leaked
+        config.map[:leaked] = true
+      end
+
+      # An in-place Array mutation on one instance is visible on the other (sharing is expected)
+      it { assert_equal %i[leaked], config2.list }
+      # An in-place Hash mutation on one instance is visible on the other (sharing is expected)
+      it { assert_equal({ leaked: true }, config2.map) }
+      # Both instances expose the very same default objects -- sharing by reference is the contract
+      it { assert_same config.list, config2.list }
+      it { assert_same config.map, config2.map }
     end
 
     context "when we do override some settings" do
@@ -499,6 +801,39 @@ describe_current do
 
     it "expect not to raise because it should redefine" do
       assert_equal 123, config.logger
+    end
+  end
+
+  context "when assigning a setting on a frozen config node" do
+    # Regression: the ivar-backed writer evaluated `@configs_refs[name] = value` before
+    # `instance_variable_set`, so a frozen node mutated the canonical store and only then raised
+    # FrozenError, leaving the store and the ivar-backed reader out of sync. The write must be
+    # atomic: it raises without changing any state.
+    let(:configurable_class) do
+      Class.new do
+        include Karafka::Core::Configurable
+
+        setting(:a, default: 1)
+      end
+    end
+
+    let(:config) { configurable_class.new.tap(&:configure).config }
+
+    before { config.freeze }
+
+    it "raises FrozenError" do
+      assert_raises(FrozenError) { config.a = 5 }
+    end
+
+    it "does not mutate the store or the reader when the write is rejected" do
+      begin
+        config.a = 5
+      rescue FrozenError
+        nil
+      end
+
+      assert_equal 1, config.a
+      assert_equal 1, config.to_h[:a]
     end
   end
 end

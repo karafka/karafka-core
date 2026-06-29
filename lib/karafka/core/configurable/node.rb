@@ -15,6 +15,49 @@ module Karafka
         # We need to be able to redefine children for deep copy
         attr_accessor :children
 
+        # Names that cannot be used as setting names because they would collide with the node
+        # internal state or the node public API: their accessors would shadow the node own
+        # readers (breaking for example `#deep_dup` or `#to_h`) and writers like `children=`
+        # would overwrite internal ivars. `#setting` and `#register` reject them upfront and
+        # `#ivar_backed?` keeps guarding the ivar mirror as defense in depth.
+        # Private method names are deliberately not reserved: that would make internal
+        # implementation details part of the public contract
+        RESERVED_NAMES = %i[
+          node_name
+          children
+          nestings
+          compiled
+          configs_refs
+          local_defs
+          setting
+          configure
+          to_h
+          deep_dup
+          register
+          compile
+        ].to_h { |name| [name, true] }.freeze
+
+        # Setting names that match this format can be backed by instance variables and use the
+        # fast `attr_reader` based readers. Others (e.g. registered names with dashes) fall back
+        # to the hash-based accessors
+        IVAR_NAMEABLE_FORMAT = /\A[A-Za-z_][A-Za-z0-9_]*\z/
+
+        private_constant :RESERVED_NAMES, :IVAR_NAMEABLE_FORMAT
+
+        class << self
+          # Builds each node through its own anonymous subclass. Since setting values are
+          # mirrored into instance variables for fast access and each node layout carries a
+          # different set of them, instantiating nodes directly from this class would grow its
+          # object shape variations past the Ruby limit, degrading ivar access for all nodes.
+          # A subclass per layout keeps shape variations per class minimal (late `setting`
+          # calls after inheritance or runtime `register` calls may add a few more, staying
+          # well under the limit). `#deep_dup` reuses the subclass of its template, so
+          # duplicated configs share shapes as well.
+          def new(...)
+            equal?(Node) ? Class.new(self).new(...) : super
+          end
+        end
+
         # @param node_name [Symbol] node name
         # @param nestings [Proc] block for nested settings
         # @param evaluate [Boolean] when false, skip evaluating the nestings block. Used by
@@ -31,12 +74,20 @@ module Karafka
 
         # Allows for a single leaf or nested node definition
         #
-        # @param node_name [Symbol] setting or nested node name
+        # @param node_name [Symbol, String] setting or nested node name
         # @param default [Object] default value
         # @param constructor [#call, nil] callable or nil
         # @param lazy [Boolean] is this a lazy leaf
         # @param block [Proc] block for nested settings
+        # @raise [ArgumentError] when the name is reserved for the node internal state
         def setting(node_name, default: nil, constructor: nil, lazy: false, &block)
+          # Symbolize at definition time (same as `#register`) so the config store, accessors,
+          # `#to_h` and the compile state checks all agree on the key type also when a String
+          # name is provided
+          node_name = node_name.to_sym
+
+          prevent_reserved_names!(node_name)
+
           @children << if block
             Node.new(node_name, block)
           else
@@ -65,7 +116,10 @@ module Karafka
               result = if @configs_refs.key?(value.node_name)
                 @configs_refs[value.node_name]
               elsif value.constructor
-                value.constructor.call
+                # Use the arity-aware helper (same as `#compile`) so a `->(default) { ... }`
+                # constructor receives its default instead of being called with no arguments,
+                # which would raise `ArgumentError: wrong number of arguments`.
+                call_constructor(value)
               elsif value.default
                 value.default
               end
@@ -85,14 +139,25 @@ module Karafka
         # and non-side-effect usage on an instance/inherited.
         # @return [Node] duplicated node
         def deep_dup
-          dupped = Node.new(node_name, nestings, evaluate: false)
+          # Same-layout nodes reuse the class of their template so they share object shapes
+          dupped = self.class.new(node_name, nestings, evaluate: false)
 
           children.each do |value|
             dupped.children << if value.is_a?(Leaf)
-              # After inheritance we need to reload the state so the leafs are
-              # recompiled again
+              # After inheritance we need to reload the state so the leafs are recompiled again
               value = value.dup
               value.compiled = false
+
+              # `Struct#dup` is intentionally shallow here: the leaf's `default` value is shared by
+              # reference across the class template and every config instance produced by
+              # `deep_dup`. This is the contract -- one uniform rule for all default types -- and it
+              # is what lets a shared service object passed as a default (e.g. a logger) keep its
+              # identity across all configs instead of being cloned per instance. The flip side is
+              # that an in-place mutation of a mutable container default (e.g. `config.list << :x`)
+              # is visible on every other instance and on the template. A caller that needs a
+              # per-instance mutable default should not rely on a mutable `default:` (e.g.
+              # `default: []`): assign the value inside a `configure` block, or dup it themselves,
+              # so each instance owns its own copy.
               value
             else
               value.deep_dup
@@ -102,6 +167,41 @@ module Karafka
           dupped
         end
 
+        # Registers a key-value pair as a setting on an already-compiled node without going
+        # through the static `setting` DSL. Useful for dynamic registries (e.g. named clusters)
+        # where the keys are not known at class-load time.
+        #
+        # Unlike `setting`, which is designed to be called at class-definition time, `register`
+        # is safe to call at runtime because it:
+        #   - appends a pre-compiled Leaf so `deep_dup` and `to_h` include it
+        #   - sets `@configs_refs` directly so the reader accessor returns the value immediately
+        #   - builds reader/writer accessors via the same `build_accessors` path
+        #
+        # Raises `ArgumentError` if the name is already registered to prevent silent overwrites.
+        #
+        # @param name [Symbol, String] setting name
+        # @param value [Object] the setting value assigned immediately; also used as the default
+        #   when the node is deep-duped and recompiled on a new instance
+        # @raise [ArgumentError] when the name is already taken or reserved for the node
+        #   internal state
+        def register(name, value)
+          name = name.to_sym
+
+          prevent_reserved_names!(name)
+
+          # Check the defined children, not just @configs_refs: a lazy setting with a constructor
+          # is not written to @configs_refs until first read, so a `@configs_refs.key?` guard
+          # alone would silently overwrite it instead of raising the documented error.
+          if @children.any? { |child| child.node_name == name }
+            raise ArgumentError, "#{name} is already registered"
+          end
+
+          leaf = Leaf.new(name, value, nil, true, false)
+          @children << leaf
+          build_accessors(leaf)
+          config_write(name, value)
+        end
+
         # Converts the settings definitions into end children
         # @note It runs once, after things are compiled, they will not be recompiled again
         def compile
@@ -109,7 +209,12 @@ module Karafka
             # Do not redefine something that was already set during compilation
             # This will allow us to reconfigure things and skip override with defaults
             skippable = @configs_refs.key?(value.node_name) || (value.is_a?(Leaf) && value.compiled?)
-            lazy_leaf = value.is_a?(Leaf) && value.lazy?
+            # A leaf is only treated as lazy (a dynamically (re)evaluated accessor) when it
+            # actually has a constructor to evaluate. `lazy: true` without a constructor has
+            # nothing to evaluate, so it behaves like a regular setting backed by its default.
+            # Otherwise the lazy path builds a dynamic accessor that calls `constructor.arity`
+            # on a `nil` constructor and crashes on first read.
+            lazy_leaf = value.is_a?(Leaf) && value.lazy? && !value.constructor.nil?
 
             # Do not create accessor for leafs that are lazy as they will get a custom method
             # created instead
@@ -135,7 +240,7 @@ module Karafka
             if lazy_leaf && !initialized
               build_dynamic_accessor(value)
             else
-              @configs_refs[value.node_name] = initialized
+              config_write(value.node_name, initialized)
             end
           end
 
@@ -146,8 +251,7 @@ module Karafka
 
         # Defines a lazy evaluated read and writer that will re-evaluate in case value constructor
         # evaluates to `nil` or `false`. This allows us to define dynamic constructors that
-        # can react to external conditions to become expected value once this value is
-        # available
+        # can react to external conditions to become expected value once this value is available
         #
         # @param value [Leaf]
         def build_dynamic_accessor(value)
@@ -182,6 +286,12 @@ module Karafka
 
         # Builds regular accessors for value fetching
         #
+        # Settings with names that can form valid instance variables get `attr_reader` based
+        # readers backed by an ivar mirror of the config value. This is significantly faster
+        # than a method with a hash lookup, which matters since settings are read on hot paths
+        # across the whole ecosystem. `@configs_refs` remains the canonical store used by
+        # `#to_h`, `#compile` and `#register`, with `#config_write` keeping the mirror in sync.
+        #
         # @param value [Leaf]
         def build_accessors(value)
           reader_name = value.node_name.to_sym
@@ -194,16 +304,64 @@ module Karafka
           if reader_respond ? !@local_defs.key?(reader_name) : true
             @local_defs[reader_name] = true
 
-            define_singleton_method(reader_name) do
-              @configs_refs[reader_name]
+            if ivar_backed?(reader_name)
+              singleton_class.attr_reader(reader_name)
+            else
+              define_singleton_method(reader_name) do
+                @configs_refs[reader_name]
+              end
             end
           end
 
-          return if respond_to?(:"#{value.node_name}=")
+          return if respond_to?(:"#{reader_name}=")
 
-          define_singleton_method(:"#{value.node_name}=") do |new_value|
-            @configs_refs[value.node_name] = new_value
+          if ivar_backed?(reader_name)
+            ivar_name = :"@#{reader_name}"
+
+            define_singleton_method(:"#{reader_name}=") do |new_value|
+              instance_variable_set(ivar_name, new_value)
+              @configs_refs[reader_name] = new_value
+            end
+          else
+            define_singleton_method(:"#{reader_name}=") do |new_value|
+              @configs_refs[reader_name] = new_value
+            end
           end
+        end
+
+        # Writes a config value to the canonical store and mirrors it into the backing instance
+        # variable when the setting uses the fast ivar-backed reader
+        #
+        # @param name [Symbol, String] setting name
+        # @param value [Object] config value assigned to the setting
+        def config_write(name, value)
+          # Accessors operate on symbolized names, so the store has to be keyed consistently.
+          # This also guarantees that a String name matching a reserved internal name is
+          # recognized by the `ivar_backed?` guard and cannot corrupt the node internal state
+          name = name.to_sym
+
+          @configs_refs[name] = value
+          instance_variable_set(:"@#{name}", value) if ivar_backed?(name)
+        end
+
+        # @param name [Symbol] setting name
+        # @return [Boolean] true if this setting can be backed by an instance variable and use
+        #   the fast `attr_reader` based reader
+        def ivar_backed?(name)
+          !RESERVED_NAMES.key?(name) && IVAR_NAMEABLE_FORMAT.match?(name)
+        end
+
+        # Rejects setting names that would collide with the node internal state. Without this,
+        # such names would shadow the node own accessors, breaking `#deep_dup` and silently
+        # corrupting internals on assignment (e.g. `config.children = value` hitting the node
+        # own `attr_writer`)
+        #
+        # @param name [Symbol] already symbolized setting name
+        # @raise [ArgumentError] when the name is reserved
+        def prevent_reserved_names!(name)
+          return unless RESERVED_NAMES.key?(name)
+
+          raise ArgumentError, "#{name} is a reserved name and cannot be used as a setting name"
         end
       end
     end
