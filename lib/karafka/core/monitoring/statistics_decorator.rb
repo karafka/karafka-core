@@ -17,6 +17,13 @@ module Karafka
       #              consistency with other time operators we use. A newly introduced key (one
       #              that had no value in the previous emission) starts at a freeze duration of
       #              zero, since there is no prior value it could have been "frozen" against.
+      #
+      # The `_d` and `_fd` suffixes are reserved. For every numeric KEY the decorator writes
+      # `KEY_d` and `KEY_fd` into the same hash, so if the input already contains a real key
+      # literally named `KEY_d` or `KEY_fd` (for another numeric KEY present in that hash) it is
+      # overwritten by the computed delta/freeze duration. librdkafka statistics never use these
+      # suffixes, so this does not happen with real stats; it only matters if you feed custom data
+      # through the decorator.
       class StatisticsDecorator
         include Helpers::Time
 
