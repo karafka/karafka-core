@@ -363,6 +363,46 @@ describe_current do
     end
   end
 
+  context "when a key is listed in both only_keys and excluded_keys" do
+    # Regression: decorate_keys iterated only_keys without consulting excluded_keys, so a key
+    # present in both lists was still decorated. excluded_keys wins, matching the full path.
+    let(:decorator) { described_class.new(only_keys: %w[int], excluded_keys: %w[int]) }
+
+    subject(:decorated) do
+      decorator.call(emitted_stats1)
+      decorator.call(emitted_stats2)
+    end
+
+    it { refute decorated.key?("int_d") }
+    it { refute decorated.key?("int_fd") }
+    it { assert_equal 130, decorated["int"] }
+  end
+
+  context "when only_keys includes a cgrp key" do
+    let(:stats1) { { "cgrp" => { "stateage" => 1000 } } }
+    let(:stats2) { { "cgrp" => { "stateage" => 2000 } } }
+
+    subject(:decorated) do
+      decorator.call(stats1)
+      decorator.call(stats2)
+    end
+
+    context "when cgrp is not excluded" do
+      let(:decorator) { described_class.new(only_keys: %w[stateage]) }
+
+      it { assert_equal 1000, decorated["cgrp"]["stateage_d"] }
+    end
+
+    context "when cgrp is excluded" do
+      # Regression: excluded_keys was honored for brokers and topics in only_keys mode but not
+      # for the cgrp branch, so excluding "cgrp" still decorated the consumer-group subtree.
+      let(:decorator) { described_class.new(only_keys: %w[stateage], excluded_keys: %w[cgrp]) }
+
+      it { refute decorated["cgrp"].key?("stateage_d") }
+      it { refute decorated["cgrp"].key?("stateage_fd") }
+    end
+  end
+
   context "when only_keys value remains unchanged over time" do
     subject(:decorated) do
       decorator.call(deep_copy.call)
