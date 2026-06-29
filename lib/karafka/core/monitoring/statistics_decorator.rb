@@ -17,6 +17,13 @@ module Karafka
       #              consistency with other time operators we use. A newly introduced key (one
       #              that had no value in the previous emission) starts at a freeze duration of
       #              zero, since there is no prior value it could have been "frozen" against.
+      #
+      # The `_d` and `_fd` suffixes are reserved. For every numeric KEY the decorator writes
+      # `KEY_d` and `KEY_fd` into the same hash, so if the input already contains a real key
+      # literally named `KEY_d` or `KEY_fd` (for another numeric KEY present in that hash) it is
+      # overwritten by the computed delta/freeze duration. librdkafka statistics never use these
+      # suffixes, so this does not happen with real stats; it only matters if you feed custom data
+      # through the decorator.
       class StatisticsDecorator
         include Helpers::Time
 
@@ -30,11 +37,17 @@ module Karafka
         #   duration suffixes. This is useful for skipping large subtrees of the librdkafka
         #   statistics that are not consumed by the application (e.g. broker toppars, window
         #   stats like int_latency, outbuf_latency, throttle, batchsize, batchcnt, req).
-        # @param only_keys [Array<String>] when set, only these numeric keys will be decorated
-        #   with delta/freeze duration suffixes. Hash children are still recursed into for
-        #   structural navigation, but only the listed keys receive _d and _fd computation.
-        #   This drastically reduces work at the partition level where most cost occurs.
-        #   When empty (default), all numeric keys are decorated.
+        # @param only_keys [Array<String>] when set, only these numeric keys are decorated with
+        #   delta/freeze duration suffixes, and only at the levels of the known librdkafka
+        #   statistics tree: the root, each broker, each topic, each partition and cgrp. The
+        #   decorator navigates that known structure directly and decorates the listed keys it
+        #   finds at each of those levels. It deliberately does NOT descend into nested
+        #   sub-objects within a broker, topic, partition or cgrp (e.g. broker window stats like
+        #   rtt/throttle/int_latency, or the toppars map) -- skipping that descent is exactly what
+        #   makes this mode cheap on large clusters. Non-librdkafka hash children found at the
+        #   root are still fully recursed for correctness. If you need a key nested inside one of
+        #   those sub-objects decorated, use the default full-decoration mode. When empty
+        #   (default), all numeric keys at every depth are decorated.
         def initialize(excluded_keys: [], only_keys: [])
           @previous = EMPTY_HASH
           # Operate on ms precision only
@@ -46,9 +59,12 @@ module Karafka
           @excluded_keys = unless excluded_keys.empty?
             excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
           end
-          # Frozen array for direct-access decoration, nil when empty to use full decoration
+          # Frozen array for direct-access decoration, nil when empty to use full decoration.
+          # Exclusions are applied once here (excluded_keys wins over only_keys), so the hot
+          # decoration loop iterates an already-filtered list and never re-checks exclusions.
           @only_keys = unless only_keys.empty?
-            only_keys.freeze
+            effective = @excluded_keys ? only_keys.reject { |k| @excluded_keys.key?(k) } : only_keys
+            effective.freeze
           end
         end
 
@@ -163,8 +179,13 @@ module Karafka
         # librdkafka statistics layout: root → brokers → broker, root → topics → topic →
         # partitions → partition, root → cgrp.
         #
-        # For non-librdkafka hash children (e.g. custom or test data), falls back to generic
-        # recursion to maintain correctness with arbitrary nested structures.
+        # Broker, topic, partition and cgrp nodes are decorated as leaves: their listed keys are
+        # decorated, but their nested sub-objects (e.g. broker window stats like rtt/throttle, or
+        # the toppars map) are NOT descended into. Not descending into those large sub-objects is
+        # the whole point of this path, so they are intentionally left untouched here.
+        #
+        # For non-librdkafka hash children at the root (e.g. custom or test data), falls back to
+        # generic recursion to maintain correctness with arbitrary nested structures.
         #
         # @param previous [Object] previous value from the given scope
         # @param current [Hash] current stats hash (root level)
@@ -216,8 +237,10 @@ module Karafka
           end
 
           # Consumer group (leaf-like)
-          cgrp = current["cgrp"]
-          decorate_keys(cgrp, filled_previous["cgrp"] || EMPTY_HASH, change_d) if cgrp.is_a?(Hash)
+          unless excluded&.key?("cgrp")
+            cgrp = current["cgrp"]
+            decorate_keys(cgrp, filled_previous["cgrp"] || EMPTY_HASH, change_d) if cgrp.is_a?(Hash)
+          end
 
           # Fallback: handle any non-standard hash children not in the known structure.
           # This ensures correctness for arbitrary nested data while the known paths above
