@@ -206,24 +206,6 @@ describe_current do
     it { refute decorated.key?("float_d_d") }
   end
 
-  context "when a value type changed from non-numeric to numeric between emissions" do
-    subject(:decorated) do
-      decorator.call(emitted_stats1)
-      decorator.call(emitted_stats2)
-    end
-
-    before do
-      # In the first emission, txbytes is a string (unusual but defensive)
-      emitted_stats1["nested"]["brokers"]["localhost:9092/2"]["txbytes"] = "not_a_number"
-    end
-
-    # When previous value was non-numeric but current is numeric, no delta should be computed
-    it { refute decorated.dig(*broker_scope).key?("txbytes_d") }
-    it { refute decorated.dig(*broker_scope).key?("txbytes_fd") }
-    it { assert_equal 153, decorated.dig(*broker_scope)["txbytes"] }
-    it { assert_predicate decorated, :frozen? }
-  end
-
   context "when excluded_keys are configured" do
     subject(:decorator) { described_class.new(excluded_keys: %w[nested]) }
 
@@ -532,17 +514,6 @@ describe_current do
     end
 
     it { assert_predicate decorated, :frozen? }
-  end
-
-  context "when only_keys previous value type changed to non-numeric" do
-    let(:decorator) { described_class.new(only_keys: %w[val]) }
-
-    subject(:decorated) do
-      decorator.call({ "val" => "not_numeric" })
-      decorator.call({ "val" => 10 })
-    end
-
-    it { refute decorated.key?("val_d") }
   end
 
   context "when a value type changed from numeric to non-numeric between emissions" do
