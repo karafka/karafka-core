@@ -367,6 +367,32 @@ describe_current do
 
         it { assert_equal expected_hash, config.to_h }
       end
+
+      context "when a lazy setting has a one-arity constructor and was not read" do
+        # Regression: #to_h invoked the constructor with no arguments, ignoring its arity, and
+        # crashed for the documented `->(default) { ... }` form. A lazy setting is not written to
+        # the store until first read, so even after #configure #to_h reaches the constructor
+        # branch with the value still absent from @configs_refs.
+        let(:configurable_class) do
+          Class.new do
+            include Karafka::Core::Configurable
+
+            setting(
+              :lazy_one_arity,
+              default: 3,
+              constructor: ->(default) { (default || 0) + 1 },
+              lazy: true
+            )
+          end
+        end
+
+        let(:configurable) { configurable_class.new }
+        let(:config) { configurable.config }
+
+        it "evaluates the constructor with its default" do
+          assert_equal({ lazy_one_arity: 4 }, config.to_h)
+        end
+      end
     end
 
     context "when we want to merge extra config as a nested setting" do
@@ -474,6 +500,27 @@ describe_current do
 
         it { assert_equal 20, config.lazy_setting }
       end
+    end
+
+    context "when a lazy setting has no constructor" do
+      # Regression: `lazy: true` without a constructor has nothing to evaluate lazily. Reading
+      # such a setting used to crash -- `nil.arity` via the dynamic accessor for a falsy default,
+      # or a missing accessor (NoMethodError) for a truthy default. It now behaves like a regular
+      # setting backed by its default.
+      let(:configurable_class) do
+        Class.new do
+          include Karafka::Core::Configurable
+
+          setting(:lazy_nil, lazy: true)
+          setting(:lazy_with_default, default: 5, lazy: true)
+        end
+      end
+
+      let(:config) { configurable_class.new.tap(&:configure).config }
+
+      it { assert_nil config.lazy_nil }
+      it { assert_equal 5, config.lazy_with_default }
+      it { assert_equal({ lazy_nil: nil, lazy_with_default: 5 }, config.to_h) }
     end
   end
 
