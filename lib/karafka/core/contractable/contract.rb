@@ -103,6 +103,11 @@ module Karafka
         def call(data, scope: EMPTY_ARRAY)
           errors = []
 
+          # A non-Hash root has no keys to dig; resolve it once here so #dig stays on its lean
+          # fast path and is only invoked with a Hash. Non-Hash data makes every required rule
+          # report missing, consistent with the non-Hash intermediate handling inside #dig.
+          data_is_hash = data.is_a?(Hash)
+
           self.class.rules.each do |rule|
             if rule.type == :virtual
               result = rule.validator.call(data, errors, self)
@@ -123,7 +128,7 @@ module Karafka
 
               errors.push(*result)
             else
-              for_checking = dig(data, rule.path)
+              for_checking = data_is_hash ? dig(data, rule.path) : DIG_MISS
 
               if DIG_MISS.equal?(for_checking)
                 errors << [scope + rule.path, :missing] if rule.type == :required

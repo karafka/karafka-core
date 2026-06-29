@@ -220,6 +220,32 @@ describe_current do
     end
   end
 
+  context "when the validated root is not a hash" do
+    # Regression: the 1-key and 2-key dig fast paths called #fetch straight on the root and
+    # raised NoMethodError for a non-Hash value, while the 3+-key path already reported the key
+    # as missing. All path lengths now report a miss consistently.
+    let(:validator_class) do
+      Class.new(described_class) do
+        configure do |config|
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, "config", "locales", "errors.yml")
+          ).fetch("en").fetch("validations").fetch("config")
+        end
+
+        required(:id) { |id| id.is_a?(String) }
+        required(:a, :b) { |v| v.is_a?(String) }
+      end
+    end
+
+    subject(:result) { validator_class.new.call("not-a-hash") }
+
+    it "reports the required paths as missing instead of raising" do
+      refute_predicate result, :success?
+      assert result.errors.key?(:id)
+      assert result.errors.key?(:"a.b")
+    end
+  end
+
   context "when contract has its own error reported" do
     let(:validator_class) do
       Class.new(described_class) do
