@@ -102,6 +102,23 @@ describe_current do
         end
       end
 
+      context "when the name is already used by an unread lazy setting" do
+        # Regression: the duplicate guard only checked @configs_refs, but a lazy-with-constructor
+        # setting is not written to @configs_refs until first read, so register silently
+        # overwrote it instead of raising the documented "already registered" error.
+        let(:lazy_node) do
+          Class.new do
+            extend Karafka::Core::Configurable
+
+            setting(:cache, default: 1, constructor: -> { 1 }, lazy: true)
+          end.tap(&:configure).config
+        end
+
+        it "raises ArgumentError instead of overwriting" do
+          assert_raises(ArgumentError) { lazy_node.register(:cache, "overwrite") }
+        end
+      end
+
       context "when the registered value is nil" do
         before { node.register(:nullable, nil) }
 
