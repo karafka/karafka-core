@@ -10,20 +10,21 @@ module Karafka
         # @return [::Karafka::Core::Instrumentation::CallbacksManager]
         def initialize
           @callbacks = {}
-          @values_cache = nil
+          @values = [].freeze
+          @mutex = Mutex.new
         end
 
         # Invokes all the callbacks registered one after another
         #
         # @param args [Object] any args that should go to the callbacks
-        # @note We do not use `#each_value` here on purpose. With it being used, we cannot dispatch
-        #   callbacks and add new at the same time. Since we don't know when and in what thread
-        #   things are going to be added to the manager, we need to extract values into an array and
-        #   run it. That way we can add new things the same time.
-        #   The values snapshot is cached and invalidated on add/delete to avoid allocating a new
-        #   Array on every call while preserving the thread-safety snapshot semantics.
+        # @note Copy-on-write: dispatch iterates an immutable snapshot that `add`/`delete`
+        #   rebuild and swap in under a mutex. Because `#call` never mutates shared state, it
+        #   needs neither a lock nor a per-call `#values` allocation, and a callback registered
+        #   or removed from another thread is never lost; it just takes effect on the next
+        #   `#call`. A cache invalidated from within `#call` could not be updated atomically
+        #   against this read, so a stale write-back would permanently drop callbacks.
         def call(*args)
-          (@values_cache ||= @callbacks.values).each { |callback| callback.call(*args) }
+          @values.each { |callback| callback.call(*args) }
         end
 
         # Adds a callback to the manager
@@ -31,15 +32,19 @@ module Karafka
         # @param id [String] id of the callback (used when deleting it)
         # @param callable [#call] object that responds to a `#call` method
         def add(id, callable)
-          @callbacks[id] = callable
-          @values_cache = nil
+          @mutex.synchronize do
+            @callbacks[id] = callable
+            @values = @callbacks.values.freeze
+          end
         end
 
         # Removes the callback from the manager
         # @param id [String] id of the callback we want to remove
         def delete(id)
-          @callbacks.delete(id)
-          @values_cache = nil
+          @mutex.synchronize do
+            @callbacks.delete(id)
+            @values = @callbacks.values.freeze
+          end
         end
       end
     end

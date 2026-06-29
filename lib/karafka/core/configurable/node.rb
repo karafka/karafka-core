@@ -116,7 +116,10 @@ module Karafka
               result = if @configs_refs.key?(value.node_name)
                 @configs_refs[value.node_name]
               elsif value.constructor
-                value.constructor.call
+                # Use the arity-aware helper (same as `#compile`) so a `->(default) { ... }`
+                # constructor receives its default instead of being called with no arguments,
+                # which would raise `ArgumentError: wrong number of arguments`.
+                call_constructor(value)
               elsif value.default
                 value.default
               end
@@ -201,7 +204,12 @@ module Karafka
             # Do not redefine something that was already set during compilation
             # This will allow us to reconfigure things and skip override with defaults
             skippable = @configs_refs.key?(value.node_name) || (value.is_a?(Leaf) && value.compiled?)
-            lazy_leaf = value.is_a?(Leaf) && value.lazy?
+            # A leaf is only treated as lazy (a dynamically (re)evaluated accessor) when it
+            # actually has a constructor to evaluate. `lazy: true` without a constructor has
+            # nothing to evaluate, so it behaves like a regular setting backed by its default.
+            # Otherwise the lazy path builds a dynamic accessor that calls `constructor.arity`
+            # on a `nil` constructor and crashes on first read.
+            lazy_leaf = value.is_a?(Leaf) && value.lazy? && !value.constructor.nil?
 
             # Do not create accessor for leafs that are lazy as they will get a custom method
             # created instead
