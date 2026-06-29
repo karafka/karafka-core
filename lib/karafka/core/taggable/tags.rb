@@ -10,6 +10,7 @@ module Karafka
         # Creates new tags accumulator
         def initialize
           @accu = {}
+          @values_cache = nil
         end
 
         # Adds a tag with a given name to tags
@@ -17,22 +18,25 @@ module Karafka
         # @param tag [#to_s] any object that can be converted into a string via `#to_s`
         def add(name, tag)
           @accu[name] = tag.to_s
+          @values_cache = nil
         end
 
         # Removes all the tags
         def clear
           @accu.clear
+          @values_cache = nil
         end
 
         # Removes a tag with a given name
         # @param name [Symbol] name of the tag
         def delete(name)
           @accu.delete(name)
+          @values_cache = nil
         end
 
         # @return [Array<String>] all unique tags registered
         def to_a
-          @accu.values.tap(&:uniq!)
+          @values_cache ||= @accu.values.uniq
         end
 
         # @param _args [Object] anything that the standard `to_json` accepts

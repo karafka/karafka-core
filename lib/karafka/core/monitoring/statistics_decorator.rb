@@ -138,8 +138,6 @@ module Karafka
             if value.is_a?(Numeric)
               prev_value = filled_previous[key]
 
-              next if !prev_value.nil? && !prev_value.is_a?(Numeric)
-
               pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
 
               if prev_value.nil?
@@ -300,8 +298,6 @@ module Karafka
             next unless value.is_a?(Numeric)
 
             prev_value = filled_previous[key]
-
-            next if !prev_value.nil? && !prev_value.is_a?(Numeric)
 
             pair = cache[key] || (cache[key] = ["#{key}_fd".freeze, "#{key}_d".freeze].freeze)
 
