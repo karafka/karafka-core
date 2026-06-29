@@ -2,6 +2,7 @@
 
 require "logger"
 require "yaml"
+require "pathname"
 require "rdkafka"
 require "karafka/core"
 require "karafka/core/version"
