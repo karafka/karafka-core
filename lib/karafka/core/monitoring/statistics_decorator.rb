@@ -230,8 +230,10 @@ module Karafka
           end
 
           # Consumer group (leaf-like)
-          cgrp = current["cgrp"]
-          decorate_keys(cgrp, filled_previous["cgrp"] || EMPTY_HASH, change_d) if cgrp.is_a?(Hash)
+          unless excluded&.key?("cgrp")
+            cgrp = current["cgrp"]
+            decorate_keys(cgrp, filled_previous["cgrp"] || EMPTY_HASH, change_d) if cgrp.is_a?(Hash)
+          end
 
           # Fallback: handle any non-standard hash children not in the known structure.
           # This ensures correctness for arbitrary nested data while the known paths above

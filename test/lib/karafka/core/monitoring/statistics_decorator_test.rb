@@ -363,6 +363,31 @@ describe_current do
     end
   end
 
+  context "when only_keys includes a cgrp key" do
+    let(:stats1) { { "cgrp" => { "stateage" => 1000 } } }
+    let(:stats2) { { "cgrp" => { "stateage" => 2000 } } }
+
+    subject(:decorated) do
+      decorator.call(stats1)
+      decorator.call(stats2)
+    end
+
+    context "when cgrp is not excluded" do
+      let(:decorator) { described_class.new(only_keys: %w[stateage]) }
+
+      it { assert_equal 1000, decorated["cgrp"]["stateage_d"] }
+    end
+
+    context "when cgrp is excluded" do
+      # Regression: excluded_keys was honored for brokers and topics in only_keys mode but not
+      # for the cgrp branch, so excluding "cgrp" still decorated the consumer-group subtree.
+      let(:decorator) { described_class.new(only_keys: %w[stateage], excluded_keys: %w[cgrp]) }
+
+      it { refute decorated["cgrp"].key?("stateage_d") }
+      it { refute decorated["cgrp"].key?("stateage_fd") }
+    end
+  end
+
   context "when only_keys value remains unchanged over time" do
     subject(:decorated) do
       decorator.call(deep_copy.call)
