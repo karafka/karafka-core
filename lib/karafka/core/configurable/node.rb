@@ -116,7 +116,10 @@ module Karafka
               result = if @configs_refs.key?(value.node_name)
                 @configs_refs[value.node_name]
               elsif value.constructor
-                value.constructor.call
+                # Use the arity-aware helper (same as `#compile`) so a `->(default) { ... }`
+                # constructor receives its default instead of being called with no arguments,
+                # which would raise `ArgumentError: wrong number of arguments`.
+                call_constructor(value)
               elsif value.default
                 value.default
               end

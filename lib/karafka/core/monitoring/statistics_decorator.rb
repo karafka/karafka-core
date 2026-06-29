@@ -17,6 +17,13 @@ module Karafka
       #              consistency with other time operators we use. A newly introduced key (one
       #              that had no value in the previous emission) starts at a freeze duration of
       #              zero, since there is no prior value it could have been "frozen" against.
+      #
+      # The `_d` and `_fd` suffixes are reserved. For every numeric KEY the decorator writes
+      # `KEY_d` and `KEY_fd` into the same hash, so if the input already contains a real key
+      # literally named `KEY_d` or `KEY_fd` (for another numeric KEY present in that hash) it is
+      # overwritten by the computed delta/freeze duration. librdkafka statistics never use these
+      # suffixes, so this does not happen with real stats; it only matters if you feed custom data
+      # through the decorator.
       class StatisticsDecorator
         include Helpers::Time
 
@@ -52,9 +59,12 @@ module Karafka
           @excluded_keys = unless excluded_keys.empty?
             excluded_keys.each_with_object({}) { |k, h| h[k] = true }.freeze
           end
-          # Frozen array for direct-access decoration, nil when empty to use full decoration
+          # Frozen array for direct-access decoration, nil when empty to use full decoration.
+          # Exclusions are applied once here (excluded_keys wins over only_keys), so the hot
+          # decoration loop iterates an already-filtered list and never re-checks exclusions.
           @only_keys = unless only_keys.empty?
-            only_keys.freeze
+            effective = @excluded_keys ? only_keys.reject { |k| @excluded_keys.key?(k) } : only_keys
+            effective.freeze
           end
         end
 
@@ -223,8 +233,10 @@ module Karafka
           end
 
           # Consumer group (leaf-like)
-          cgrp = current["cgrp"]
-          decorate_keys(cgrp, filled_previous["cgrp"] || EMPTY_HASH, change_d) if cgrp.is_a?(Hash)
+          unless excluded&.key?("cgrp")
+            cgrp = current["cgrp"]
+            decorate_keys(cgrp, filled_previous["cgrp"] || EMPTY_HASH, change_d) if cgrp.is_a?(Hash)
+          end
 
           # Fallback: handle any non-standard hash children not in the known structure.
           # This ensures correctness for arbitrary nested data while the known paths above

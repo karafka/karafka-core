@@ -220,6 +220,32 @@ describe_current do
     end
   end
 
+  context "when the validated root is not a hash" do
+    # Regression: the 1-key and 2-key dig fast paths called #fetch straight on the root and
+    # raised NoMethodError for a non-Hash value, while the 3+-key path already reported the key
+    # as missing. All path lengths now report a miss consistently.
+    let(:validator_class) do
+      Class.new(described_class) do
+        configure do |config|
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, "config", "locales", "errors.yml")
+          ).fetch("en").fetch("validations").fetch("config")
+        end
+
+        required(:id) { |id| id.is_a?(String) }
+        required(:a, :b) { |v| v.is_a?(String) }
+      end
+    end
+
+    subject(:result) { validator_class.new.call("not-a-hash") }
+
+    it "reports the required paths as missing instead of raising" do
+      refute_predicate result, :success?
+      assert result.errors.key?(:id)
+      assert result.errors.key?(:"a.b")
+    end
+  end
+
   context "when contract has its own error reported" do
     let(:validator_class) do
       Class.new(described_class) do
@@ -309,6 +335,57 @@ describe_current do
         let(:data) { { id: 1 } }
 
         it { assert_raises(ArgumentError) { validation } }
+      end
+    end
+  end
+
+  describe "virtual rule result array ownership" do
+    # These document the `virtual` contract (see `Contract::DSL#virtual`): a rule returns a
+    # freshly built Array of `[path, message]` pairs each call, and `#call` takes ownership of it
+    # -- it prefixes the current scope onto each pair in place and collects them. They
+    # characterize that intended behavior, they are not asserting a bug.
+
+    context "when a virtual rule returns a fresh array each call (the supported pattern)" do
+      subject(:validator_class) do
+        Class.new(described_class) do
+          virtual { |_data, _errors, _contract| [[%i[id], "boom"]] }
+        end
+      end
+
+      let(:contract) { validator_class.new }
+
+      it "scopes each error once and is stable across calls" do
+        first = contract.call({}, scope: %i[outer]).errors
+        second = contract.call({}, scope: %i[outer]).errors
+
+        assert_equal({ "outer.id": "boom" }, first)
+        assert_equal first, second
+      end
+    end
+
+    context "when a virtual rule reuses the same array object (unsupported)" do
+      # Documents the ownership contract: the returned pairs are scoped in place, so reusing the
+      # same array across calls accumulates the scope prefix. Rules must return a fresh array.
+      let(:reused) { [[%i[id], "boom"]] }
+
+      subject(:validator_class) do
+        memo = reused
+
+        Class.new(described_class) do
+          virtual { |_data, _errors, _contract| memo }
+        end
+      end
+
+      let(:contract) { validator_class.new }
+
+      it "scopes the reused array in place, accumulating the prefix across calls (by design)" do
+        contract.call({}, scope: %i[outer])
+
+        assert_equal [[%i[outer id], "boom"]], reused
+
+        contract.call({}, scope: %i[outer])
+
+        assert_equal [[%i[outer outer id], "boom"]], reused
       end
     end
   end

@@ -67,10 +67,19 @@ module Karafka
             @rules << Rule.new(@nested + keys, :optional, block).freeze
           end
 
-          # @param block [Proc] validation rule
+          # Defines a virtual rule that validates the whole data rather than a single key. Unlike
+          # `required`/`optional`, the block receives the full data and returns its own errors.
           #
-          # @note Virtual rules have different result expectations. Please see contracts or specs for
-          #   details.
+          # @param block [Proc] validation rule, called with `(data, errors, contract)`. It must
+          #   return either a non-Array (`true`/`nil`/`false`) for "no errors", or an `Array` of
+          #   `[path, message]` error pairs (where `path` is itself an `Array` of symbols).
+          #
+          # @note The returned error `Array` is owned by the contract: `#call` prepends the current
+          #   scope onto each pair in place and collects them, so a rule must return a freshly
+          #   built `Array` on every call. Returning a memoized, shared or frozen `Array` is not
+          #   supported -- in-place scoping would accumulate the prefix across validations (or
+          #   raise `FrozenError`). Build the result in the block (e.g. `[[%i[id], :invalid]]`)
+          #   rather than returning a constant.
           def virtual(&block)
             init_accu
             @rules << Rule.new([], :virtual, block).freeze
@@ -100,6 +109,11 @@ module Karafka
         def call(data, scope: EMPTY_ARRAY)
           errors = []
 
+          # A non-Hash root has no keys to dig; resolve it once here so #dig stays on its lean
+          # fast path and is only invoked with a Hash. Non-Hash data makes every required rule
+          # report missing, consistent with the non-Hash intermediate handling inside #dig.
+          data_is_hash = data.is_a?(Hash)
+
           self.class.rules.each do |rule|
             if rule.type == :virtual
               result = rule.validator.call(data, errors, self)
@@ -110,13 +124,17 @@ module Karafka
               # raised NoMethodError (a `nil` return was already tolerated by the safe navigation).
               next unless result.is_a?(Array)
 
+              # Apply the scope prefix in place on the rule's returned pairs and collect them
+              # directly. Per the `virtual` contract the rule hands back a freshly built Array
+              # each call (see `DSL#virtual`), so mutating it here is safe and avoids allocating a
+              # new pair per error.
               result.each do |sub_result|
                 sub_result[0] = scope + sub_result[0]
               end
 
               errors.push(*result)
             else
-              for_checking = dig(data, rule.path)
+              for_checking = data_is_hash ? dig(data, rule.path) : DIG_MISS
 
               if DIG_MISS.equal?(for_checking)
                 errors << [scope + rule.path, :missing] if rule.type == :required
