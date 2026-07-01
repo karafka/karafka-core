@@ -24,7 +24,7 @@ GEM
     ffi (1.17.4-x86_64-linux-gnu)
     ffi (1.17.4-x86_64-linux-musl)
     io-console (0.8.2)
-    json (2.19.7)
+    json (2.20.0)
     karafka-rdkafka (0.27.2)
       ffi (~> 1.17.1)
       json (> 2.0)
