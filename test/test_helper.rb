@@ -33,13 +33,13 @@ end
 
 # Don't include unnecessary stuff into rcov
 SimpleCov.start do
-  add_filter "/vendor/"
-  add_filter "/gems/"
-  add_filter "/.bundle/"
-  add_filter "/doc/"
-  add_filter "/test/"
-  add_filter "/config/"
-  add_filter "/patches/"
+  skip "/vendor/"
+  skip "/gems/"
+  skip "/.bundle/"
+  skip "/doc/"
+  skip "/test/"
+  skip "/config/"
+  skip "/patches/"
   merge_timeout 600
 end
 
