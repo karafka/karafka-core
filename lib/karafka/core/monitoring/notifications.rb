@@ -100,8 +100,8 @@ module Karafka
           end
         end
 
-        # Allows for unsubscription from events
-        # This method will remove the listener/block from all events where it's currently subscribed.
+        # Allows for unsubscription from events. This method will remove the listener/block from all
+        # events where it's currently subscribed.
         #
         # @param listener_or_block [Object] listener object or block to remove from all events
         #

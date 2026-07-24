@@ -3,8 +3,7 @@
 module Karafka
   module Core
     module Configurable
-      # Single non-leaf node
-      # This is a core component for the configurable settings
+      # Single non-leaf node. This is a core component for the configurable settings
       #
       # The idea here is simple: we collect settings (leafs) and children (nodes) information and
       # we only compile/initialize the values prior to user running the `#configure` API. This API

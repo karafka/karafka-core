@@ -27,7 +27,7 @@ module Karafka
           this = self
           # Allows "auto subject" definitions for the `#describe` method, as it will figure
           # out the proper class that we want to describe
-          # @param block [Proc] block with specs
+          # block - block with specs
           rspec.define_singleton_method :describe_current do |&block|
             describe(this.inherited, &block)
           end
