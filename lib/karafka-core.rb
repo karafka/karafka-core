@@ -36,12 +36,12 @@ rd_config = Rdkafka::Config
 
 # Rdkafka uses a single global callback for things. We bypass that by injecting a manager for
 # each callback type. Callback manager allows us to register more than one callback
-# @note Those managers are also used by Karafka for consumer related statistics
+# Those managers are also used by Karafka for consumer related statistics
 rd_config.statistics_callback = instrumentation.statistics_callbacks
 rd_config.error_callback = instrumentation.error_callbacks
 rd_config.oauthbearer_token_refresh_callback = instrumentation.oauthbearer_token_refresh_callbacks
 
 # This loads librdkafka components into memory prior to initializing the client.
 # This mitigates macos forking issues.
-# @see https://github.com/confluentinc/librdkafka/issues/4590
+# See https://github.com/confluentinc/librdkafka/issues/4590
 Rdkafka::Bindings.rd_kafka_global_init if Rdkafka::Bindings.respond_to?(:rd_kafka_global_init)

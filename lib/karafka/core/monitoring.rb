@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Main module namespace
 module Karafka
   module Core
     # Monitoring for Karafka and WaterDrop

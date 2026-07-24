@@ -2,7 +2,6 @@
 
 module Karafka
   module Core
-    # Karafka instrumentation related shared components
     module Instrumentation
       # This manager allows us to register multiple callbacks into a hook that is suppose to support
       # a single callback
