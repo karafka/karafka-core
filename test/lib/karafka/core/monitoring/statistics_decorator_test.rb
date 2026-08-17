@@ -389,15 +389,30 @@ describe_current do
     subject(:decorated) do
       decorator.call(deep_copy.call)
       decorator.call(deep_copy.call)
-      sleep(0.01)
       decorator.call(deep_copy.call)
     end
 
-    let(:decorator) { described_class.new(only_keys: %w[int]) }
+    # Freeze duration accumulates the elapsed time between emissions while the value stays
+    # unchanged. We drive a deterministic monotonic clock (gaps of 5ms + 5ms) instead of a real
+    # `sleep`, so the resulting freeze duration is exactly 10ms rather than a wall-clock-dependent
+    # approximation. The previous version slept ~10ms and asserted a ±5 delta, which was flaky on
+    # loaded CI runners where Marshal deep-copies and scheduling jitter pushed the value past 15.
+    let(:decorator) do
+      # Local (not a `let`) so the singleton method below closes over it: inside that method
+      # `self` is the decorator instance, which has no `clock` method to resolve against.
+      clock = [100.0, 105.0, 110.0]
+
+      described_class.new(only_keys: %w[int]).tap do |instance|
+        # The initializer already captured a real monotonic timestamp; the first call has no
+        # previous value so its freeze duration is zero regardless. From then on the injected
+        # clock fully controls the elapsed time between emissions.
+        instance.define_singleton_method(:monotonic_now) { clock.shift }
+      end
+    end
     let(:deep_copy) { -> { Marshal.load(Marshal.dump(emitted_stats1)) } }
 
     it { assert_equal 0, decorated["int_d"] }
-    it { assert_in_delta 10, decorated["int_fd"], 5 }
+    it { assert_equal 10, decorated["int_fd"] }
 
     it "does not decorate non-listed keys" do
       refute decorated.key?("float_d")
