@@ -69,7 +69,7 @@ GEM
     rake (13.4.2)
     reline (0.6.3)
       io-console (~> 0.5)
-    simplecov (1.0.3)
+    simplecov (1.1.1)
     warning (1.6.0)
 
 PLATFORMS
