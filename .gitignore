@@ -19,6 +19,7 @@ db/*.sqlite3
 *.rbc
 *.sassc
 .byebug_history
+.claude/
 .redcar/
 .capistrano/
 .sass-cache
