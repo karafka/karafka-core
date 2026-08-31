@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.6.3 (Unreleased)
+## 2.6.3 (2026-08-31)
 - [Enhancement] Add `Configurable::Injector`, a reusable base for injecting default values into a config hash without overwriting user-provided settings, with support for layering extra defaults on top.
 
 ## 2.6.2 (2026-06-29)
