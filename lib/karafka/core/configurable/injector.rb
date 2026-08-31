@@ -49,7 +49,17 @@ module Karafka
       #   directly and is expected to be subclassed. Subclasses should return the same defaults
       #   object (e.g. a frozen constant) on each call so that a prepended layer doing
       #   `super.merge(...)` never mutates it.
+      #
+      # @note Default values are injected by reference, not copied. A mutable default (an array or
+      #   hash) is therefore shared across every target it is injected into, and mutating it in one
+      #   place is visible everywhere. When a per-target mutable value is needed, the defaults
+      #   layer should hand out a copy (e.g. `dup` it in `.defaults`).
       class Injector
+        # Empty, immutable defaults used by the base class, which defines none of its own.
+        EMPTY_DEFAULTS = {}.freeze
+
+        private_constant :EMPTY_DEFAULTS
+
         class << self
           # Enriches the target with the defaults, without overwriting any key that is already
           # present in it. The target is mutated in place.
@@ -68,9 +78,9 @@ module Karafka
 
           # @return [Hash] default values to inject. Override in subclasses; extensions may
           #   prepend a module onto the singleton class and call `super` to contribute additional
-          #   defaults on top.
+          #   defaults on top. The base class defines none.
           def defaults
-            {}
+            EMPTY_DEFAULTS
           end
         end
       end

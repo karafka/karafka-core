@@ -6,8 +6,9 @@ describe_current do
       assert_equal({}, described_class.defaults)
     end
 
-    it "expect to return a fresh hash each call so the base holds no shared state" do
-      refute_same described_class.defaults, described_class.defaults
+    it "expect to return the same immutable empty defaults each call (no per-call allocation)" do
+      assert_same described_class.defaults, described_class.defaults
+      assert_predicate described_class.defaults, :frozen?
     end
   end
 
