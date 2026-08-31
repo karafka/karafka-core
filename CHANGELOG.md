@@ -1,7 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.3 (Unreleased)
-- [Enhancement] Add `Configurable::Injector`, a reusable base for injecting default values into a config hash without overwriting user-provided settings, with support for layering extra defaults on top. Not wired up yet — a shared building block for upcoming Karafka and Web UI config work.
+- [Enhancement] Add `Configurable::Injector`, a reusable base for injecting default values into a config hash without overwriting user-provided settings, with support for layering extra defaults on top.
 
 ## 2.6.2 (2026-06-29)
 - [Enhancement] Document that a leaf's `default` value is shared by reference across all config instances, so a mutable default (e.g. `default: []`) mutated in place is visible everywhere. Assign it inside a `configure` block if you need a per-instance copy.
