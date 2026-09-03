@@ -1,10 +1,20 @@
 # frozen_string_literal: true
 
 describe_current do
-  subject(:importer) { described_class.new(attributes, root: root) }
+  subject(:importer) { importer_class.new(attributes) }
 
   let(:attributes) { { skew_threshold: %i[ui health lags skew_threshold] } }
-  let(:root) { -> { config } }
+
+  # A consumer defines the root once, in its own subclass
+  let(:importer_class) do
+    resolver = root_resolver
+
+    Class.new(described_class) do
+      define_singleton_method(:root) { resolver.call }
+    end
+  end
+
+  let(:root_resolver) { -> { config } }
 
   let(:config) { config_class.config }
 
@@ -24,6 +34,24 @@ describe_current do
     end
   end
 
+  describe ".root" do
+    it "expect the base class to define none" do
+      assert_raises(NotImplementedError) { described_class.root }
+    end
+
+    it "expect an importer built off the base to raise on the first read" do
+      this = described_class.new(attributes)
+      model = Class.new { include this }
+
+      assert_raises(NotImplementedError) { model.new.skew_threshold }
+    end
+
+    it "expect a subclass to provide it for every importer built from it" do
+      assert_same config, importer_class.root
+      assert_same config, importer.root
+    end
+  end
+
   describe "#included" do
     subject(:model) do
       this = importer
@@ -31,7 +59,7 @@ describe_current do
       Class.new { include this }
     end
 
-    it "expect to define a reader resolving the path against the supplied root" do
+    it "expect to define a reader resolving the path against the subclass root" do
       assert_equal 5, model.new.skew_threshold
     end
 
@@ -64,7 +92,7 @@ describe_current do
 
     context "when no attributes are given" do
       subject(:model) do
-        this = described_class.new(root: root)
+        this = importer_class.new
 
         Class.new { include this }
       end
@@ -93,7 +121,7 @@ describe_current do
   end
 
   describe "memoization" do
-    let(:root) do
+    let(:root_resolver) do
       calls = root_calls
 
       lambda do
@@ -194,7 +222,7 @@ describe_current do
   end
 
   describe "root resolution" do
-    let(:root) do
+    let(:root_resolver) do
       calls = root_calls
 
       lambda do
@@ -205,27 +233,27 @@ describe_current do
 
     let(:root_calls) { [] }
 
-    it "expect not to call the root when the importer is built" do
+    it "expect not to resolve the root when the importer is built" do
       importer
 
       assert_empty root_calls
     end
 
-    it "expect not to call the root when it is included" do
+    it "expect not to resolve the root when it is included" do
       this = importer
       Class.new { include this }
 
       assert_empty root_calls
     end
 
-    it "expect not to call the root when it is extended" do
+    it "expect not to resolve the root when it is extended" do
       this = importer
       Class.new { extend this }
 
       assert_empty root_calls
     end
 
-    it "expect to call the root on the first read only" do
+    it "expect to resolve the root on the first read only" do
       this = importer
       model = Class.new { include this }
 
@@ -237,7 +265,7 @@ describe_current do
     end
   end
 
-  describe "reuse across targets and roots" do
+  describe "reuse" do
     it "expect one importer to serve many targets independently" do
       this = importer
       first = Class.new { include this }
@@ -247,7 +275,18 @@ describe_current do
       assert_equal 5, second.new.skew_threshold
     end
 
-    it "expect importers with different roots to resolve against their own" do
+    it "expect many importers off one subclass to share its root without repeating it" do
+      threshold = importer_class.new(skew_threshold: %i[ui health lags skew_threshold])
+      per_page = importer_class.new(per_page: %i[per_page])
+
+      from_threshold = Class.new { include threshold }
+      from_per_page = Class.new { include per_page }
+
+      assert_equal 5, from_threshold.new.skew_threshold
+      assert_equal 25, from_per_page.new.per_page
+    end
+
+    it "expect subclasses with different roots to resolve against their own" do
       other_config = Class.new do
         extend Karafka::Core::Configurable
 
@@ -260,14 +299,26 @@ describe_current do
         end
       end.config
 
+      other_class = Class.new(described_class) do
+        define_singleton_method(:root) { other_config }
+      end
+
       this = importer
-      that = described_class.new(attributes, root: -> { other_config })
+      that = other_class.new(attributes)
 
       from_this = Class.new { include this }
       from_that = Class.new { include that }
 
       assert_equal 5, from_this.new.skew_threshold
       assert_equal 99, from_that.new.skew_threshold
+    end
+
+    it "expect a sub-subclass to inherit the root" do
+      grandchild = Class.new(importer_class)
+
+      model = Class.new { include grandchild.new(per_page: %i[per_page]) }
+
+      assert_equal 25, model.new.per_page
     end
   end
 end
