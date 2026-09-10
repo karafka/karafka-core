@@ -1,7 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.4 (Unreleased)
-- [Enhancement] Add `Configurable::Importer`, a subclassable base for injecting memoized config readers into a class. A consumer defines its config root once by overriding `.root` in a subclass, and each use site then only names the attributes it wants, so no config root is hardcoded in core nor repeated per call site. Supports both `include` (instance-level readers) and `extend` (class-level readers).
+- [Enhancement] Add `Configurable::Importer`, a subclassable base for injecting memoized config readers into a class. A subclass names the config root once by overriding `.root`, and each use site then names only the attributes it wants. Supports both `include` and `extend`.
 
 ## 2.6.3 (2026-08-31)
 - [Enhancement] Add `Configurable::Injector`, a reusable base for injecting default values into a config hash without overwriting user-provided settings, with support for layering extra defaults on top.
