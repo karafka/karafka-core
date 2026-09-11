@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.6.4 (Unreleased)
+## 2.6.4 (2026-09-11)
 - [Enhancement] Add `Configurable::Importer`, a subclassable base for injecting memoized config readers into a class. A subclass names the config root once by overriding `.root`, and each use site then names only the attributes it wants. Supports both `include` and `extend`.
 
 ## 2.6.3 (2026-08-31)
