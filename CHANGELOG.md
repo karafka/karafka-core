@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.5 (Unreleased)
+- **[EOL]** Drop Ruby 3.2 support due to EOL; require Ruby 3.3+.
+
 ## 2.6.4 (2026-09-11)
 - [Enhancement] Add `Configurable::Importer`, a subclassable base for injecting memoized config readers into a class via `include` or `extend`.
 
