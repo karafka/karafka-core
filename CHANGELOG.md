@@ -42,7 +42,7 @@
 
 ## 2.6.0 (2026-06-10)
 - [Enhancement] Add `Node#register` to allow runtime key-value registration on compiled nodes without going through the static `setting` DSL. Useful for dynamic registries (e.g. named clusters) where setting names are not known at class-load time.
-- [Enhancement] Replace version-gated `Warning[:performance]` with a `Warning.categories`-based loop that enables all opt-in Ruby warning categories automatically, picking up new categories (e.g. `strict_unused_block` in Ruby 3.4+) without future patches.
+- [Enhancement] Enable all opt-in Ruby warning categories via `Warning.categories`, so new ones (e.g. `strict_unused_block` in Ruby 3.4+) are picked up automatically.
 
 ## 2.5.13 (2026-04-08)
 - [Enhancement] Extract `decorate_partitions` method from `StatisticsDecorator` to allow subclasses to filter which partitions are decorated (e.g. skip unassigned partitions in a consumer context).
@@ -58,10 +58,10 @@
 - [Enhancement] Cache a frozen success `Result` singleton via `Result.success` to eliminate 1 object allocation per successful `Contract#call` on the happy path.
 - [Enhancement] Skip nestings block re-evaluation in `Node#deep_dup` to avoid recreating children that are immediately overwritten, yielding ~14x faster deep_dup and reducing allocations from ~620 to ~66 objects for large configs.
 - [Enhancement] Cache `CallbacksManager#call` values snapshot and invalidate on `add`/`delete` to avoid allocating a new Array on every invocation while preserving thread-safety snapshot semantics, saving 1 Array allocation per call.
-- [Enhancement] Store execution time separately in `Event` and build the merged payload hash lazily on `#payload` access, eliminating 1 Hash allocation per `Notifications#instrument` call when listeners use `#[]` access (the common pattern), yielding ~1.7x faster event dispatch.
+- [Enhancement] Build the `Event` payload hash lazily on `#payload` access, saving one Hash allocation per `Notifications#instrument` call with `#[]` access, for ~1.7x faster event dispatch.
 - [Enhancement] Replace `StatisticsDecorator#diff` pending-writes buffer with `keys.each` direct-write iteration, eliminating the buffer and write-back loop for ~13% faster decoration at scale (10 brokers, 20 topics, 2000 partitions).
 - [Enhancement] Reorder `StatisticsDecorator#diff` type checks to test `Numeric` before `Hash`, matching the ~80% numeric value distribution in librdkafka statistics.
-- [Enhancement] Support an `only_keys` option in `StatisticsDecorator` to decorate only specified numeric keys. Combined with `excluded_keys`, this cuts decoration cost from ~80ms to ~8.5ms per call on large clusters (10 brokers, 20 topics, 2000 partitions).
+- [Enhancement] Support an `only_keys` option in `StatisticsDecorator` to decorate only the listed numeric keys. With `excluded_keys`, this cuts decoration cost from ~80ms to ~8.5ms per call on large clusters.
 - [Enhancement] Cache `Tags#to_a` values array and invalidate on `add`/`delete`/`clear` to avoid allocating a new Array and running `uniq` on every call, yielding ~7x faster reads at 5 tags and ~28x faster at 20 tags.
 
 ## 2.5.10 (2026-03-02)
@@ -183,7 +183,7 @@
 
 ## 2.2.1 (2023-09-10)
 - Optimize statistics decorator by minimizing number of new objects created.
-- Expand the decoration to include new value `_fd` providing freeze duration in milliseconds. This value informs us for how many consecutive ms the given value did not change. It can be useful for detecting values that should change once in a while but are stale.
+- Expand the decoration with the `_fd` value: the freeze duration in milliseconds, showing how long a value has not changed. Useful to detect stale values.
 
 ## 2.2.0 (2023-09-01)
 - [Maintenance] Update the signing cert (old expired)
