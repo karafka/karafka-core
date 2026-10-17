@@ -229,6 +229,14 @@ describe_current do
           notifications.clear("some-nonexistent-event")
         }
       end
+
+      it "expect to use the event id as the error message" do
+        error = assert_raises(event_not_registered_error) {
+          notifications.clear("some-nonexistent-event")
+        }
+
+        assert_equal "some-nonexistent-event", error.message
+      end
     end
   end
 

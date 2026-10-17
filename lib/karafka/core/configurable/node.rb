@@ -192,7 +192,7 @@ module Karafka
           # is not written to @configs_refs until first read, so a `@configs_refs.key?` guard
           # alone would silently overwrite it instead of raising the documented error.
           if @children.any? { |child| child.node_name == name }
-            raise ArgumentError, "#{name} is already registered"
+            raise ArgumentError, name
           end
 
           leaf = Leaf.new(name, value, nil, true, false)
@@ -360,7 +360,7 @@ module Karafka
         def prevent_reserved_names!(name)
           return unless RESERVED_NAMES.key?(name)
 
-          raise ArgumentError, "#{name} is a reserved name and cannot be used as a setting name"
+          raise ArgumentError, name
         end
       end
     end

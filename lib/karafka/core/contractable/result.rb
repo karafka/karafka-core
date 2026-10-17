@@ -3,7 +3,7 @@
 module Karafka
   module Core
     module Contractable
-      # Representation of a validaton result with resolved error messages
+      # Representation of a validation result with resolved error messages
       class Result
         attr_reader :errors
 
