@@ -87,8 +87,10 @@ describe_current do
       context "when registering a duplicate name" do
         before { node.register(:taken, "first") }
 
-        it "raises ArgumentError" do
-          assert_raises(ArgumentError) { node.register(:taken, "second") }
+        it "raises ArgumentError with the name as the message" do
+          error = assert_raises(ArgumentError) { node.register(:taken, "second") }
+
+          assert_equal "taken", error.message
         end
 
         it "does not overwrite the original value" do
@@ -185,7 +187,7 @@ describe_current do
             end
           end
 
-          assert_includes error.message, "#{reserved} is a reserved name"
+          assert_equal reserved.to_s, error.message
         end
       end
 
@@ -216,7 +218,7 @@ describe_current do
 
         error = assert_raises(ArgumentError) { node.register(:nestings, "value") }
 
-        assert_includes error.message, "nestings is a reserved name"
+        assert_equal "nestings", error.message
       end
     end
 

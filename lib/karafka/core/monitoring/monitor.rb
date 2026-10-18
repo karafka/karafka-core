@@ -9,7 +9,7 @@ module Karafka
       # It provides abstraction layer that allows us to use both our internal notifications as well
       # as `ActiveSupport::Notifications`.
       class Monitor
-        # Empty has to save on objects allocation
+        # Empty hash to save on objects allocation
         EMPTY_HASH = {}.freeze
 
         private_constant :EMPTY_HASH

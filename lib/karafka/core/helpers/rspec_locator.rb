@@ -88,15 +88,15 @@ module Karafka
 
           names.each do |name|
             # Make sure we're dealing with a valid constant name
-            raise NameError, "#{name} is not a valid constant name!" unless name.match?(regexp)
+            raise NameError, name unless name.match?(regexp)
 
             # Get the constant from its parent
             constant = constant.const_get(name)
           end
 
           constant
-        rescue NameError => e
-          raise NameError, "Uninitialized constant #{string}: #{e.message}"
+        rescue NameError
+          raise NameError, string
         end
       end
     end

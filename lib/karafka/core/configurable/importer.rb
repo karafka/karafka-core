@@ -79,10 +79,7 @@ module Karafka
           #   exist yet at load time.
           # @raise [NotImplementedError] when called on a class that does not define a root
           def root
-            raise(
-              NotImplementedError,
-              "Define .root in a Karafka::Core::Configurable::Importer subclass"
-            )
+            raise(NotImplementedError, self)
           end
         end
 

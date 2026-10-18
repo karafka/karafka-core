@@ -36,7 +36,9 @@ describe_current do
 
   describe ".root" do
     it "expect the base class to define none" do
-      assert_raises(NotImplementedError) { described_class.root }
+      error = assert_raises(NotImplementedError) { described_class.root }
+
+      assert_equal described_class.name, error.message
     end
 
     it "expect an importer built off the base to raise on the first read" do

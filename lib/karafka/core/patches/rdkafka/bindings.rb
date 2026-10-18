@@ -13,7 +13,7 @@ module Karafka
             # Add extra methods that we need
             # @param mod [::Rdkafka::Bindings] rdkafka bindings module
             def included(mod)
-              # Default rdkafka setup for errors doest not propagate client details, thus it always
+              # Default rdkafka setup for errors does not propagate client details, thus it always
               # publishes all the stuff for all rdkafka instances. We change that by providing
               # function that fetches the instance name, allowing us to have better notifications
               mod.send(:remove_const, :ErrorCallback)

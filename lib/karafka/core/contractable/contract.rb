@@ -105,7 +105,7 @@ module Karafka
         # @param data [Hash] hash with data we want to validate
         # @param scope [Array<String>] scope of this contract (if any) or empty array if no parent
         #   scope is needed if contract starts from root
-        # @return [Result] validaton result
+        # @return [Result] validation result
         def call(data, scope: EMPTY_ARRAY)
           errors = []
 
@@ -153,6 +153,8 @@ module Karafka
           Result.new(errors, self)
         end
 
+        # Runs the validation like `#call`, but raises instead of returning a failed `Result`
+        #
         # @param data [Hash] data for validation
         # @param error_class [Class] error class that should be used when validation fails
         # @param scope [Array<String>] scope of this contract (if any) or empty array if no parent
@@ -182,7 +184,7 @@ module Karafka
         #
         # @param data [Hash]
         # @param keys [Array<Symbol>]
-        # @return [DIG_MISS, Object] found element or DIGG_MISS indicating that not found
+        # @return [DIG_MISS, Object] found element or DIG_MISS indicating that not found
         def dig(data, keys)
           case keys.length
           when 1

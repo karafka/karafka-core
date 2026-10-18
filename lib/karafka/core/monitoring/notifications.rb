@@ -60,7 +60,7 @@ module Karafka
               return
             end
 
-            raise(EventNotRegistered, "#{event_id} not registered!")
+            raise(EventNotRegistered, event_id)
           end
         end
 
