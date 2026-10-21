@@ -15,7 +15,7 @@ describe_current do
     it { refute_equal other_tagged.tags, tagged.tags }
 
     it "expect not to add a Snapshot constant to the including class lookup" do
-      assert_raises(NameError) { tagged_class.class_eval("Snapshot", __FILE__, __LINE__) }
+      refute tagged_class.const_defined?(:Snapshot)
     end
   end
 
