@@ -30,12 +30,20 @@ describe_current do
 
     after { Rdkafka::Config.error_callback.delete("test") }
 
-    it "expect to inject instance name to the error callback" do
-      producer.produce(topic: "test", payload: "1")
-      sleep(0.01) while errors.empty?
+    context "when the producer cannot reach the broker" do
+      # The message is never delivered, so without a purge closing waits for its timeout
+      after do
+        producer.purge
+        producer.close
+      end
 
-      assert_includes errors.first.first, "rdkafka#producer"
-      assert_equal :transport, errors.first.last.code
+      it "expect to inject instance name to the error callback" do
+        producer.produce(topic: "test", payload: "1")
+        sleep(0.01) while errors.empty?
+
+        assert_includes errors.first.first, "rdkafka#producer"
+        assert_equal :transport, errors.first.last.code
+      end
     end
 
     # Invoke the patched FFI callback directly the way librdkafka does, so we can cover the
