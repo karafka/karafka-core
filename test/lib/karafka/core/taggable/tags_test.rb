@@ -95,7 +95,7 @@ describe_current do
     end
 
     it "expect readers not to fail" do
-      assert_empty errors
+      assert_empty Array.new(errors.size) { errors.pop }
     end
 
     it "expect readers to see the last change" do
