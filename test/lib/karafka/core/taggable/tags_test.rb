@@ -70,7 +70,7 @@ describe_current do
     it { assert_nil tags.clear }
   end
 
-  describe "when many threads add tags at once" do
+  context "when many threads add tags at once" do
     before do
       shared = tags
 
@@ -86,7 +86,7 @@ describe_current do
     end
   end
 
-  describe "when one thread changes tags while others read them" do
+  context "when one thread changes tags while others read them" do
     let(:errors) { Queue.new }
 
     before do

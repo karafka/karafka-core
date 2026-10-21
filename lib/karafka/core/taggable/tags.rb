@@ -9,14 +9,14 @@ module Karafka
       class Tags
         # Tags by name and their unique values, published together so a reader never sees one
         # without the other
-        Snapshot = Data.define(:tags, :values)
+        Snapshot = Struct.new(:tags, :values)
 
         private_constant :Snapshot
 
         # Creates new tags accumulator
         def initialize
           @mutex = Mutex.new
-          @snapshot = Snapshot.new(tags: {}.freeze, values: [])
+          @snapshot = Snapshot.new({}.freeze, []).freeze
         end
 
         # Adds a tag with a given name to tags
@@ -64,7 +64,7 @@ module Karafka
         # @param tags [Hash{Symbol => String}] all the tags after the change
         # @return [nil]
         def publish(tags)
-          @snapshot = Snapshot.new(tags: tags.freeze, values: tags.values.uniq)
+          @snapshot = Snapshot.new(tags.freeze, tags.values.uniq).freeze
 
           nil
         end
