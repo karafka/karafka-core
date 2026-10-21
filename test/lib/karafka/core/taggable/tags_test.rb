@@ -63,4 +63,43 @@ describe_current do
 
     it { assert_equal %w[abc], tags.as_json }
   end
+
+  describe "when one thread changes tags while others read them" do
+    let(:errors) { Queue.new }
+
+    before do
+      writer = Thread.new do
+        20_000.times do |i|
+          tags.add(:job_class, "Job#{i % 7}")
+          tags.add(:attempt, "attempt: #{i}")
+          tags.delete(:attempt) if i.odd?
+        end
+
+        tags.add(:final, "final")
+      end
+
+      readers = Array.new(3) do
+        Thread.new do
+          while writer.alive?
+            begin
+              tags.to_json
+            rescue => e
+              errors << e
+            end
+          end
+        end
+      end
+
+      writer.join
+      readers.each(&:join)
+    end
+
+    it "expect readers not to fail" do
+      assert_empty errors
+    end
+
+    it "expect readers to see the last change" do
+      assert_equal %w[Job0 final], tags.to_a
+    end
+  end
 end

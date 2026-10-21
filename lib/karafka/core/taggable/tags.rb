@@ -7,36 +7,41 @@ module Karafka
       # may want to replace given tag with a different one and we need to have a reference of
       # what we want to replace
       class Tags
+        # Tags by name and their unique values, published together so a reader never sees one
+        # without the other
+        Snapshot = Data.define(:tags, :values)
+
+        private_constant :Snapshot
+
         # Creates new tags accumulator
         def initialize
-          @accu = {}
-          @values_cache = nil
+          @mutex = Mutex.new
+          @snapshot = Snapshot.new(tags: {}.freeze, values: [])
         end
 
         # Adds a tag with a given name to tags
         # @param name [Symbol] name we want to use for a given tag
         # @param tag [#to_s] any object that can be converted into a string via `#to_s`
         def add(name, tag)
-          @accu[name] = tag.to_s
-          @values_cache = nil
+          value = tag.to_s
+
+          @mutex.synchronize { publish(@snapshot.tags.merge(name => value)) }
         end
 
         # Removes all the tags
         def clear
-          @accu.clear
-          @values_cache = nil
+          @mutex.synchronize { publish({}) }
         end
 
         # Removes a tag with a given name
         # @param name [Symbol] name of the tag
         def delete(name)
-          @accu.delete(name)
-          @values_cache = nil
+          @mutex.synchronize { publish(@snapshot.tags.except(name)) }
         end
 
         # @return [Array<String>] all unique tags registered
         def to_a
-          @values_cache ||= @accu.values.uniq
+          @snapshot.values
         end
 
         # @param _args [Object] anything that the standard `to_json` accepts
@@ -49,6 +54,16 @@ module Karafka
         # @return [Array<String>] array that can be converted to json
         def as_json(*_args)
           to_a
+        end
+
+        private
+
+        # Replaces the snapshot with one built from the given tags. Readers do not lock, so the tags
+        # are never changed in place: each write publishes a new snapshot in one assignment.
+        #
+        # @param tags [Hash{Symbol => String}] all the tags after the change
+        def publish(tags)
+          @snapshot = Snapshot.new(tags: tags.freeze, values: tags.values.uniq)
         end
       end
     end
