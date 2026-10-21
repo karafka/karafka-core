@@ -7,12 +7,6 @@ module Karafka
       # may want to replace given tag with a different one and we need to have a reference of
       # what we want to replace
       class Tags
-        # Tags by name and their unique values, published together so a reader never sees one
-        # without the other
-        Snapshot = Struct.new(:tags, :values)
-
-        private_constant :Snapshot
-
         # Creates new tags accumulator
         def initialize
           @mutex = Mutex.new
@@ -62,11 +56,9 @@ module Karafka
         # are never changed in place: each write publishes a new snapshot in one assignment.
         #
         # @param tags [Hash{Symbol => String}] all the tags after the change
-        # @return [nil]
+        # @return [Snapshot] the published snapshot
         def publish(tags)
           @snapshot = Snapshot.new(tags.freeze, tags.values.uniq).freeze
-
-          nil
         end
       end
     end

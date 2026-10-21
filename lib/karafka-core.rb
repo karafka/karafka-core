@@ -23,6 +23,7 @@ require "karafka/core/contractable/rule"
 require "karafka/core/instrumentation"
 require "karafka/core/instrumentation/callbacks_manager"
 require "karafka/core/taggable"
+require "karafka/core/taggable/snapshot"
 require "karafka/core/taggable/tags"
 require "karafka/core/patches/rdkafka/bindings"
 

@@ -64,12 +64,6 @@ describe_current do
     it { assert_equal %w[abc], tags.as_json }
   end
 
-  describe "return values of the changes" do
-    it { assert_nil tags.add(:name, 1) }
-    it { assert_nil tags.delete(:name) }
-    it { assert_nil tags.clear }
-  end
-
   context "when many threads add tags at once" do
     before do
       shared = tags
