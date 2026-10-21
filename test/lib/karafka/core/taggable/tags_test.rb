@@ -64,27 +64,52 @@ describe_current do
     it { assert_equal %w[abc], tags.as_json }
   end
 
+  describe "return values of the changes" do
+    it { assert_nil tags.add(:name, 1) }
+    it { assert_nil tags.delete(:name) }
+    it { assert_nil tags.clear }
+  end
+
+  describe "when many threads add tags at once" do
+    before do
+      shared = tags
+
+      Array.new(4) do |writer|
+        Thread.new do
+          1_000.times { |i| shared.add(:"tag_#{writer}_#{i}", "#{writer}-#{i}") }
+        end
+      end.each(&:join)
+    end
+
+    it "expect no tag to be lost" do
+      assert_equal 4_000, tags.to_a.size
+    end
+  end
+
   describe "when one thread changes tags while others read them" do
     let(:errors) { Queue.new }
 
     before do
+      shared = tags
+      failures = errors
+
       writer = Thread.new do
         20_000.times do |i|
-          tags.add(:job_class, "Job#{i % 7}")
-          tags.add(:attempt, "attempt: #{i}")
-          tags.delete(:attempt) if i.odd?
+          shared.add(:job_class, "Job#{i % 7}")
+          shared.add(:attempt, "attempt: #{i}")
+          shared.delete(:attempt) if i.odd?
         end
 
-        tags.add(:final, "final")
+        shared.add(:final, "final")
       end
 
       readers = Array.new(3) do
         Thread.new do
           while writer.alive?
             begin
-              tags.to_json
+              shared.to_json
             rescue => e
-              errors << e
+              failures << e
             end
           end
         end

@@ -62,8 +62,11 @@ module Karafka
         # are never changed in place: each write publishes a new snapshot in one assignment.
         #
         # @param tags [Hash{Symbol => String}] all the tags after the change
+        # @return [nil]
         def publish(tags)
           @snapshot = Snapshot.new(tags: tags.freeze, values: tags.values.uniq)
+
+          nil
         end
       end
     end
