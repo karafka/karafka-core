@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.6 (Unreleased)
+- [Fix] Make the event name cache of a namespaced `Monitor` safe when many threads call `#instrument`: a new event id now replaces the cache Hash under a lock (copy-on-write), so on JRuby the cache no longer gets corrupted with extra or duplicate keys.
+
 ## 2.6.5 (2026-10-19)
 - **[EOL]** Drop Ruby 3.2 support due to EOL; require Ruby 3.3+.
 - [Change] Use the offending value (event id, setting name, class or constant name) as the message of errors raised by `Notifications`, `Configurable::Node`, `Configurable::Importer` and the spec locators.

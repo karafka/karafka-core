@@ -21,6 +21,7 @@ module Karafka
           @notifications_bus = notifications_bus
           @namespace = namespace
           @mapped_events = {}
+          @mutex = Mutex.new
         end
 
         # Passes the instrumentation block (if any) into the notifications bus
@@ -35,7 +36,7 @@ module Karafka
           full_event_name = if @namespace.nil? && event_id.is_a?(String)
             event_id
           else
-            @mapped_events[event_id] ||= [event_id, @namespace].compact.join(".")
+            @mapped_events[event_id] || map_event(event_id)
           end
 
           @notifications_bus.instrument(full_event_name, payload, &)
@@ -64,6 +65,24 @@ module Karafka
         # @note Please do not modify this hash. It should be used only for debugging.
         def listeners
           @notifications_bus.listeners
+        end
+
+        private
+
+        # Builds and caches the full event name for an event id
+        #
+        # @param event_id [String, Symbol] event id
+        # @return [String] full event name
+        def map_event(event_id)
+          @mutex.synchronize do
+            # Copy-on-write: #instrument reads the Hash without the lock and on JRuby a Hash that
+            # is written by many threads at once can get corrupted, so we replace it instead.
+            @mapped_events[event_id] || begin
+              full_event_name = [event_id, @namespace].compact.join(".")
+              @mapped_events = @mapped_events.merge(event_id => full_event_name).freeze
+              full_event_name
+            end
+          end
         end
       end
     end

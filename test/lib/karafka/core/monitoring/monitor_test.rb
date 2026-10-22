@@ -72,6 +72,41 @@ describe_current do
     it { assert_includes monitor.listeners.keys, "test" }
   end
 
+  context "when many threads instrument new symbol ids with a namespace" do
+    let(:namespace) { "ns" }
+    let(:null_bus) do
+      Class.new do
+        def instrument(_event_id, _payload)
+          nil
+        end
+      end.new
+    end
+
+    it "expect to cache every event name exactly once" do
+      5.times do |round|
+        monitor = described_class.new(null_bus, namespace)
+        ids = Array.new(2_000) { |i| :"event_#{round}_#{i}" }
+        start = Queue.new
+
+        threads = Array.new(8) do |offset|
+          Thread.new do
+            start.pop
+            ids.rotate(offset * 7).each { |id| monitor.instrument(id) }
+          end
+        end
+
+        8.times { start << true }
+        threads.each(&:join)
+
+        mapped_events = monitor.instance_variable_get(:@mapped_events)
+
+        assert_equal ids.size, mapped_events.size
+        assert_equal ids.size, mapped_events.keys.uniq.size
+        assert_equal ids.to_h { |id| [id, "#{id}.ns"] }, mapped_events
+      end
+    end
+  end
+
   describe "#unsubscribe" do
     context "when we do not use any namespace" do
       let(:namespace) { nil }
