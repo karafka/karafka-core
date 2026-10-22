@@ -2,6 +2,7 @@
 
 ## 2.6.6 (Unreleased)
 - [Fix] Make `Taggable::Tags` safe to read while another thread adds or removes tags. On JRuby a concurrent read could raise `NullPointerException`.
+- [Fix] Make `Taggable#tags` return one `Tags` per object when several threads call it first. On JRuby each thread could get its own `Tags`, and tags were lost.
 
 ## 2.6.5 (2026-10-19)
 - **[EOL]** Drop Ruby 3.2 support due to EOL; require Ruby 3.3+.
