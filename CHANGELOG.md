@@ -1,6 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.6 (Unreleased)
+- [Fix] Make `Taggable::Tags` safe to read while another thread adds or removes tags. On JRuby a concurrent read could raise `NullPointerException`.
 - [Fix] Make the `Monitor` event name cache thread-safe for a namespace or Symbol event ids, so on JRuby concurrent `#instrument` calls no longer corrupt it.
 
 ## 2.6.5 (2026-10-19)
@@ -45,7 +46,7 @@
 - [Change] Assigning a setting on a frozen config node now raises `FrozenError` (previously the write silently mutated internal storage despite the freeze).
 
 ## 2.6.0 (2026-06-10)
-- [Enhancement] Add `Node#register` to allow runtime key-value registration on compiled nodes without going through the static `setting` DSL. Useful for dynamic registries (e.g. named clusters) where setting names are not known at class-load time.
+- [Enhancement] Add `Node#register` to register keys at runtime on compiled nodes, for dynamic registries (e.g. named clusters) whose setting names are not known at class-load time.
 - [Enhancement] Enable all opt-in Ruby warning categories via `Warning.categories`, so new ones (e.g. `strict_unused_block` in Ruby 3.4+) are picked up automatically.
 
 ## 2.5.13 (2026-04-08)
@@ -57,24 +58,24 @@
 ## 2.5.11 (2026-04-02)
 - [Enhancement] Specialize `Contract#dig` for common 1-key and 2-key paths to avoid iterator overhead, yielding ~1.5x faster single-key lookups and ~1.45x faster two-key nested lookups.
 - [Enhancement] Replace `Node#build_accessors` `@local_defs` Array with Hash for O(1) membership checks instead of O(n) `Array#include?`, yielding up to ~5x faster accessor lookups at 50 settings.
-- [Enhancement] Use frozen `EMPTY_ARRAY` constant for `Contract#call` and `#validate!` default `scope` parameter to avoid allocating a new Array on every invocation, yielding ~1.36x faster call dispatch and saving 1 Array allocation per call.
-- [Enhancement] Pre-resolve `@events_methods_map` method name before the listener notification loop in `Notifications#instrument` to avoid repeated Hash lookup per listener, yielding ~1.12x faster event dispatch with multiple listeners.
+- [Enhancement] Stop allocating an Array on every `Contract#call` and `#validate!` call (~1.36x faster dispatch).
+- [Enhancement] Speed up `Notifications#instrument` with multiple listeners (~1.12x faster event dispatch).
 - [Enhancement] Cache a frozen success `Result` singleton via `Result.success` to eliminate 1 object allocation per successful `Contract#call` on the happy path.
-- [Enhancement] Skip nestings block re-evaluation in `Node#deep_dup` to avoid recreating children that are immediately overwritten, yielding ~14x faster deep_dup and reducing allocations from ~620 to ~66 objects for large configs.
-- [Enhancement] Cache `CallbacksManager#call` values snapshot and invalidate on `add`/`delete` to avoid allocating a new Array on every invocation while preserving thread-safety snapshot semantics, saving 1 Array allocation per call.
+- [Enhancement] Speed up `Node#deep_dup` ~14x and cut its allocations from ~620 to ~66 objects for large configs.
+- [Enhancement] Stop allocating an Array on every `CallbacksManager#call` call.
 - [Enhancement] Build the `Event` payload hash lazily on `#payload` access, saving one Hash allocation per `Notifications#instrument` call with `#[]` access, for ~1.7x faster event dispatch.
-- [Enhancement] Replace `StatisticsDecorator#diff` pending-writes buffer with `keys.each` direct-write iteration, eliminating the buffer and write-back loop for ~13% faster decoration at scale (10 brokers, 20 topics, 2000 partitions).
+- [Enhancement] Speed up `StatisticsDecorator#diff` by ~13% at scale (10 brokers, 20 topics, 2000 partitions).
 - [Enhancement] Reorder `StatisticsDecorator#diff` type checks to test `Numeric` before `Hash`, matching the ~80% numeric value distribution in librdkafka statistics.
 - [Enhancement] Support an `only_keys` option in `StatisticsDecorator` to decorate only the listed numeric keys. With `excluded_keys`, this cuts decoration cost from ~80ms to ~8.5ms per call on large clusters.
-- [Enhancement] Cache `Tags#to_a` values array and invalidate on `add`/`delete`/`clear` to avoid allocating a new Array and running `uniq` on every call, yielding ~7x faster reads at 5 tags and ~28x faster at 20 tags.
+- [Enhancement] Cache `Tags#to_a` (~7x faster reads at 5 tags, ~28x at 20 tags).
 
 ## 2.5.10 (2026-03-02)
 - [Enhancement] Introduce `MinitestLocator` helper for minitest/spec subject class auto-discovery from test file paths.
 
 ## 2.5.9 (2026-03-02)
-- [Enhancement] Optimize `StatisticsDecorator` to eliminate per-hash Array allocations by using `each_pair` with a per-call pending-writes buffer instead of `current.keys.each`, reducing allocations from tens of thousands to one per call at scale.
+- [Enhancement] Reduce `StatisticsDecorator` allocations from tens of thousands to one per call at scale.
 - [Enhancement] Inline `StatisticsDecorator#append` and `#suffix_keys_for` into `#diff` to reduce method call overhead by ~96% (from ~915k to ~39k calls at 6400 partitions).
-- [Enhancement] Support `excluded_keys` option in `StatisticsDecorator` to skip decoration of unused librdkafka statistics subtrees (e.g. broker toppars, window stats), yielding ~28% additional speedup at scale.
+- [Enhancement] Support an `excluded_keys` option in `StatisticsDecorator` to skip unused librdkafka statistics subtrees (e.g. broker toppars, window stats), ~28% faster at scale.
 
 ## 2.5.8 (2025-11-23)
 - [Enhancement] Memoize `StatisticsDecorator` suffix keys to reduce string allocations (#268).
