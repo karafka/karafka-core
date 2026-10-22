@@ -281,6 +281,54 @@ describe_current do
     end
   end
 
+  describe "when events are registered while other threads instrument" do
+    # Regression (JRuby, no GVL): #instrument reads the listeners and methods Hashes without the
+    # lock, so #register_event growing them in place made readers see registered events as
+    # missing (EventNotRegistered) or without a method (TypeError on dispatch).
+    let(:base_events) { Array.new(64) { |i| "base.#{i}" } }
+
+    let(:listener) do
+      events = base_events
+
+      Class.new do
+        events.each { |event| define_method(:"on_#{event.tr(".", "_")}") { |_event| nil } }
+      end.new
+    end
+
+    it "expect instrumenting already registered events never to fail" do
+      errors = Queue.new
+
+      5.times do |round|
+        bus = Karafka::Core::Monitoring::Notifications.new
+        base_events.each { |event| bus.register_event(event) }
+        bus.subscribe(listener)
+        stop = false
+
+        readers = Array.new(4) do |offset|
+          Thread.new do
+            i = offset
+
+            until stop
+              begin
+                bus.instrument(base_events[i % base_events.size]) { i }
+              rescue => e
+                errors << e.class
+              end
+
+              i += 1
+            end
+          end
+        end
+
+        2_000.times { |i| bus.register_event("new.#{round}.#{i}") }
+        stop = true
+        readers.each(&:join)
+      end
+
+      assert_empty Array.new(errors.size) { errors.pop }.tally
+    end
+  end
+
   describe "when a listener unsubscribes during dispatch" do
     # Regression: a listener that unsubscribes itself (or an earlier listener) from within its
     # own handler must not cause the listener following it to be skipped. Notification iterates
