@@ -20,16 +20,17 @@ module Karafka
 
       # @return [::Karafka::Core::Taggable::Tags] tags object
       def tags
-        @tags || taggable_build_tags
-      end
+        return @tags if @tags
 
-      private
-
-      # Kept out of `#tags`, so its fast path has no block (a block makes it slower on JRuby)
-      #
-      # @return [::Karafka::Core::Taggable::Tags] tags object
-      def taggable_build_tags
-        Taggable.tags_lock.synchronize { @tags ||= Taggable::Tags.new }
+        # lock/unlock instead of #synchronize: a block in this method makes every call slower on
+        # JRuby, also when @tags is already set
+        lock = Taggable.tags_lock
+        lock.lock
+        begin
+          @tags ||= Taggable::Tags.new
+        ensure
+          lock.unlock
+        end
       end
     end
   end
