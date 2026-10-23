@@ -97,11 +97,15 @@ module Karafka
             else
               listener = event_id_or_listener
 
-              @listeners = @listeners.to_h do |reg_event_id, event_listeners|
-                next [reg_event_id, event_listeners] unless listener.respond_to?(@events_methods_map[reg_event_id])
+              listeners = @listeners.dup
 
-                [reg_event_id, event_listeners + [listener]]
+              @listeners.each do |reg_event_id, event_listeners|
+                next unless listener.respond_to?(@events_methods_map[reg_event_id])
+
+                listeners[reg_event_id] = event_listeners + [listener]
               end
+
+              @listeners = listeners
             end
           end
         end
