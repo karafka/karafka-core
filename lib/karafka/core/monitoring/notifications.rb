@@ -38,8 +38,13 @@ module Karafka
         # @param event_id [String] event id
         def register_event(event_id)
           @mutex.synchronize do
-            @listeners[event_id] = []
-            @events_methods_map[event_id] = :"on_#{event_id.to_s.tr(".", "_")}"
+            # Copy-on-write: #instrument reads both Hashes without the lock, and on JRuby a Hash
+            # that grows while another thread reads it can return nil for a registered key. The
+            # methods map goes first, so an event visible in @listeners always has its method.
+            @events_methods_map = @events_methods_map.merge(
+              event_id => :"on_#{event_id.to_s.tr(".", "_")}"
+            )
+            @listeners = @listeners.merge(event_id => [])
           end
         end
 
@@ -48,15 +53,16 @@ module Karafka
         # @param event_id [String] the key of the event to clear listeners for.
         def clear(event_id = nil)
           @mutex.synchronize do
-            # Copy-on-write: replace the per-event arrays rather than mutating them in place, so a
-            # dispatch iterating a previously captured array is unaffected (see #notify_listeners).
+            # Copy-on-write: replace the Hash and the per-event arrays rather than mutating them in
+            # place, so lock-free reads in #instrument and a dispatch iterating a previously
+            # captured array are unaffected (see #register_event and #notify_listeners).
             unless event_id
-              @listeners.transform_values! { [] }
+              @listeners = @listeners.transform_values { [] }
               return
             end
 
             if @listeners.key?(event_id)
-              @listeners[event_id] = []
+              @listeners = @listeners.merge(event_id => [])
               return
             end
 
@@ -85,17 +91,21 @@ module Karafka
 
               raise EventNotRegistered, event_id unless @listeners.key?(event_id)
 
-              # Copy-on-write: append by replacing the array, never mutating the one a concurrent
-              # dispatch may be iterating (see #notify_listeners).
-              @listeners[event_id] += [block]
+              # Copy-on-write: append by replacing the Hash and the array, never mutating the ones
+              # a concurrent #instrument or dispatch may be reading (see #notify_listeners).
+              @listeners = @listeners.merge(event_id => @listeners[event_id] + [block])
             else
               listener = event_id_or_listener
 
-              @listeners.each_key do |reg_event_id|
+              listeners = @listeners.dup
+
+              @listeners.each do |reg_event_id, event_listeners|
                 next unless listener.respond_to?(@events_methods_map[reg_event_id])
 
-                @listeners[reg_event_id] += [listener]
+                listeners[reg_event_id] = event_listeners + [listener]
               end
+
+              @listeners = listeners
             end
           end
         end
@@ -109,9 +119,10 @@ module Karafka
         #   unsubscribe(my_listener)
         def unsubscribe(listener_or_block)
           @mutex.synchronize do
-            # Copy-on-write: rebuild each array without the listener instead of deleting in place,
-            # so a dispatch iterating a previously captured array still sees the full set.
-            @listeners.transform_values! { |event_listeners| event_listeners - [listener_or_block] }
+            # Copy-on-write: rebuild the Hash and each array without the listener instead of
+            # deleting in place, so a dispatch iterating a previously captured array still sees
+            # the full set.
+            @listeners = @listeners.transform_values { |event_listeners| event_listeners - [listener_or_block] }
           end
         end
 
