@@ -2,6 +2,7 @@
 
 ## 2.6.6 (Unreleased)
 - [Fix] Make `Taggable::Tags` safe to read while another thread adds or removes tags. On JRuby a concurrent read could raise `NullPointerException`.
+- [Fix] Make `Notifications#register_event` safe while other threads call `#instrument`. On JRuby a concurrent registration could make a registered event look unregistered or dispatch it without its method.
 - [Fix] Make the `Monitor` event name cache thread-safe for a namespace or Symbol event ids, so on JRuby concurrent `#instrument` calls no longer corrupt it.
 
 ## 2.6.5 (2026-10-19)
