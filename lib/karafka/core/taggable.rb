@@ -20,17 +20,19 @@ module Karafka
 
       # @return [::Karafka::Core::Taggable::Tags] tags object
       def tags
-        return @tags if @tags
+        @tags || taggable_build_tags
+      end
 
-        # lock/unlock instead of #synchronize: a block in this method makes every call slower on
-        # JRuby, also when @tags is already set
-        lock = Taggable.tags_lock
-        lock.lock
-        begin
-          @tags ||= Taggable::Tags.new
-        ensure
-          lock.unlock
-        end
+      private
+
+      # Do not inline this into `#tags`. A `#synchronize` block there makes every warm `#tags` call
+      # about 2.5x slower on JRuby, even when `@tags` is already set. A hand-written `lock` /
+      # `ensure unlock` keeps it fast but can leave the lock held when an async exception
+      # (`Thread#raise`, `Timeout`) lands between `lock` and `begin`.
+      #
+      # @return [::Karafka::Core::Taggable::Tags] tags object
+      def taggable_build_tags
+        Taggable.tags_lock.synchronize { @tags ||= Taggable::Tags.new }
       end
     end
   end
