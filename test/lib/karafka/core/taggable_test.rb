@@ -19,6 +19,50 @@ describe_current do
     end
   end
 
+  context "when several threads call tags first on the same objects" do
+    let(:threads_count) { 4 }
+    let(:objects) { Array.new(5_000) { tagged_class.new } }
+    let(:seen) { Array.new(threads_count) { [] } }
+    let(:tagged_class) do
+      Class.new do
+        include Karafka::Core::Taggable
+      end
+    end
+
+    before do
+      start = Queue.new
+      fresh = objects
+      handed_out = seen
+
+      threads = Array.new(threads_count) do |thread_id|
+        Thread.new do
+          start.pop
+
+          fresh.each do |object|
+            tags = object.tags
+            handed_out[thread_id] << tags
+            tags.add(:"thread_#{thread_id}", thread_id)
+          end
+        end
+      end
+
+      threads_count.times { start << true }
+      threads.each(&:join)
+    end
+
+    it "expect each object to hand out one tags instance" do
+      split = objects.each_index.count do |index|
+        seen.map { |thread_tags| thread_tags[index] }.uniq(&:object_id).size > 1
+      end
+
+      assert_equal 0, split
+    end
+
+    it "expect no tag to be lost" do
+      assert(objects.all? { |object| object.tags.to_a.size == threads_count })
+    end
+  end
+
   context "when operating on a class basis" do
     subject(:tagged) { tagged_class }
 
