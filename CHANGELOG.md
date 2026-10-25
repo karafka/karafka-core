@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.6.6 (Unreleased)
+## 2.6.6 (2026-10-25)
 - [Fix] Make `Taggable::Tags` safe to read while another thread adds or removes tags. On JRuby a concurrent read could raise `NullPointerException`.
 - [Fix] Make `Taggable#tags` return one `Tags` per object when several threads call it first. On JRuby each thread could get its own `Tags`, and tags were lost.
 - [Fix] Make `Notifications#register_event` safe while other threads call `#instrument`. On JRuby a concurrent registration could make a registered event look unregistered or dispatch it without its method.
