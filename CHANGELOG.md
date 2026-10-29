@@ -1,11 +1,11 @@
 # Karafka Core Changelog
 
 ## 2.6.6 (2026-10-25)
-- [Maintenance] Drop unused `byebug` from the test bundle (Gemfile, Gemfile.lock, test/), aligning with karafka (#3432), karafka-web (#1354), rdkafka-ruby/karafka-rdkafka and `pry`.
+- [Maintenance] Drop unused `byebug` from the test bundle.
 - [Maintenance] Close the producer in `bindings_test.rb` so the suite exits at once; on JRuby suite exit time dropped from ~315 s to 13–15 s (#49630).
 - [Fix] Make `Taggable::Tags` safe to read while another thread adds or removes tags. On JRuby a concurrent read could raise `NullPointerException`.
 - [Fix] Make `Taggable#tags` return one `Tags` per object when several threads call it first. On JRuby each thread could get its own `Tags`, and tags were lost.
-- [Fix] Make `Notifications#register_event` safe while other threads call `#instrument`. On JRuby a concurrent registration could make a registered event look unregistered or dispatch it without its method.
+- [Fix] Make `Notifications#register_event` safe while other threads call `#instrument`. On JRuby a registered event could look unregistered or be dispatched without its method.
 - [Fix] Make the `Monitor` event name cache thread-safe for a namespace or Symbol event ids, so on JRuby concurrent `#instrument` calls no longer corrupt it.
 
 ## 2.6.5 (2026-10-19)
