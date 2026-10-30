@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.7 (Unreleased)
+- [Maintenance] Declare `rake` in the `Gemfile`. It came only through `karafka-rdkafka`, which will stop depending on it for precompiled platform gems.
+
 ## 2.6.6 (2026-10-25)
 - [Maintenance] Drop unused `byebug` from the test bundle.
 - [Maintenance] Close the producer in `bindings_test.rb` so the suite exits at once; on JRuby suite exit time dropped from ~315 s to 13–15 s (#49630).
