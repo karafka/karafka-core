@@ -16,6 +16,8 @@ permissions:
 jobs:
   tests:
     timeout-minutes: 15
+    # JRuby is non-blocking: a failing JRuby job shows red but does not fail the workflow
+    continue-on-error: ${{ matrix.continue-on-error || false }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -24,9 +26,12 @@ jobs:
           - '4.0'
           - '3.4'
           - '3.3'
+          - 'jruby-10.0'
         include:
           - ruby: '4.0'
             coverage: 'true'
+          - ruby: 'jruby-10.0'
+            continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
