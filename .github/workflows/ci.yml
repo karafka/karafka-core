@@ -14,11 +14,54 @@ permissions:
   contents: read
 
 jobs:
+  # Decides whether the change touches anything but docs. Docs-only pull requests skip the jobs
+  # below; CI Success still runs and reports success, so the required check does not stay pending
+  changes:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+
+      - name: Detect code changes
+        id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          # Only pull requests can skip; scheduled and any other runs always test everything
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # HEAD is the PR merge commit, so HEAD^1..HEAD is what the PR changes in master
+          changed="$(git diff --name-only --no-renames HEAD^1 HEAD)"
+
+          # Anything not on the docs list counts as code (an empty diff too)
+          code=false
+          while IFS= read -r file; do
+            case "$file" in
+              lib/*|spec/*|test/*|ext/*|bin/*) code=true ;;
+              *.md|LICENSE*|MIT-LICENSE|.github/ISSUE_TEMPLATE/*|.github/FUNDING.yml) ;;
+              *.png|*.jpg|*.jpeg|*.svg|*.gif) ;;
+              *) code=true ;;
+            esac
+          done <<< "$changed"
+
+          echo "Changed files:"
+          echo "$changed"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
   tests:
     timeout-minutes: 15
     # JRuby is non-blocking: a failing JRuby job shows red but does not fail the workflow
     continue-on-error: ${{ matrix.continue-on-error || false }}
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -66,6 +109,8 @@ jobs:
   rubocop:
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     env:
       BUNDLE_GEMFILE: Gemfile.lint
     steps:
@@ -83,6 +128,8 @@ jobs:
   yard-lint:
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     env:
       BUNDLE_GEMFILE: Gemfile.lint
     steps:
@@ -100,6 +147,8 @@ jobs:
   lostconf:
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -119,15 +168,18 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
+      - changes
       - rubocop
       - tests
       - yard-lint
       - lostconf
     steps:
+      # Skipped jobs are fine only when the change is docs-only
       - name: Check all jobs passed
         if: |
+          needs.changes.result != 'success' ||
           contains(needs.*.result, 'failure') ||
           contains(needs.*.result, 'cancelled') ||
-          contains(needs.*.result, 'skipped')
+          (needs.changes.outputs.code != 'false' && contains(needs.*.result, 'skipped'))
         run: exit 1
       - run: echo "All CI checks passed!"
