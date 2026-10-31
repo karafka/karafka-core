@@ -23,8 +23,8 @@
 
 ## 2.6.2 (2026-06-29)
 - [Enhancement] Document that a setting default is shared across all config instances, so a mutable default such as `[]` must not be changed in place.
-- [Fix] Require `pathname` explicitly, so `Karafka::Core.gem_root` no longer raises `NameError` when nothing else loaded it.
 - [Enhancement] Document that a `virtual` rule must return a freshly built `Array` of `[path, message]` error pairs on each call; a memoized, shared or frozen array is unsupported.
+- [Fix] Require `pathname` explicitly, so `Karafka::Core.gem_root` no longer raises `NameError` when nothing else loaded it.
 - [Fix] `Configurable::Node#register` now raises the documented "already registered" `ArgumentError` for a name used by an unread lazy-with-constructor setting, which it previously overwrote silently.
 - [Fix] Stop a rescued error inside `Contractable::Contract.nested` from prefixing its path onto every rule defined afterwards.
 - [Fix] Report a missing path instead of raising `NoMethodError` when validating a non-Hash root with a 1-key or 2-key rule.
@@ -43,14 +43,14 @@
 
 ## 2.6.1 (2026-06-15)
 - [Enhancement] Speed up `Contract#call` by ~1.25–1.4x, the per-message validation path in WaterDrop producers.
-- [Fix] Report a missing path instead of raising `NoMethodError` when a 3+ key rule path meets a non-Hash intermediate value.
-- [Change] Reject reserved setting names in `Configurable::Node#setting` and `#register` with an `ArgumentError`, since they could corrupt the node state.
 - [Enhancement] Speed up `Monitor#instrument` dispatch (~1.2x) on the common no-subscribers path.
 - [Enhancement] Speed up `Configurable::Node` settings reads (~1.4x flat, ~1.6x nested) on hot paths.
 - [Enhancement] Reduce object shape variations of config nodes by giving each settings layout its own anonymous `Node` subclass.
-- [Fix] Symbolize setting names at definition time and on config store writes, so `String` setting names work end to end and cannot corrupt node internal state when they match reserved internal names.
+- [Change] Reject reserved setting names in `Configurable::Node#setting` and `#register` with an `ArgumentError`, since they could corrupt the node state.
 - [Change] Config nodes are instances of anonymous `Node` subclasses: `is_a?(Karafka::Core::Configurable::Node)` still holds, but `instance_of?(Node)` is `false` and `node.class.name` is `nil`.
 - [Change] Assigning a setting on a frozen config node now raises `FrozenError` (previously the write silently mutated internal storage despite the freeze).
+- [Fix] Report a missing path instead of raising `NoMethodError` when a 3+ key rule path meets a non-Hash intermediate value.
+- [Fix] Symbolize setting names at definition time and on config store writes, so `String` setting names work end to end and cannot corrupt node internal state when they match reserved internal names.
 
 ## 2.6.0 (2026-06-10)
 - [Enhancement] Add `Node#register` to register keys at runtime on compiled nodes, for dynamic registries (e.g. named clusters) whose setting names are not known at class-load time.
