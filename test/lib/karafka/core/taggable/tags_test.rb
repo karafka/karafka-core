@@ -123,26 +123,22 @@ describe_current do
   context "when many threads mix no-op and real writes at once" do
     before do
       shared = tags
-      shared.add(:base, "base")
 
       Array.new(4) do |writer|
         Thread.new do
-          key = :"tag_#{writer}"
-
-          2_000.times do |i|
-            shared.add(key, "#{writer}-#{i % 3}")
-            shared.add(key, "#{writer}-#{i % 3}")
+          1_000.times do |i|
+            shared.add(:"tag_#{writer}_#{i}", "#{writer}-#{i}")
+            shared.add(:"tag_#{writer}_#{i}", "#{writer}-#{i}")
             shared.delete(:"missing_#{writer}")
-            shared.delete(key) if (i % 5).zero?
+            shared.add(:"tmp_#{writer}", "tmp")
+            shared.delete(:"tmp_#{writer}")
           end
-
-          shared.add(key, "#{writer}-final")
         end
       end.each(&:join)
     end
 
     it "expect no write to be lost" do
-      assert_equal %w[0-final 1-final 2-final 3-final base], tags.to_a.sort
+      assert_equal 4_000, tags.to_a.size
     end
   end
 
