@@ -2,7 +2,7 @@
 
 ## 2.6.7 (Unreleased)
 - [Maintenance] Declare `rake` in the `Gemfile`. It came only through `karafka-rdkafka`, which will stop depending on it for precompiled platform gems.
-- [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag skip the lock and the copy (about 6x faster on MRI and JRuby).
+- [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag about 6x faster on MRI and JRuby.
 
 ## 2.6.6 (2026-10-25)
 - [Maintenance] Drop unused `byebug` from the test bundle.
