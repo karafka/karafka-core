@@ -31,6 +31,26 @@ describe_current do
 
       it { assert_equal %w[1], tags.to_a }
     end
+
+    context "when the name already has the same value" do
+      it "expect to return the current snapshot unchanged" do
+        snapshot = tags.add(:name, 1)
+
+        assert_same snapshot, tags.add(:name, "1")
+        assert_equal({ name: "1" }, snapshot.tags)
+        assert_equal %w[1], tags.to_a
+      end
+    end
+
+    context "when the name gets a new value" do
+      it "expect to publish a new snapshot" do
+        snapshot = tags.add(:name, 1)
+
+        refute_same snapshot, tags.add(:name, 2)
+        assert_equal({ name: "1" }, snapshot.tags)
+        assert_equal %w[2], tags.to_a
+      end
+    end
   end
 
   describe "#clear" do
@@ -50,6 +70,26 @@ describe_current do
     end
 
     it { assert_equal %w[2], tags.to_a }
+
+    context "when the name is not there" do
+      it "expect to return the current snapshot unchanged" do
+        snapshot = tags.add(:name4, 4)
+
+        assert_same snapshot, tags.delete(:missing)
+        assert_equal({ name3: "2", name4: "4" }, snapshot.tags)
+        assert_equal %w[2 4], tags.to_a
+      end
+    end
+
+    context "when the name is there" do
+      it "expect to publish a new snapshot" do
+        snapshot = tags.add(:name4, 4)
+
+        refute_same snapshot, tags.delete(:name4)
+        assert_equal({ name3: "2", name4: "4" }, snapshot.tags)
+        assert_equal %w[2], tags.to_a
+      end
+    end
   end
 
   describe "#to_json" do
@@ -77,6 +117,32 @@ describe_current do
 
     it "expect no tag to be lost" do
       assert_equal 4_000, tags.to_a.size
+    end
+  end
+
+  context "when many threads mix no-op and real writes at once" do
+    before do
+      shared = tags
+      shared.add(:base, "base")
+
+      Array.new(4) do |writer|
+        Thread.new do
+          key = :"tag_#{writer}"
+
+          2_000.times do |i|
+            shared.add(key, "#{writer}-#{i % 3}")
+            shared.add(key, "#{writer}-#{i % 3}")
+            shared.delete(:"missing_#{writer}")
+            shared.delete(key) if (i % 5).zero?
+          end
+
+          shared.add(key, "#{writer}-final")
+        end
+      end.each(&:join)
+    end
+
+    it "expect no write to be lost" do
+      assert_equal %w[0-final 1-final 2-final 3-final base], tags.to_a.sort
     end
   end
 
