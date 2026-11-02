@@ -18,6 +18,11 @@ module Karafka
         # @param tag [#to_s] any object that can be converted into a string via `#to_s`
         def add(name, tag)
           value = tag.to_s
+          snapshot = @snapshot
+
+          # The snapshot is frozen and replaced in one assignment, so one read of it is consistent
+          # on any engine without the lock
+          return snapshot if snapshot.tags[name] == value
 
           @mutex.synchronize { publish(@snapshot.tags.merge(name => value)) }
         end
@@ -30,6 +35,11 @@ module Karafka
         # Removes a tag with a given name
         # @param name [Symbol] name of the tag
         def delete(name)
+          snapshot = @snapshot
+
+          # Safe without the lock for the same reason as in #add
+          return snapshot unless snapshot.tags.key?(name)
+
           @mutex.synchronize { publish(@snapshot.tags.except(name)) }
         end
 
