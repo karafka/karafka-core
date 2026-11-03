@@ -6,7 +6,8 @@ module Karafka
       # Representation of a validation result with resolved error messages
       class Result
         # @return [Hash{Symbol => String}] error message per path. When a path has more than one
-        #   error, the first one (in the order the rules ran) is kept.
+        #   error, the first one reported is kept: rules run in definition order and a virtual
+        #   rule's errors keep the order it returns them in.
         attr_reader :errors
 
         # Empty hash that we use when no errors to save on allocations
