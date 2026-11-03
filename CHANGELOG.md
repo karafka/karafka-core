@@ -3,6 +3,7 @@
 ## 2.6.7 (Unreleased)
 - [Maintenance] Declare `rake` in the `Gemfile`. It came only through `karafka-rdkafka`, which will stop depending on it for precompiled platform gems.
 - [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag about 6x faster on MRI and JRuby.
+- [Fix] Make `Contractable::Result#errors` keep the first error when one path has more than one, instead of the last. Before, a later rule's error replaced the earlier one, e.g. a header key-type error was lost when a value-type error followed.
 
 ## 2.6.6 (2026-10-25)
 - [Maintenance] Drop unused `byebug` from the test bundle.

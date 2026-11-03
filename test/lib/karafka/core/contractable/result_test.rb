@@ -103,4 +103,50 @@ describe_current do
       )
     end
   end
+
+  context "when a virtual rule returns two errors for the same path" do
+    subject(:contract_class) do
+      Class.new(Karafka::Core::Contractable::Contract) do
+        configure do |config|
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, "config", "locales", "errors.yml")
+          ).fetch("en").fetch("validations").fetch("test")
+        end
+
+        virtual do |_data, _errors, _contract|
+          [[%i[id], "first"], [%i[id], "second"]]
+        end
+      end
+    end
+
+    let(:result) { contract.call({}) }
+
+    it "keeps the first error" do
+      assert_equal({ id: "first" }, result.errors)
+    end
+  end
+
+  context "when a required rule and a virtual rule fail on the same path" do
+    subject(:contract_class) do
+      Class.new(Karafka::Core::Contractable::Contract) do
+        configure do |config|
+          config.error_messages = YAML.safe_load_file(
+            File.join(Karafka::Core.gem_root, "config", "locales", "errors.yml")
+          ).fetch("en").fetch("validations").fetch("test")
+        end
+
+        required(:id) { |id| id.is_a?(String) }
+
+        virtual do |_data, _errors, _contract|
+          [[%i[id], "virtual error"]]
+        end
+      end
+    end
+
+    let(:result) { contract.call({ id: 123 }) }
+
+    it "keeps the error of the rule defined first" do
+      assert_equal({ id: "needs to be a String" }, result.errors)
+    end
+  end
 end
