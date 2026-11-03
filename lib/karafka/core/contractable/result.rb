@@ -5,6 +5,9 @@ module Karafka
     module Contractable
       # Representation of a validation result with resolved error messages
       class Result
+        # @return [Hash{Symbol => String}] error message per path. When a path has more than one
+        #   error, the first one reported is kept: rules run in definition order and a virtual
+        #   rule's errors keep the order it returns them in.
         attr_reader :errors
 
         # Empty hash that we use when no errors to save on allocations
@@ -36,6 +39,8 @@ module Karafka
 
           errors.each do |error|
             scope = error.first.map(&:to_s).join(".").to_sym
+
+            next if hashed.key?(scope)
 
             # This will allow for usage of custom messages instead of yaml keys if needed
             hashed[scope] = if error.last.is_a?(String)
