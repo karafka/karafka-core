@@ -3,11 +3,11 @@
 ## 2.6.7 (Unreleased)
 - [Maintenance] Declare `rake` in the `Gemfile`. It came only through `karafka-rdkafka`, which will stop depending on it for precompiled platform gems.
 - [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag about 6x faster on MRI and JRuby.
-- [Fix] Make `Contractable::Result#errors` keep the first error when one path has more than one, instead of the last. Before, a later error on the same path replaced the earlier one, e.g. a header key-type error was lost when a value-type error followed.
+- [Fix] Make `Contractable::Result#errors` keep the first error when one path has more than one, instead of the last.
 
 ## 2.6.6 (2026-10-25)
 - [Maintenance] Drop unused `byebug` from the test bundle.
-- [Maintenance] Close the producer in `bindings_test.rb` so the suite exits at once; on JRuby suite exit time dropped from ~315 s to 13–15 s (#49630).
+- [Maintenance] Close the producer in `bindings_test.rb` so the suite exits at once; on JRuby suite exit time dropped from ~315 s to 13–15 s.
 - [Fix] Make `Taggable::Tags` safe to read while another thread adds or removes tags. On JRuby a concurrent read could raise `NullPointerException`.
 - [Fix] Make `Taggable#tags` return one `Tags` per object when several threads call it first. On JRuby each thread could get its own `Tags`, and tags were lost.
 - [Fix] Make `Notifications#register_event` safe while other threads call `#instrument`. On JRuby a registered event could look unregistered or be dispatched without its method.
