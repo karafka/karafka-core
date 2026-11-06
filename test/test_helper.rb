@@ -40,6 +40,7 @@ SimpleCov.start do
   skip "/config/"
   skip "/patches/"
   merge_timeout 600
+  enable_coverage :branch
 end
 
 SimpleCov.minimum_coverage(98.8)
