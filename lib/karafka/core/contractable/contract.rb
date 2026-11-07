@@ -16,7 +16,8 @@ module Karafka
 
         # Empty array for scope default to avoid allocating a new Array on each
         # `#call` / `#validate!` invocation. Safe because scope is never mutated - it is only
-        # used in `scope + rule.path` which creates a new Array.
+        # used in `scope + rule.path` which creates a new Array. Also stands for the rules of a
+        # contract that defines none.
         EMPTY_ARRAY = [].freeze
 
         private_constant :DIG_MISS, :EMPTY_ARRAY
@@ -54,14 +55,25 @@ module Karafka
           # error if missing)
           #
           # @param keys [Array<Symbol>] single or full path
-          # @param block [Proc] validation rule
+          # @param block [Proc] validation rule, called with `(value, data, errors, contract)`.
+          #   It returns `true` when the value is valid. A String is used as the error message.
+          #   `false` or `nil` reports the `:format` error key. Any other value (e.g. a Symbol) is
+          #   used as the error key to look up in the error messages.
+          #
+          # @note Only `true` means valid. Any other truthy value is an error key, so a block
+          #   ending with e.g. `value =~ regexp` (which returns `0` on a match) reports an error,
+          #   and building its message raises `KeyError` when no such key is defined.
           def required(*keys, &block)
             init_accu
             @rules << Rule.new(@nested + keys, :required, block).freeze
           end
 
+          # Defines a rule for an optional field. A missing key is not an error, but a present
+          # key is validated, also when its value is `nil`.
+          #
           # @param keys [Array<Symbol>] single or full path
-          # @param block [Proc] validation rule
+          # @param block [Proc] validation rule, with the same arguments and return values as in
+          #   {.required}
           def optional(*keys, &block)
             init_accu
             @rules << Rule.new(@nested + keys, :optional, block).freeze
@@ -80,6 +92,10 @@ module Karafka
           #   supported -- in-place scoping would accumulate the prefix across validations (or
           #   raise `FrozenError`). Build the result in the block (e.g. `[[%i[id], :invalid]]`)
           #   rather than returning a constant.
+          #
+          # @note A virtual rule ignores an enclosing `nested`: its block receives the root data
+          #   (also when it is not a Hash) and its error paths start at the root. Define virtual
+          #   rules outside of `nested` and use full paths in the returned errors.
           def virtual(&block)
             init_accu
             @rules << Rule.new([], :virtual, block).freeze
@@ -114,7 +130,7 @@ module Karafka
           # report missing, consistent with the non-Hash intermediate handling inside #dig.
           data_is_hash = data.is_a?(Hash)
 
-          self.class.rules.each do |rule|
+          (self.class.rules || EMPTY_ARRAY).each do |rule|
             if rule.type == :virtual
               result = rule.validator.call(data, errors, self)
 
@@ -126,7 +142,7 @@ module Karafka
 
               # Apply the scope prefix in place on the rule's returned pairs and collect them
               # directly. Per the `virtual` contract the rule hands back a freshly built Array
-              # each call (see `DSL#virtual`), so mutating it here is safe and avoids allocating a
+              # each call (see `Contract.virtual`), so mutating it here is safe and avoids allocating a
               # new pair per error.
               result.each do |sub_result|
                 sub_result[0] = scope + sub_result[0]
