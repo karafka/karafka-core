@@ -303,6 +303,19 @@ describe_current do
     end
   end
 
+  context "when a contract has no rules" do
+    let(:validator_class) { Class.new(described_class) }
+
+    it { assert_predicate validator_class.new.call({}), :success? }
+    it { assert validator_class.new.validate!({}, ArgumentError) }
+  end
+
+  context "when a subclass of a contract with rules defines no rules of its own" do
+    let(:subclass) { Class.new(validator_class) }
+
+    it { assert_predicate subclass.new.call({}), :success? }
+  end
+
   context "when contract has multiple nestings" do
     subject(:validator_class) do
       Class.new(described_class) do
@@ -340,7 +353,7 @@ describe_current do
   end
 
   describe "virtual rule result array ownership" do
-    # These document the `virtual` contract (see `Contract::DSL#virtual`): a rule returns a
+    # These document the `virtual` contract (see `Contract.virtual`): a rule returns a
     # freshly built Array of `[path, message]` pairs each call, and `#call` takes ownership of it
     # -- it prefixes the current scope onto each pair in place and collects them. They
     # characterize that intended behavior, they are not asserting a bug.
