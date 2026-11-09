@@ -306,13 +306,24 @@ describe_current do
   context "when a contract has no rules" do
     let(:validator_class) { Class.new(described_class) }
 
+    it { assert_equal [], validator_class.rules }
+    it { assert_equal [], described_class.rules }
     it { assert_predicate validator_class.new.call({}), :success? }
     it { assert validator_class.new.validate!({}, ArgumentError) }
+
+    it "expect not to share the empty rules with a later defined rule" do
+      validator_class.rules
+      validator_class.required(:id) { |id| id.is_a?(String) }
+
+      assert_equal %i[id], validator_class.rules.last.path
+      assert_equal [], Class.new(described_class).rules
+    end
   end
 
   context "when a subclass of a contract with rules defines no rules of its own" do
     let(:subclass) { Class.new(validator_class) }
 
+    it { assert_equal [], subclass.rules }
     it { assert_predicate subclass.new.call({}), :success? }
   end
 
