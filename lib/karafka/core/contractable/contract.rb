@@ -30,12 +30,12 @@ module Karafka
           attr_reader :rules
 
           # Gives each contract its own rules accumulator, so {.rules} is an Array also for a
-          # contract that defines no rules, without a fallback in the per-validation `#call`
+          # contract that defines no rules and `#call` needs no fallback
           #
           # @param subclass [Class] new contract class
           def inherited(subclass)
             super
-            subclass.send(:init_accu)
+            subclass.init_accu
           end
 
           # Allows for definition of a scope/namespace for nested validations
@@ -109,7 +109,7 @@ module Karafka
             @rules << Rule.new([], :virtual, block).freeze
           end
 
-          private
+          protected
 
           # Initializes nestings and rules building accumulator
           def init_accu
