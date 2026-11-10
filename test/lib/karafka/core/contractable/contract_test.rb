@@ -285,6 +285,67 @@ describe_current do
     end
   end
 
+  context "when virtual is defined inside nested" do
+    it "raises ArgumentError naming the nested path" do
+      error = assert_raises(ArgumentError) do
+        Class.new(described_class) do
+          nested(:a) { virtual { true } }
+        end
+      end
+
+      assert_equal "virtual cannot be defined inside nested (a)", error.message
+    end
+
+    it "raises ArgumentError naming the full path when nested deeper" do
+      error = assert_raises(ArgumentError) do
+        Class.new(described_class) do
+          nested(:a) { nested(:b) { virtual { true } } }
+        end
+      end
+
+      assert_equal "virtual cannot be defined inside nested (a.b)", error.message
+    end
+
+    it "does not leak the nested path onto rules defined after the rescued error" do
+      validator_class = Class.new(described_class) do
+        begin
+          nested(:a) { virtual { true } }
+        rescue ArgumentError
+          nil
+        end
+
+        virtual { true }
+        required(:id) { |id| id.is_a?(String) }
+      end
+
+      assert_equal [[], %i[id]], validator_class.rules.map(&:path)
+    end
+  end
+
+  context "when virtual is defined at the root after a nested block" do
+    let(:validator_class) do
+      Class.new(described_class) do
+        nested(:a) do
+          required(:id) { |id| id.is_a?(String) }
+        end
+
+        virtual do |data, _errors, _contract|
+          data.key?(:root) || [[%i[root], "root error"]]
+        end
+      end
+    end
+
+    it "gets the root data" do
+      assert_predicate validator_class.new.call({ root: 1, a: { id: "1" } }), :success?
+    end
+
+    it "reports errors from the root" do
+      result = validator_class.new.call({ a: { id: "1" } })
+
+      assert_equal({ root: "root error" }, result.errors)
+    end
+  end
+
   context "when a virtual rule returns a non-array value" do
     # Regression: a virtual rule returning false reached `false.each` and raised NoMethodError
     # (nil was already tolerated). Any non-Array result (true/false/nil) means "no errors".

@@ -101,11 +101,18 @@ module Karafka
           #   raise `FrozenError`). Build the result in the block (e.g. `[[%i[id], :invalid]]`)
           #   rather than returning a constant.
           #
-          # @note A virtual rule ignores an enclosing `nested`: its block receives the root data
-          #   (also when it is not a Hash) and its error paths start at the root. Define virtual
-          #   rules outside of `nested` and use full paths in the returned errors.
+          # @note A virtual rule cannot be defined inside `nested`: its block receives the root
+          #   data (also when it is not a Hash) and its error paths start at the root. Define
+          #   virtual rules outside of `nested` and use full paths in the returned errors.
+          #
+          # @raise [ArgumentError] when called inside a `nested` block
           def virtual(&block)
             init_accu
+
+            unless @nested.empty?
+              raise ArgumentError, "virtual cannot be defined inside nested (#{@nested.join(".")})"
+            end
+
             @rules << Rule.new([], :virtual, block).freeze
           end
 
