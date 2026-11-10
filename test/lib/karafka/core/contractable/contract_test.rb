@@ -286,24 +286,24 @@ describe_current do
   end
 
   context "when virtual is defined inside nested" do
-    it "raises ArgumentError naming the nested path" do
+    it "raises ArgumentError with the nested path" do
       error = assert_raises(ArgumentError) do
         Class.new(described_class) do
           nested(:a) { virtual { true } }
         end
       end
 
-      assert_equal "virtual cannot be defined inside nested (a)", error.message
+      assert_equal "a", error.message
     end
 
-    it "raises ArgumentError naming the full path when nested deeper" do
+    it "raises ArgumentError with the full path when nested deeper" do
       error = assert_raises(ArgumentError) do
         Class.new(described_class) do
           nested(:a) { nested(:b) { virtual { true } } }
         end
       end
 
-      assert_equal "virtual cannot be defined inside nested (a.b)", error.message
+      assert_equal "a.b", error.message
     end
 
     it "does not leak the nested path onto rules defined after the rescued error" do

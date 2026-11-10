@@ -105,13 +105,12 @@ module Karafka
           #   data (also when it is not a Hash) and its error paths start at the root. Define
           #   virtual rules outside of `nested` and use full paths in the returned errors.
           #
-          # @raise [ArgumentError] when called inside a `nested` block
+          # @raise [ArgumentError] when called inside a `nested` block, with the nested path as the
+          #   message
           def virtual(&block)
             init_accu
 
-            unless @nested.empty?
-              raise ArgumentError, "virtual cannot be defined inside nested (#{@nested.join(".")})"
-            end
+            raise ArgumentError, @nested.join(".") unless @nested.empty?
 
             @rules << Rule.new([], :virtual, block).freeze
           end
