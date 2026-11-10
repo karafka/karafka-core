@@ -1,5 +1,8 @@
 # Karafka Core Changelog
 
+## 2.6.8 (Unreleased)
+- [Change] Make `Contractable::Contract.virtual` raise `ArgumentError` when called inside `nested`. Such a rule ignored the nesting and got the root data.
+
 ## 2.6.7 (2026-11-10)
 - [Maintenance] Declare `rake` in the `Gemfile`. It came only through `karafka-rdkafka`, which will stop depending on it for precompiled platform gems.
 - [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag about 6x faster on MRI and JRuby.
