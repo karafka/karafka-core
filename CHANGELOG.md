@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.6.7 (Unreleased)
+## 2.6.7 (2026-11-10)
 - [Maintenance] Declare `rake` in the `Gemfile`. It came only through `karafka-rdkafka`, which will stop depending on it for precompiled platform gems.
 - [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag about 6x faster on MRI and JRuby.
 - [Fix] Make `Contractable::Result#errors` keep the first error when one path has more than one, instead of the last.
