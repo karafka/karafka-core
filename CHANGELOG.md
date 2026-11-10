@@ -5,6 +5,7 @@
 - [Enhancement] Make `Taggable::Tags#add` with the value a tag already has and `#delete` of a missing tag about 6x faster on MRI and JRuby.
 - [Fix] Make `Contractable::Result#errors` keep the first error when one path has more than one, instead of the last.
 - [Fix] Make `Contractable::Contract#call` return a successful result for a contract with no rules of its own, instead of raising `NoMethodError`.
+- [Fix] Make `Contractable::Contract.rules` return an empty Array for a contract with no rules, instead of `nil`.
 
 ## 2.6.6 (2026-10-25)
 - [Maintenance] Drop unused `byebug` from the test bundle.

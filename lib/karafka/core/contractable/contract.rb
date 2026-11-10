@@ -16,8 +16,7 @@ module Karafka
 
         # Empty array for scope default to avoid allocating a new Array on each
         # `#call` / `#validate!` invocation. Safe because scope is never mutated - it is only
-        # used in `scope + rule.path` which creates a new Array. Also stands for the rules of a
-        # contract that defines none.
+        # used in `scope + rule.path` which creates a new Array.
         EMPTY_ARRAY = [].freeze
 
         private_constant :DIG_MISS, :EMPTY_ARRAY
@@ -29,6 +28,15 @@ module Karafka
         class << self
           # @return [Array<Rule>] all the validation rules defined for a given contract
           attr_reader :rules
+
+          # Gives each contract its own rules accumulator, so {.rules} is an Array also for a
+          # contract that defines no rules and `#call` needs no fallback
+          #
+          # @param subclass [Class] new contract class
+          def inherited(subclass)
+            super
+            subclass.init_accu
+          end
 
           # Allows for definition of a scope/namespace for nested validations
           #
@@ -101,7 +109,7 @@ module Karafka
             @rules << Rule.new([], :virtual, block).freeze
           end
 
-          private
+          protected
 
           # Initializes nestings and rules building accumulator
           def init_accu
@@ -109,6 +117,8 @@ module Karafka
             @rules ||= []
           end
         end
+
+        init_accu
 
         # Runs the validation
         #
@@ -130,7 +140,7 @@ module Karafka
           # report missing, consistent with the non-Hash intermediate handling inside #dig.
           data_is_hash = data.is_a?(Hash)
 
-          (self.class.rules || EMPTY_ARRAY).each do |rule|
+          self.class.rules.each do |rule|
             if rule.type == :virtual
               result = rule.validator.call(data, errors, self)
 
