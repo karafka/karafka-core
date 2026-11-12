@@ -1,6 +1,7 @@
 # Karafka Core Changelog
 
 ## 2.6.8 (Unreleased)
+- [Feature] Add `Helpers::Kafka::Config.enabled?` that treats a librdkafka boolean setting as on only when it is `true` or `"true"`.
 - [Change] Make `Contractable::Contract.virtual` raise `ArgumentError` when called inside `nested`. Such a rule ignored the nesting and got the root data.
 
 ## 2.6.7 (2026-11-10)
