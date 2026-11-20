@@ -1,5 +1,10 @@
 # Karafka Core Changelog
 
+## 2.6.9 (Unreleased)
+- [Maintenance] Release the code of 2.6.8 again, with a Sigstore attestation. 2.6.6, 2.6.7 and 2.6.8 were published without one: signing failed in the release workflow (the signer does not work with json 3.x, the default of Ruby 4.0) and the attestation patch then pushed the gems unsigned. There are no code changes; use 2.6.9 rather than 2.6.8 for the attested gem.
+- [Maintenance] Sign the gem with `sigstore-cli` and push it with `gem push --attestation` (`.github/release/push_gem.sh`), so a failed signing stops the release instead of publishing the gem without an attestation.
+- [Maintenance] Add the `Sigstore Check` workflow: nightly, and on pull requests that change the release scripts or the push workflow, it builds the gem, signs it like a release and verifies the attestation, without pushing.
+
 ## 2.6.8 (2026-11-12)
 - [Feature] Add `Helpers::Kafka::Config.enabled?` that treats a librdkafka boolean setting as on only when it is `true` or `"true"`.
 - [Change] Make `Contractable::Contract.virtual` raise `ArgumentError` when called inside `nested`. Such a rule ignored the nesting and got the root data.
