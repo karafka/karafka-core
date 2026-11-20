@@ -1,6 +1,6 @@
 # Karafka Core Changelog
 
-## 2.6.9 (Unreleased)
+## 2.6.9 (2026-11-20)
 - [Maintenance] Release the code of 2.6.8 again, with a Sigstore attestation. 2.6.6, 2.6.7 and 2.6.8 were published without one: signing failed in the release workflow (the signer does not work with json 3.x, the default of Ruby 4.0) and the attestation patch then pushed the gems unsigned. There are no code changes; use 2.6.9 rather than 2.6.8 for the attested gem.
 - [Maintenance] Sign the gem with `sigstore-cli` and push it with `gem push --attestation` (the `gem-push` action of `karafka/misc`), so a failed signing stops the release instead of publishing the gem without an attestation.
 - [Maintenance] Add the `Sigstore Check` workflow: nightly, and on pull requests that change the push workflow, it builds the gem, signs it like a release and verifies the attestation, without pushing.
